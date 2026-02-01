@@ -10,10 +10,32 @@ import CustomerTrackingView from './components/CustomerTrackingView';
 import AdminAuthView from './components/AdminAuthView';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<AppView>('CUSTOMER_ENTRY');
-  const [activeCompany, setActiveCompany] = useState<Company | null>(null);
-  const [activeOrder, setActiveOrder] = useState<Order | null>(null);
+  const [currentView, setCurrentView] = useState<AppView>(() => {
+    return (localStorage.getItem('kwikfood_view') as AppView) || 'CUSTOMER_ENTRY';
+  });
+  const [activeCompany, setActiveCompany] = useState<Company | null>(() => {
+    const saved = localStorage.getItem('kwikfood_company');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [activeOrder, setActiveOrder] = useState<Order | null>(() => {
+    const saved = localStorage.getItem('kwikfood_order');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [companies, setCompanies] = useState<Company[]>([]);
+
+  useEffect(() => {
+    localStorage.setItem('kwikfood_view', currentView);
+  }, [currentView]);
+
+  useEffect(() => {
+    if (activeCompany) localStorage.setItem('kwikfood_company', JSON.stringify(activeCompany));
+    else localStorage.removeItem('kwikfood_company');
+  }, [activeCompany]);
+
+  useEffect(() => {
+    if (activeOrder) localStorage.setItem('kwikfood_order', JSON.stringify(activeOrder));
+    else localStorage.removeItem('kwikfood_order');
+  }, [activeOrder]);
 
   useEffect(() => {
     const load = async () => {
@@ -55,6 +77,7 @@ const App: React.FC = () => {
       case 'CUSTOMER_ENTRY':
       default:
         return <CustomerEntryView
+          companies={companies}
           onJoinQueue={(order) => {
             setActiveOrder(order);
             setCurrentView('CUSTOMER_TRACKING');
@@ -65,6 +88,7 @@ const App: React.FC = () => {
         />;
       case 'ADMIN_AUTH':
         return <AdminAuthView
+          companies={companies}
           onBack={() => setCurrentView('CUSTOMER_ENTRY')}
           onSuccess={(type, id) => {
             if (type === 'SUPER') {

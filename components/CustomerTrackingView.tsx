@@ -28,6 +28,20 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
         const { data: prods } = await supabase.from('products').select('*').eq('company_id', order.companyId);
         if (prods) setProducts(prods.map(p => ({ ...p, imageUrl: p.image_url })));
+
+        // Hydrate order to get latest status if refreshed
+        const { data: latestOrder } = await supabase.from('orders').select('*').eq('id', order.id).single();
+        if (latestOrder) {
+          setOrder({
+            ...order,
+            status: latestOrder.status,
+            ticketCode: latestOrder.ticket_code,
+            queuePosition: latestOrder.queue_position,
+            estimatedMinutes: latestOrder.estimated_minutes,
+            items: latestOrder.items,
+            total: latestOrder.total
+          });
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -64,8 +78,32 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       )
       .subscribe();
 
+    const pChannel = supabase
+      .channel(`products-${order.companyId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'products', filter: `company_id=eq.${order.companyId}` },
+        () => {
+          loadData();
+        }
+      )
+      .subscribe();
+
+    const cChannel = supabase
+      .channel(`company-${order.companyId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'companies', filter: `id=eq.${order.companyId}` },
+        () => {
+          loadData();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(pChannel);
+      supabase.removeChannel(cChannel);
     };
   }, [order.id, order.companyId]);
 
@@ -248,19 +286,25 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               </div>
             </div>
 
-            <div className="divide-y divide-gray-50 border-y border-gray-50">
+            <div className="divide-y divide-gray-100 border-y border-gray-100 bg-gray-50/30 rounded-[2rem] px-8">
               {order.items.map((item, i) => (
-                <div key={i} className="py-6 flex justify-between items-start group">
-                  <div className="space-y-1">
-                    <p className="font-black text-lg text-black group-hover:text-primary transition-colors">{item.name}</p>
+                <div key={i} className="py-8 flex justify-between items-center group">
+                  <div className="space-y-2">
+                    <p className="font-black text-xl text-black group-hover:text-primary transition-colors">{item.name}</p>
                     {item.observation && (
-                      <div className="flex items-center gap-2 text-orange-600 italic text-[11px] font-bold">
-                        <span className="material-symbols-outlined text-xs">info</span>
-                        "{item.observation}"
+                      <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-primary/10 shadow-sm animate-in slide-in-from-left duration-500">
+                        <span className="material-symbols-outlined text-primary text-sm font-black">notification_important</span>
+                        <p className="text-primary font-bold italic text-[12px] leading-tight">
+                          "{item.observation}"
+                        </p>
                       </div>
                     )}
                   </div>
-                  <span className="font-black text-black bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">Kz {item.price.toLocaleString()}</span>
+                  <div className="text-right">
+                    <span className="font-black text-lg text-black bg-white px-5 py-2.5 rounded-2xl border border-gray-100 shadow-sm min-w-[120px] inline-block">
+                      Kz {item.price.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

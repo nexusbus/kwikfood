@@ -273,32 +273,34 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       </div>
                     </div>
 
-                    <div className="flex-1 px-12 xl:border-x border-gray-50 py-2 w-full">
-                      <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2 opacity-50">
-                        <span className="material-symbols-outlined text-sm">restaurant_menu</span>
+                    <div className="flex-1 px-12 xl:border-x border-gray-50 py-2 w-full bg-gray-50/20 rounded-[2.5rem] mx-6">
+                      <p className="text-[11px] font-black text-black uppercase tracking-[0.2em] mb-6 flex items-center gap-3 opacity-60">
+                        <span className="material-symbols-outlined text-primary">restaurant_menu</span>
                         ITENS DO PEDIDO
                       </p>
                       {order.items && order.items.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {order.items.map((item, i) => (
-                            <div key={i} className="flex flex-col gap-2 p-5 bg-gray-50 rounded-3xl border border-gray-50 hover:border-primary/20 hover:bg-white hover:shadow-lg hover:shadow-gray-200/30 transition-all duration-300">
+                            <div key={i} className="flex flex-col gap-3 p-6 bg-white rounded-[2rem] border border-gray-100 hover:border-primary/20 hover:shadow-xl hover:shadow-gray-200/40 transition-all duration-300 relative group/item">
                               <div className="flex justify-between items-center">
-                                <span className="font-black text-black">{item.name}</span>
-                                <span className="size-6 bg-black text-white rounded-full flex items-center justify-center text-[10px] font-black">1</span>
+                                <span className="font-black text-lg text-black">{item.name}</span>
+                                <span className="size-8 bg-black text-white rounded-xl flex items-center justify-center text-[11px] font-black group-hover/item:bg-primary transition-colors">1</span>
                               </div>
                               {item.observation && (
-                                <div className="flex items-start gap-2 pt-2 border-t border-gray-200/50">
-                                  <span className="material-symbols-outlined text-[14px] text-primary mt-0.5">notification_important</span>
-                                  <span className="text-[11px] font-bold text-primary italic leading-tight">"{item.observation}"</span>
+                                <div className="flex items-start gap-3 pt-3 border-t border-gray-100 bg-orange-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-[2rem]">
+                                  <span className="material-symbols-outlined text-[18px] text-orange-600 font-black mt-0.5 animate-pulse">notification_important</span>
+                                  <span className="text-[12px] font-black text-orange-700 italic leading-tight">
+                                    "{item.observation}"
+                                  </span>
                                 </div>
                               )}
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="py-8 bg-gray-50/50 rounded-3xl border border-dashed border-gray-100 flex flex-col items-center justify-center gap-3 text-gray-300">
-                          <span className="material-symbols-outlined text-3xl animate-spin-slow">sync</span>
-                          <p className="text-[10px] font-black uppercase tracking-widest">Pedido em formação pelo cliente</p>
+                        <div className="py-12 bg-white rounded-[2.5rem] border border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 text-gray-300">
+                          <span className="material-symbols-outlined text-4xl animate-spin-slow">sync</span>
+                          <p className="text-[11px] font-black uppercase tracking-[0.3em]">Preparando Escolhas...</p>
                         </div>
                       )}
                     </div>
@@ -306,21 +308,21 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     <div className="flex flex-row xl:flex-col gap-3 min-w-[240px] w-full xl:w-auto">
                       <button
                         onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
-                        className={`flex-1 flex items-center justify-center gap-4 px-10 py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${order.status === OrderStatus.PREPARING ? 'bg-orange-600 text-white shadow-2xl shadow-orange-600/30 ring-8 ring-orange-600/10' : 'bg-gray-50 text-gray-400 hover:bg-white hover:text-black hover:shadow-xl'}`}
+                        className={`flex-1 flex items-center justify-center gap-4 px-10 py-5 rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${order.status === OrderStatus.PREPARING ? 'bg-orange-600 text-white shadow-2xl shadow-orange-600/40 ring-8 ring-orange-600/10' : 'bg-gray-50 text-gray-400 hover:bg-black hover:text-white hover:shadow-xl active:scale-95'}`}
                       >
-                        <span className="material-symbols-outlined font-black">cooking</span>
-                        PREPARAR
+                        <span className="material-symbols-outlined font-black">{order.status === OrderStatus.PREPARING ? 'autofps_select' : 'cooking'}</span>
+                        {order.status === OrderStatus.PREPARING ? 'NA COZINHA' : 'PREPARAR'}
                       </button>
                       <button
                         onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
-                        className={`flex-1 flex items-center justify-center gap-4 px-10 py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${order.status === OrderStatus.READY ? 'bg-green-600 text-white shadow-2xl shadow-green-600/30 ring-8 ring-green-600/10' : 'bg-gray-50 text-gray-400 hover:bg-white hover:text-black hover:shadow-xl'}`}
+                        className={`flex-1 flex items-center justify-center gap-4 px-10 py-5 rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${order.status === OrderStatus.READY ? 'bg-green-600 text-white shadow-2xl shadow-green-600/40 ring-8 ring-green-600/10' : 'bg-gray-50 text-gray-400 hover:bg-black hover:text-white hover:shadow-xl active:scale-95'}`}
                       >
-                        <span className="material-symbols-outlined font-black">notifications_active</span>
-                        PRONTO
+                        <span className="material-symbols-outlined font-black">{order.status === OrderStatus.READY ? 'check_circle' : 'notifications_active'}</span>
+                        {order.status === OrderStatus.READY ? 'PRONTO' : 'NOTIFICAR'}
                       </button>
                       <button
                         onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                        className="flex-1 flex items-center justify-center gap-4 px-10 py-5 bg-black text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-primary transition-all active:scale-95 shadow-xl shadow-black/20"
+                        className="flex-1 flex items-center justify-center gap-4 px-10 py-5 bg-black text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-primary hover:shadow-2xl hover:shadow-primary/40 transition-all active:scale-95"
                       >
                         <span className="material-symbols-outlined font-black">done_all</span>
                         ENTREGAR

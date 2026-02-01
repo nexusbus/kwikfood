@@ -5,28 +5,16 @@ import { Order, OrderStatus, Company } from '../types';
 import { supabase } from '../src/lib/supabase';
 
 interface CustomerEntryViewProps {
+  companies: Company[];
   onJoinQueue: (order: Order) => void;
   onAdminAccess: () => void;
 }
 
-const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ onJoinQueue, onAdminAccess }) => {
+const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoinQueue, onAdminAccess }) => {
   const [code, setCode] = useState('');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [companies, setCompanies] = useState<Company[]>([]);
-
-  useEffect(() => {
-    const loadCompanies = async () => {
-      try {
-        const data = await fetchCompanies();
-        setCompanies(data);
-      } catch (err) {
-        console.error('Error loading companies:', err);
-      }
-    };
-    loadCompanies();
-  }, []);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371e3; // metres
