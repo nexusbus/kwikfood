@@ -1,0 +1,8 @@
+
+{
+  "name": "KwikFood Angola - Fila Inteligente",
+  "description": "Uma plataforma de gestão de filas e pedidos para estabelecimentos de fast food em Angola, permitindo que clientes entrem na fila digitalmente via QR Code.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
