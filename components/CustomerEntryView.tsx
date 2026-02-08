@@ -75,9 +75,11 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               estimatedMinutes: 5,
             });
             onJoinQueue(newOrderData);
-          } catch (err) {
+          } catch (err: any) {
             setError('Erro ao entrar na fila. Tente novamente.');
-            console.error(err);
+            console.error('Queue Entry Error Details:', err);
+            if (err.message) console.error('Error Message:', err.message);
+            if (err.details) console.error('Error Details:', err.details);
           } finally {
             setLoading(false);
           }

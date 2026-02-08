@@ -19,63 +19,105 @@ export const fetchProducts = async (companyId: string): Promise<Product[]> => {
   })) as Product[];
 };
 
+export const getNextCompanyId = async (): Promise<string> => {
+  try {
+    const { data, error } = await supabase
+      .from('companies')
+      .select('id')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+    if (!data || data.length === 0) return 'K100';
+
+    // Pattern: 1 Letter + N Digits
+    const lastId = data[0].id;
+    const match = lastId.match(/^([A-Z])(\d+)$/);
+    if (!match) return 'K100';
+
+    const letter = match[1];
+    const num = parseInt(match[2]);
+    return `${letter}${num + 1}`;
+  } catch (err) {
+    console.error('Error fetching next company ID:', err);
+    return 'K' + Math.floor(100 + Math.random() * 900); // fallback to random on error
+  }
+};
+
 export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticketCode' | 'ticketNumber' | 'timerAccumulatedSeconds' | 'timerLastStartedAt'>) => {
-  // Get today's range
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  try {
+    // Get today's range
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-  // Get current max ticket number for today
-  const { data: lastJobs } = await supabase
-    .from('orders')
-    .select('ticket_number')
-    .eq('company_id', order.companyId)
-    .gte('created_at', today.toISOString())
-    .lt('created_at', tomorrow.toISOString())
-    .order('ticket_number', { ascending: false })
-    .limit(1);
+    // Get current max ticket number for today
+    const { data: lastJobs, error: fetchError } = await supabase
+      .from('orders')
+      .select('ticket_number')
+      .eq('company_id', order.companyId)
+      .gte('created_at', today.toISOString())
+      .lt('created_at', tomorrow.toISOString())
+      .order('ticket_number', { ascending: false })
+      .limit(1);
 
-  const nextNumber = (lastJobs && lastJobs.length > 0 ? lastJobs[0].ticket_number : 0) + 1;
-  const ticketCode = nextNumber.toString().padStart(3, '0');
+    if (fetchError) {
+      console.error('Error fetching last ticket index:', fetchError);
+    }
 
-  // Count pending orders for initial queue position (FIFO)
-  const { count } = await supabase
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .eq('company_id', order.companyId)
-    .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY]);
+    const nextNumber = (lastJobs && lastJobs.length > 0 ? lastJobs[0].ticket_number : 0) + 1;
+    const ticketCode = nextNumber.toString().padStart(3, '0');
 
-  const initialPosition = (count || 0) + 1;
+    // Count pending orders for initial queue position (FIFO)
+    const { count, error: countError } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('company_id', order.companyId)
+      .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY]);
 
-  const { data, error } = await supabase
-    .from('orders')
-    .insert([{
-      company_id: order.companyId,
-      customer_phone: order.customerPhone,
-      status: order.status,
-      queue_position: initialPosition,
-      estimated_minutes: order.estimatedMinutes,
-      ticket_code: ticketCode,
-      ticket_number: nextNumber,
-      timer_last_started_at: null, // Timer only starts when status changes to PREPARING
-      timer_accumulated_seconds: 0
-    }])
-    .select()
-    .single();
+    if (countError) {
+      console.error('Error counting queue position:', countError);
+    }
 
-  if (error) throw error;
-  return {
-    ...data,
-    id: data.id,
-    ticketCode: data.ticket_code,
-    ticketNumber: data.ticket_number,
-    companyId: data.company_id,
-    customerPhone: data.customer_phone,
-    queuePosition: data.queue_position,
-    estimatedMinutes: data.estimated_minutes,
-    timerAccumulatedSeconds: data.timer_accumulated_seconds,
-    timerLastStartedAt: data.timer_last_started_at,
-    timestamp: data.created_at
-  } as Order;
+    const initialPosition = (count || 0) + 1;
+
+    const { data, error: insertError } = await supabase
+      .from('orders')
+      .insert([{
+        company_id: order.companyId,
+        customer_phone: order.customerPhone,
+        status: order.status,
+        queue_position: initialPosition,
+        estimated_minutes: order.estimatedMinutes,
+        ticket_code: ticketCode,
+        ticket_number: nextNumber,
+        timer_last_started_at: null,
+        timer_accumulated_seconds: 0
+      }])
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Database Insertion Error:', insertError);
+      throw insertError;
+    }
+
+    return {
+      ...data,
+      id: data.id,
+      ticketCode: data.ticket_code,
+      ticketNumber: data.ticket_number,
+      companyId: data.company_id,
+      customerPhone: data.customer_phone,
+      queuePosition: data.queue_position,
+      estimatedMinutes: data.estimated_minutes,
+      timerAccumulatedSeconds: data.timer_accumulated_seconds,
+      timerLastStartedAt: data.timer_last_started_at,
+      timestamp: data.created_at
+    } as Order;
+  } catch (err) {
+    console.error('Fatal createOrder Error:', err);
+    throw err;
+  }
 };

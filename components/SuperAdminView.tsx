@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { fetchCompanies } from '../constants';
+import { fetchCompanies, getNextCompanyId } from '../constants';
 import { supabase } from '../src/lib/supabase';
 import { Company } from '../types';
 
@@ -19,7 +19,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [name, setName] = useState('');
   const [nif, setNif] = useState('');
   const [location, setLocation] = useState('Luanda');
-  const [id, setId] = useState('B294');
+  const [id, setId] = useState('');
   const [lat, setLat] = useState<number | ''>('');
   const [lng, setLng] = useState<number | ''>('');
   const [email, setEmail] = useState('');
@@ -37,16 +37,18 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [auditLoading, setAuditLoading] = useState(false);
 
   useEffect(() => {
-    const loadCompanies = async () => {
-      const data = await fetchCompanies();
-      setCompanies(data);
+    const loadData = async () => {
+      const cData = await fetchCompanies();
+      setCompanies(cData);
+      const nextId = await getNextCompanyId();
+      setId(nextId);
     };
-    loadCompanies();
+    loadData();
 
     const channel = supabase
       .channel('companies-all-premium')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'companies' }, () => {
-        loadCompanies();
+        loadData();
       })
       .subscribe();
 
@@ -111,7 +113,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       }
 
       setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword('');
-      setId(String.fromCharCode(65 + Math.floor(Math.random() * 26)) + Math.floor(100 + Math.random() * 900));
+      const nextId = await getNextCompanyId();
+      setId(nextId);
     } catch (err: any) {
       console.error(err);
       alert('FALHA NA SINCRONIZAÇÃO: ' + (err.message || 'Erro de rede'));
@@ -133,10 +136,11 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = async () => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword('');
-    setId(String.fromCharCode(65 + Math.floor(Math.random() * 26)) + Math.floor(100 + Math.random() * 900));
+    const nextId = await getNextCompanyId();
+    setId(nextId);
   };
 
   const handleSecureDelete = async (e: React.FormEvent) => {
@@ -461,8 +465,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                         </td>
                         <td className="px-12 py-12">
                           <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${order.status === 'DELIVERED' ? 'bg-gray-100 text-gray-600' :
-                              order.status === 'READY' ? 'bg-green-100 text-green-600' :
-                                'bg-orange-100 text-orange-600'
+                            order.status === 'READY' ? 'bg-green-100 text-green-600' :
+                              'bg-orange-100 text-orange-600'
                             }`}>
                             {order.status}
                           </span>
