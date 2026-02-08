@@ -15,6 +15,37 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [submittingOrder, setSubmittingOrder] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+
+  const calculateElapsed = (accumulated: number, lastStarted: string | undefined, status: OrderStatus) => {
+    if (status === OrderStatus.READY || status === OrderStatus.DELIVERED || !lastStarted) {
+      setElapsedSeconds(accumulated);
+    } else {
+      const start = new Date(lastStarted).getTime();
+      const now = new Date().getTime();
+      setElapsedSeconds(accumulated + Math.floor((now - start) / 1000));
+    }
+  };
+
+  const playNotificationSound = () => {
+    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    let count = 0;
+    const playNext = () => {
+      if (count < 5) {
+        audio.play().catch(e => console.error('Audio play failed:', e));
+        count++;
+        setTimeout(playNext, 2000); // Play every 2 seconds
+      }
+    };
+    playNext();
+  };
+
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, '0')}h:${m.toString().padStart(2, '0')}min:${s.toString().padStart(2, '0')}s`;
+  };
 
   useEffect(() => {
     requestNotificationPermission();
@@ -33,13 +64,32 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         if (latestOrder) {
           setOrder({
             ...order,
-            status: latestOrder.status,
+            status: latestOrder.status as OrderStatus,
             ticketCode: latestOrder.ticket_code,
+            ticketNumber: latestOrder.ticket_number,
             queuePosition: latestOrder.queue_position,
             estimatedMinutes: latestOrder.estimated_minutes,
+            timerAccumulatedSeconds: latestOrder.timer_accumulated_seconds || 0,
+            timerLastStartedAt: latestOrder.timer_last_started_at,
             items: latestOrder.items,
-            total: latestOrder.total
+            total: latestOrder.total,
+            timestamp: latestOrder.created_at
           });
+
+          calculateElapsed(latestOrder.timer_accumulated_seconds || 0, latestOrder.timer_last_started_at, latestOrder.status as OrderStatus);
+
+          // Calculate dynamic queue position
+          const { count: posCount } = await supabase
+            .from('orders')
+            .select('*', { count: 'exact', head: true })
+            .eq('company_id', order.companyId)
+            .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
+            .lt('created_at', latestOrder.created_at);
+
+          setOrder(prev => ({
+            ...prev,
+            queuePosition: (posCount || 0) + 1
+          }));
         }
       } catch (err) {
         console.error(err);
@@ -62,14 +112,14 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           setOrder(prev => {
             const nextStatus = updatedOrder.status || prev.status;
 
-            // Notification logic based on status change
             if (nextStatus !== prev.status) {
-              if (nextStatus === OrderStatus.RECEIVED) {
+              if (nextStatus === OrderStatus.READY) {
+                playNotificationSound();
+                showNotification('Seu pedido está pronto! 🍔', { body: 'Pode levantar o seu pedido no balcão.' });
+              } else if (nextStatus === OrderStatus.RECEIVED) {
                 showNotification('Pedido Recebido! 📝', { body: 'O restaurante já recebeu o seu pedido.' });
               } else if (nextStatus === OrderStatus.PREPARING) {
                 showNotification('Seu pedido entrou na cozinha! 🍳', { body: 'Estamos preparando tudo com carinho.' });
-              } else if (nextStatus === OrderStatus.READY) {
-                showNotification('Seu pedido está pronto! 🍔', { body: 'Pode levantar o seu pedido no balcão.' });
               } else if (nextStatus === OrderStatus.DELIVERED) {
                 showNotification('Pedido entregue! Bom apetite! 🍱', { body: 'Obrigado por escolher o KwikFood.' });
               }
@@ -77,14 +127,19 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
             return {
               ...prev,
-              status: nextStatus,
+              status: nextStatus as OrderStatus,
               ticketCode: updatedOrder.ticket_code ?? prev.ticketCode,
-              queuePosition: updatedOrder.queue_position ?? prev.queuePosition,
+              ticketNumber: updatedOrder.ticket_number ?? prev.ticketNumber,
               estimatedMinutes: updatedOrder.estimated_minutes ?? prev.estimatedMinutes,
+              timerAccumulatedSeconds: updatedOrder.timer_accumulated_seconds ?? prev.timerAccumulatedSeconds,
+              timerLastStartedAt: updatedOrder.timer_last_started_at ?? prev.timerLastStartedAt,
               items: updatedOrder.items ?? prev.items,
               total: updatedOrder.total ?? prev.total
             };
           });
+
+          // Recalculate position when any order is updated
+          loadData();
         }
       )
       .subscribe();
@@ -117,6 +172,18 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       supabase.removeChannel(cChannel);
     };
   }, [order.id, order.companyId]);
+
+  useEffect(() => {
+    let interval: any;
+    if (order.status !== OrderStatus.READY && order.status !== OrderStatus.DELIVERED && order.timerLastStartedAt) {
+      interval = setInterval(() => {
+        calculateElapsed(order.timerAccumulatedSeconds, order.timerLastStartedAt, order.status);
+      }, 1000);
+    } else {
+      setElapsedSeconds(order.timerAccumulatedSeconds);
+    }
+    return () => clearInterval(interval);
+  }, [order.status, order.timerAccumulatedSeconds, order.timerLastStartedAt]);
 
   const addToCart = (p: Product) => setCart([...cart, { ...p, observation: '' }]);
   const removeFromCart = (pId: string) => {
@@ -228,12 +295,12 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
             <div className="size-64 rounded-[3.5rem] bg-secondary flex flex-col items-center justify-center relative shadow-premium group transform hover:scale-105 transition-all duration-700">
               <div className="absolute inset-3 border-2 border-white/5 rounded-[2.8rem] border-dashed"></div>
-              <div className="relative">
-                <span className="text-8xl font-black text-primary leading-none">{order.estimatedMinutes}</span>
-                <span className="absolute -top-4 -right-12 text-primary/40 material-symbols-outlined text-4xl animate-spin-slow">timer</span>
+              <div className="relative text-center">
+                <span className="text-4xl font-black text-primary leading-none block mb-1">{formatTime(elapsedSeconds)}</span>
+                <span className="absolute -top-10 left-1/2 -translate-x-1/2 text-primary/40 material-symbols-outlined text-4xl animate-spin-slow">timer</span>
               </div>
-              <p className="text-[12px] font-black text-white/30 uppercase tracking-[0.5em] mt-2">MINUTOS</p>
-              <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest mt-2">ESTIMATIVA TOTAL</p>
+              <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.5em] mt-2">DURAÇÃO TOTAL</p>
+              <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest mt-2">EM ATENDIMENTO</p>
             </div>
           </div>
 

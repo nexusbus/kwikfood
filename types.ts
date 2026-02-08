@@ -39,6 +39,7 @@ export interface CartItem extends Product {
 export interface Order {
   id: string;
   ticketCode: string;
+  ticketNumber: number;
   companyId: string;
   customerPhone: string;
   status: OrderStatus;
@@ -46,6 +47,8 @@ export interface Order {
   total?: number;
   queuePosition: number;
   estimatedMinutes: number;
+  timerAccumulatedSeconds: number;
+  timerLastStartedAt?: string;
   timestamp: string;
 }
 

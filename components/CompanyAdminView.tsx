@@ -22,7 +22,8 @@ const getStatusColor = (status: OrderStatus) => {
 const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'PRODUTOS' | 'FILA'>('FILA');
+  const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
+  const [activeTab, setActiveTab] = useState<'PRODUTOS' | 'FILA' | 'HISTORICO'>('FILA');
   const [productFilter, setProductFilter] = useState('Todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
@@ -57,7 +58,25 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           customerPhone: o.customer_phone,
           queuePosition: o.queue_position,
           estimatedMinutes: o.estimated_minutes,
+          timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
+          timerLastStartedAt: o.timer_last_started_at,
           timestamp: new Date(o.created_at).toLocaleTimeString()
+        })));
+
+        const { data: hData } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('company_id', company.id)
+          .eq('status', OrderStatus.DELIVERED)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (hData) setHistoryOrders(hData.map(o => ({
+          ...o,
+          companyId: o.company_id,
+          ticketCode: o.ticket_code,
+          customerPhone: o.customer_phone,
+          timestamp: new Date(o.created_at).toLocaleString()
         })));
       } catch (err) {
         console.error(err);
@@ -83,7 +102,27 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
     try {
-      const { error } = await supabase.from('orders').update({ status }).eq('id', orderId);
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+
+      const updates: any = { status };
+      const now = new Date().toISOString();
+
+      if (status === OrderStatus.PREPARING) {
+        // Start or resume timer
+        updates.timer_last_started_at = now;
+      } else if (status === OrderStatus.READY || status === OrderStatus.DELIVERED) {
+        // Pause timer and accumulate
+        if (order.timerLastStartedAt) {
+          const start = new Date(order.timerLastStartedAt).getTime();
+          const current = new Date().getTime();
+          const elapsed = Math.floor((current - start) / 1000);
+          updates.timer_accumulated_seconds = (order.timerAccumulatedSeconds || 0) + elapsed;
+          updates.timer_last_started_at = null;
+        }
+      }
+
+      const { error } = await supabase.from('orders').update(updates).eq('id', orderId);
       if (error) throw error;
     } catch (err) {
       alert('Erro ao atualizar pedido.');
@@ -195,6 +234,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             <span className="material-symbols-outlined text-2xl">inventory_2</span>
             Menu Digital
           </button>
+          <button
+            onClick={() => setActiveTab('HISTORICO')}
+            className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'HISTORICO' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
+          >
+            <span className="material-symbols-outlined text-2xl">history</span>
+            Audit & Histórico
+          </button>
 
           <div className="mt-12 pt-12 border-t border-border/50">
             <button onClick={onLogout} className="w-full flex items-center justify-between px-8 py-5 rounded-[1.5rem] text-primary font-black text-[12px] uppercase tracking-widest hover:bg-primary-soft transition-all group">
@@ -220,7 +266,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         <header className="mb-16 flex flex-col lg:flex-row justify-between items-center gap-10 relative z-10 animate-fade-in">
           <div>
             <h2 className="text-6xl font-black tracking-tighter text-secondary leading-none">
-              {activeTab === 'FILA' ? 'A Cozinha' : 'O Menu'}
+              {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : 'Histórico'}
             </h2>
             <div className="flex items-center gap-3 mt-4">
               <span className="size-2.5 bg-green-500 rounded-full animate-pulse-soft"></span>
@@ -345,7 +391,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 </div>
               )}
             </div>
-          ) : (
+          ) : activeTab === 'PRODUTOS' ? (
             <div className="space-y-16 animate-fade-in">
               <div className="flex items-center gap-5 flex-wrap">
                 {['Todos', 'Hambúrgueres', 'Bebidas', 'Acompanhamentos'].map(cat => (
@@ -390,6 +436,57 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-12 animate-fade-in">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div className="bg-surface p-12 rounded-[3.5rem] border border-border shell-premium shadow-premium">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Histórico</p>
+                  <p className="text-6xl font-black text-secondary tracking-tighter">{historyOrders.length}</p>
+                </div>
+                <div className="bg-surface p-12 rounded-[3.5rem] border border-border shell-premium shadow-premium">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Tempo Médio</p>
+                  <p className="text-6xl font-black text-primary tracking-tighter">
+                    {historyOrders.length > 0
+                      ? Math.round(historyOrders.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / historyOrders.length / 60)
+                      : 0} min
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-surface rounded-[4.5rem] shadow-premium border border-border overflow-hidden">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
+                      <th className="px-16 py-12">Ticket</th>
+                      <th className="px-12 py-12">Contacto</th>
+                      <th className="px-12 py-12">Tempo Total</th>
+                      <th className="px-16 py-12 text-right">Data/Hora</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/30">
+                    {historyOrders.map((hOrder) => (
+                      <tr key={hOrder.id} className="group hover:bg-background/40 transition-all duration-500">
+                        <td className="px-16 py-12">
+                          <div className="flex items-center gap-6">
+                            <div className="size-14 bg-secondary text-white rounded-2xl flex items-center justify-center font-black text-lg group-hover:bg-primary transition-colors">
+                              #{hOrder.ticketCode}
+                            </div>
+                            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1">Ref: {hOrder.id.slice(0, 8)}</p>
+                          </div>
+                        </td>
+                        <td className="px-12 py-12 text-[15px] font-black text-secondary">{hOrder.customerPhone}</td>
+                        <td className="px-12 py-12 font-black text-secondary">
+                          {Math.floor((hOrder.timerAccumulatedSeconds || 0) / 60)}m {(hOrder.timerAccumulatedSeconds || 0) % 60}s
+                        </td>
+                        <td className="px-16 py-12 text-right">
+                          <p className="text-[14px] font-black text-secondary">{hOrder.timestamp}</p>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

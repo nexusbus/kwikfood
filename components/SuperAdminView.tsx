@@ -32,6 +32,9 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [adminConfirmPassword, setAdminConfirmPassword] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [activeView, setActiveView] = useState<'ESTABELECIMENTOS' | 'AUDITORIA'>('ESTABELECIMENTOS');
+  const [auditOrders, setAuditOrders] = useState<any[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -51,6 +54,29 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const loadAuditData = async () => {
+    setAuditLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, companies(name)')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAuditOrders(data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeView === 'AUDITORIA') {
+      loadAuditData();
+    }
+  }, [activeView]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,189 +211,281 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mt-2">KwikFood Master Console</p>
           </div>
         </div>
-        <div className="flex items-center gap-4 px-8 py-4 bg-secondary text-white rounded-full font-black text-[11px] uppercase tracking-widest shadow-premium">
+
+        <div className="flex items-center gap-4 bg-background/50 p-2 rounded-[1.5rem] border border-border/50">
+          <button
+            onClick={() => setActiveView('ESTABELECIMENTOS')}
+            className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'ESTABELECIMENTOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
+          >
+            Gestão
+          </button>
+          <button
+            onClick={() => setActiveView('AUDITORIA')}
+            className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'AUDITORIA' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
+          >
+            Auditoria
+          </button>
+        </div>
+
+        <div className="hidden lg:flex items-center gap-4 px-8 py-4 bg-secondary text-white rounded-full font-black text-[11px] uppercase tracking-widest shadow-premium">
           <span className="size-2 bg-green-400 rounded-full animate-pulse-soft"></span>
           Sistema Operativo
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-12 py-16 space-y-20 relative z-10">
-        {/* Registration Section */}
-        <section className="bg-surface rounded-[4.5rem] shadow-premium p-16 border border-white/60 relative overflow-hidden animate-scale-in">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
+        {activeView === 'ESTABELECIMENTOS' ? (
+          <>
+            {/* Registration Section */}
+            <section className="bg-surface rounded-[4.5rem] shadow-premium p-16 border border-white/60 relative overflow-hidden animate-scale-in">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
 
-          <div className="max-w-4xl mx-auto space-y-12">
-            <div className="flex items-center gap-8">
-              <div className="size-20 bg-primary text-white rounded-[2.2rem] flex items-center justify-center shadow-premium transform rotate-3">
-                <span className="material-symbols-outlined text-5xl">add_business</span>
-              </div>
-              <div>
-                <h2 className="text-5xl font-black tracking-tight text-secondary leading-none">
-                  {editingCompany ? 'Ajustar Parceiro' : 'Novo Estabelecimento'}
-                </h2>
-                <p className="text-text-muted font-medium text-lg mt-3">Expanda a rede KwikFood registando novos restaurantes.</p>
-              </div>
-            </div>
-
-            <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Designação Social</label>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Master Burger Central" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
-              </div>
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">NIF da Empresa</label>
-                <input type="text" value={nif} onChange={e => setNif(e.target.value)} placeholder="000000000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Local de Operação (Província)</label>
-                <select value={location} onChange={e => setLocation(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all appearance-none cursor-pointer outline-none">
-                  {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Credenciais de Acesso (Email)</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="restaurante@exemplo.com" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Senha Administrativa</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
-              </div>
-
-              <div className="md:col-span-2 space-y-6">
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-1 space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Coordenada Y (Lat)</label>
-                    <input type="text" value={lat} onChange={e => setLat(e.target.value === '' ? '' : parseFloat(e.target.value.toString()))} placeholder="0.0000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+              <div className="max-w-4xl mx-auto space-y-12">
+                <div className="flex items-center gap-8">
+                  <div className="size-20 bg-primary text-white rounded-[2.2rem] flex items-center justify-center shadow-premium transform rotate-3">
+                    <span className="material-symbols-outlined text-5xl">add_business</span>
                   </div>
-                  <div className="flex-1 space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Coordenada X (Long)</label>
-                    <input type="text" value={lng} onChange={e => setLng(e.target.value === '' ? '' : parseFloat(e.target.value.toString()))} placeholder="0.0000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  <div>
+                    <h2 className="text-5xl font-black tracking-tight text-secondary leading-none">
+                      {editingCompany ? 'Ajustar Parceiro' : 'Novo Estabelecimento'}
+                    </h2>
+                    <p className="text-text-muted font-medium text-lg mt-3">Expanda a rede KwikFood registando novos restaurantes.</p>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleGetCurrentLocation}
-                  disabled={geoLoading}
-                  className="w-full py-5 bg-background hover:bg-white text-secondary hover:text-primary rounded-[1.5rem] font-black text-[12px] uppercase tracking-widest border border-border/60 transition-all flex items-center justify-center gap-4 group"
-                >
-                  <span className="material-symbols-outlined group-hover:rotate-180 transition-transform duration-700">{geoLoading ? 'sync' : 'my_location'}</span>
-                  {geoLoading ? 'DETECTANDO SINAL GPS...' : 'Detectar Minha Localização Atual'}
-                </button>
+                <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Designação Social</label>
+                    <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Master Burger Central" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  </div>
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">NIF da Empresa</label>
+                    <input type="text" value={nif} onChange={e => setNif(e.target.value)} placeholder="000000000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Local de Operação (Província)</label>
+                    <select value={location} onChange={e => setLocation(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all appearance-none cursor-pointer outline-none">
+                      {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Credenciais de Acesso (Email)</label>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="restaurante@exemplo.com" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Senha Administrativa</label>
+                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  </div>
+
+                  <div className="md:col-span-2 space-y-6">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      <div className="flex-1 space-y-4">
+                        <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Coordenada Y (Lat)</label>
+                        <input type="text" value={lat} onChange={e => setLat(e.target.value === '' ? '' : parseFloat(e.target.value.toString()))} placeholder="0.0000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                      </div>
+                      <div className="flex-1 space-y-4">
+                        <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Coordenada X (Long)</label>
+                        <input type="text" value={lng} onChange={e => setLng(e.target.value === '' ? '' : parseFloat(e.target.value.toString()))} placeholder="0.0000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleGetCurrentLocation}
+                      disabled={geoLoading}
+                      className="w-full py-5 bg-background hover:bg-white text-secondary hover:text-primary rounded-[1.5rem] font-black text-[12px] uppercase tracking-widest border border-border/60 transition-all flex items-center justify-center gap-4 group"
+                    >
+                      <span className="material-symbols-outlined group-hover:rotate-180 transition-transform duration-700">{geoLoading ? 'sync' : 'my_location'}</span>
+                      {geoLoading ? 'DETECTANDO SINAL GPS...' : 'Detectar Minha Localização Atual'}
+                    </button>
+                  </div>
+
+                  <div className="md:col-span-2 pt-10 flex gap-6">
+                    {editingCompany && (
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="flex-1 h-24 font-black uppercase tracking-[0.4em] text-text-muted hover:text-primary transition-all text-[12px]"
+                      >
+                        DESCARTAR
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-[2] h-24 bg-primary hover:bg-secondary text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-[14px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group"
+                    >
+                      <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
+                      {loading ? 'SINCRONIZANDO...' : editingCompany ? 'SALVAR ALTERAÇÕES' : 'CONCLUIR REGISTO'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            {/* List Section */}
+            <section className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div className="flex items-center justify-between mb-12">
+                <div>
+                  <h2 className="text-5xl font-black tracking-tight text-secondary leading-none">Parceiros KwikFood</h2>
+                  <div className="flex items-center gap-4 mt-4">
+                    <span className="px-5 py-2 bg-secondary text-white rounded-full text-[12px] font-black">
+                      {companies.length} Unidades
+                    </span>
+                    <p className="text-text-muted font-black uppercase text-[11px] tracking-[0.3em]">Gestão Global de Rede</p>
+                  </div>
+                </div>
               </div>
 
-              <div className="md:col-span-2 pt-10 flex gap-6">
-                {editingCompany && (
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="flex-1 h-24 font-black uppercase tracking-[0.4em] text-text-muted hover:text-primary transition-all text-[12px]"
-                  >
-                    DESCARTAR
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-[2] h-24 bg-primary hover:bg-secondary text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-[14px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group"
-                >
-                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
-                  {loading ? 'SINCRONIZANDO...' : editingCompany ? 'SALVAR ALTERAÇÕES' : 'CONCLUIR REGISTO'}
-                </button>
+              <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
+                        <th className="px-16 py-12">Estabelecimento</th>
+                        <th className="px-12 py-12 text-center">Referência</th>
+                        <th className="px-12 py-12">Acesso & Segurança</th>
+                        <th className="px-16 py-12 text-right">Controlo</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/30">
+                      {companies.map((co) => (
+                        <tr key={co.id} className="group hover:bg-background/40 transition-all duration-500 relative">
+                          <td className="px-16 py-12">
+                            <div className="flex items-center gap-8">
+                              <div className="size-20 bg-background rounded-[2.2rem] flex items-center justify-center text-secondary font-black text-3xl group-hover:bg-primary group-hover:text-white transition-all duration-700 shadow-sm border border-border">
+                                {co.name.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="text-2xl font-black text-secondary group-hover:translate-x-2 transition-transform duration-500">{co.name}</p>
+                                <div className="flex items-center gap-5 text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mt-2">
+                                  <span className="flex items-center gap-2 text-primary bg-primary-soft/50 px-3 py-1 rounded-full border border-primary/10">
+                                    <span className="material-symbols-outlined text-lg">location_on</span>
+                                    {co.location}
+                                  </span>
+                                  <span className="opacity-40 italic">NIF: {co.nif}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-12 py-12 text-center">
+                            <span className="inline-block px-6 py-2.5 bg-secondary text-white rounded-full text-[12px] font-bold tracking-[0.1em] shadow-premium">
+                              {co.id.slice(0, 8).toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="px-12 py-12">
+                            <div className="space-y-2">
+                              <p className="text-[14px] font-black text-secondary leading-none">{co.email}</p>
+                              <div className="flex items-center gap-3">
+                                <span className="size-2.5 bg-green-500 rounded-full animate-pulse-soft"></span>
+                                <span className="text-[10px] font-black uppercase text-green-600 tracking-[0.3em]">Autenticado</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-16 py-12 text-right">
+                            <div className="flex justify-end gap-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-10 transition-all duration-700">
+                              <button onClick={() => handleEditClick(co)} className="size-16 bg-white border border-border/80 rounded-[1.5rem] flex items-center justify-center text-text-muted hover:text-secondary hover:shadow-premium transition-all">
+                                <span className="material-symbols-outlined text-3xl">edit_note</span>
+                              </button>
+                              <button onClick={() => setShowDeleteModal(co.id)} className="size-16 bg-primary-soft rounded-[1.5rem] flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-md">
+                                <span className="material-symbols-outlined text-3xl">delete</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </form>
-          </div>
-        </section>
-
-        {/* List Section */}
-        <section className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h2 className="text-5xl font-black tracking-tight text-secondary leading-none">Parceiros KwikFood</h2>
-              <div className="flex items-center gap-4 mt-4">
-                <span className="px-5 py-2 bg-secondary text-white rounded-full text-[12px] font-black">
-                  {companies.length} Unidades
-                </span>
-                <p className="text-text-muted font-black uppercase text-[11px] tracking-[0.3em]">Gestão Global de Rede</p>
+            </section>
+          </>
+        ) : (
+          <section className="space-y-12 animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-16">
+              <div className="bg-surface p-12 rounded-[3.5rem] border border-white/60 shadow-premium">
+                <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Total de Tickets</p>
+                <p className="text-6xl font-black text-secondary tracking-tighter">{auditOrders.length}</p>
+              </div>
+              <div className="bg-surface p-12 rounded-[3.5rem] border border-white/60 shadow-premium">
+                <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Tempo Médio de Serviço</p>
+                <p className="text-6xl font-black text-primary tracking-tighter">
+                  {auditOrders.length > 0
+                    ? Math.round(auditOrders.reduce((acc, o) => acc + (o.timer_accumulated_seconds || 0), 0) / auditOrders.length / 60)
+                    : 0} min
+                </p>
+              </div>
+              <div className="bg-surface p-12 rounded-[3.5rem] border border-white/60 shadow-premium">
+                <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Establecimentos Ativos</p>
+                <p className="text-6xl font-black text-secondary tracking-tighter">{companies.length}</p>
               </div>
             </div>
-          </div>
 
-          <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
-                    <th className="px-16 py-12">Estabelecimento</th>
-                    <th className="px-12 py-12 text-center">Referência</th>
-                    <th className="px-12 py-12">Acesso & Segurança</th>
-                    <th className="px-16 py-12 text-right">Controlo</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/30">
-                  {companies.map((co) => (
-                    <tr key={co.id} className="group hover:bg-background/40 transition-all duration-500 relative">
-                      <td className="px-16 py-12">
-                        <div className="flex items-center gap-8">
-                          <div className="size-20 bg-background rounded-[2.2rem] flex items-center justify-center text-secondary font-black text-3xl group-hover:bg-primary group-hover:text-white transition-all duration-700 shadow-sm border border-border">
-                            {co.name.charAt(0)}
-                          </div>
-                          <div>
-                            <p className="text-2xl font-black text-secondary group-hover:translate-x-2 transition-transform duration-500">{co.name}</p>
-                            <div className="flex items-center gap-5 text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mt-2">
-                              <span className="flex items-center gap-2 text-primary bg-primary-soft/50 px-3 py-1 rounded-full border border-primary/10">
-                                <span className="material-symbols-outlined text-lg">location_on</span>
-                                {co.location}
-                              </span>
-                              <span className="opacity-40 italic">NIF: {co.nif}</span>
+            <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
+                      <th className="px-16 py-12">Ticket / Local</th>
+                      <th className="px-12 py-12">Contacto Cliente</th>
+                      <th className="px-12 py-12">Duração Serviço</th>
+                      <th className="px-12 py-12">Status</th>
+                      <th className="px-16 py-12 text-right">Data</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/30">
+                    {auditOrders.map((order) => (
+                      <tr key={order.id} className="group hover:bg-background/40 transition-all duration-500">
+                        <td className="px-16 py-12">
+                          <div className="flex items-center gap-6">
+                            <div className="size-14 bg-secondary text-white rounded-2xl flex items-center justify-center font-black text-lg shadow-sm group-hover:bg-primary transition-colors">
+                              #{order.ticket_code}
+                            </div>
+                            <div>
+                              <p className="text-xl font-black text-secondary uppercase tracking-tight">{order.companies?.name}</p>
+                              <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1">Ref: {order.id.slice(0, 8)}</p>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-12 py-12 text-center">
-                        <span className="inline-block px-6 py-2.5 bg-secondary text-white rounded-full text-[12px] font-bold tracking-[0.1em] shadow-premium">
-                          {co.id.slice(0, 8).toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-12 py-12">
-                        <div className="space-y-2">
-                          <p className="text-[14px] font-black text-secondary leading-none">{co.email}</p>
-                          <div className="flex items-center gap-3">
-                            <span className="size-2.5 bg-green-500 rounded-full animate-pulse-soft"></span>
-                            <span className="text-[10px) font-black uppercase text-green-600 tracking-[0.3em]">Autenticado</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-16 py-12 text-right">
-                        <div className="flex justify-end gap-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-10 transition-all duration-700">
-                          <button onClick={() => handleEditClick(co)} className="size-16 bg-white border border-border/80 rounded-[1.5rem] flex items-center justify-center text-text-muted hover:text-secondary hover:shadow-premium transition-all">
-                            <span className="material-symbols-outlined text-3xl">edit_note</span>
-                          </button>
-                          <button onClick={() => setShowDeleteModal(co.id)} className="size-16 bg-primary-soft rounded-[1.5rem] flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-md">
-                            <span className="material-symbols-outlined text-3xl">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {companies.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="py-48 text-center bg-background/20">
-                        <div className="flex flex-col items-center gap-6 opacity-30">
-                          <span className="material-symbols-outlined text-8xl font-thin">domain_disabled</span>
-                          <h3 className="text-3xl font-black uppercase tracking-[0.5em]">Operação Deserta</h3>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                        </td>
+                        <td className="px-12 py-12">
+                          <p className="text-[15px] font-black text-secondary">{order.customer_phone}</p>
+                          <p className="text-[10px] text-primary font-bold uppercase tracking-widest mt-1">Verificado</p>
+                        </td>
+                        <td className="px-12 py-12">
+                          <p className="text-xl font-black text-secondary">
+                            {Math.floor((order.timer_accumulated_seconds || 0) / 60)}m {(order.timer_accumulated_seconds || 0) % 60}s
+                          </p>
+                        </td>
+                        <td className="px-12 py-12">
+                          <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${order.status === 'DELIVERED' ? 'bg-gray-100 text-gray-600' :
+                              order.status === 'READY' ? 'bg-green-100 text-green-600' :
+                                'bg-orange-100 text-orange-600'
+                            }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="px-16 py-12 text-right">
+                          <p className="text-[14px] font-black text-secondary">{new Date(order.created_at).toLocaleDateString()}</p>
+                          <p className="text-[11px] font-bold text-text-muted uppercase mt-1">{new Date(order.created_at).toLocaleTimeString()}</p>
+                        </td>
+                      </tr>
+                    ))}
+                    {auditOrders.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="py-24 text-center opacity-40">
+                          {auditLoading ? 'CARREGANDO DADOS DA NUVEM...' : 'NENHUM HISTÓRICO DISPONÍVEL.'}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       {/* Premium Delete Modal */}
