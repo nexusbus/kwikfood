@@ -76,10 +76,9 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             });
             onJoinQueue(newOrderData);
           } catch (err: any) {
-            setError('Erro ao entrar na fila. Tente novamente.');
+            const errorMsg = err.message || err.details || 'Erro desconhecido';
+            setError(`Falha ao entrar: ${errorMsg}`);
             console.error('Queue Entry Error Details:', err);
-            if (err.message) console.error('Error Message:', err.message);
-            if (err.details) console.error('Error Details:', err.details);
           } finally {
             setLoading(false);
           }
@@ -172,7 +171,10 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               {error && (
                 <div className="p-8 bg-primary/5 border border-primary/10 rounded-[2rem] flex items-center gap-5 text-primary animate-shake">
                   <span className="material-symbols-outlined text-3xl font-black">error</span>
-                  <p className="font-black uppercase text-[12px] tracking-wider leading-tight">{error}</p>
+                  <div className="flex flex-col gap-1">
+                    <p className="font-black uppercase text-[12px] tracking-wider leading-tight">Erro no Sistema</p>
+                    <p className="text-[10px] font-bold opacity-70 break-all">{error}</p>
+                  </div>
                 </div>
               )}
 
