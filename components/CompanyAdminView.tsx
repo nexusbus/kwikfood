@@ -9,6 +9,16 @@ interface CompanyAdminViewProps {
   onLogout: () => void;
 }
 
+const getStatusColor = (status: OrderStatus) => {
+  switch (status) {
+    case OrderStatus.RECEIVED: return 'bg-blue-100 text-blue-600';
+    case OrderStatus.PREPARING: return 'bg-orange-100 text-orange-600';
+    case OrderStatus.READY: return 'bg-green-100 text-green-600';
+    case OrderStatus.DELIVERED: return 'bg-gray-100 text-gray-600';
+    default: return 'bg-gray-100 text-gray-600';
+  }
+};
+
 const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -156,87 +166,91 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const filteredProducts = productFilter === 'Todos' ? products : products.filter(p => p.category === productFilter);
 
   return (
-    <div className="flex h-screen bg-[#F4F4F5] overflow-hidden font-inter">
-      {/* Sidebar */}
-      <aside className="w-80 bg-black p-8 flex flex-col gap-10 relative">
-        <div className="absolute top-0 right-0 w-1 h-full bg-primary/20"></div>
-        <div className="flex items-center gap-4 relative z-10">
-          <div className="size-14 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
-            <span className="material-symbols-outlined text-4xl font-black">restaurant</span>
+    <div className="flex h-screen bg-background overflow-hidden selection:bg-primary selection:text-white">
+      {/* Premium Sidebar */}
+      <aside className="w-80 glass border-r border-white/50 p-8 flex flex-col gap-12 relative z-[100] animate-in slide-in-from-left duration-1000">
+        <div className="flex items-center gap-5 relative group">
+          <div className="size-16 bg-primary rounded-[1.8rem] flex items-center justify-center text-white shadow-premium transform group-hover:rotate-12 transition-transform duration-500">
+            <span className="material-symbols-outlined text-4xl">restaurant</span>
           </div>
-          <div>
-            <h1 className="text-xl font-black tracking-tighter text-white leading-none truncate max-w-[160px]">{company.name}</h1>
-            <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mt-1">Admin Dashboard</p>
+          <div className="overflow-hidden">
+            <h1 className="text-xl font-black tracking-tighter text-secondary leading-none truncate">{company.name}</h1>
+            <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mt-2">Portal de Gestão</p>
           </div>
         </div>
 
-        <nav className="flex flex-col gap-3 relative z-10">
+        <nav className="flex flex-col gap-4">
           <button
             onClick={() => setActiveTab('FILA')}
-            className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-black text-[11px] uppercase tracking-widest ${activeTab === 'FILA' ? 'bg-primary text-white shadow-2xl shadow-primary/40' : 'text-gray-500 hover:bg-white/5 hover:text-white'}`}
+            className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'FILA' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
           >
-            <span className="material-symbols-outlined text-xl">view_list</span>
+            <span className="material-symbols-outlined text-2xl">view_list</span>
             Monitor de Fila
+            {activeTab === 'FILA' && <div className="absolute right-6 size-2 bg-primary rounded-full animate-pulse"></div>}
           </button>
           <button
             onClick={() => setActiveTab('PRODUTOS')}
-            className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-black text-[11px] uppercase tracking-widest ${activeTab === 'PRODUTOS' ? 'bg-primary text-white shadow-2xl shadow-primary/40' : 'text-gray-500 hover:bg-white/5 hover:text-white'}`}
+            className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'PRODUTOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
           >
-            <span className="material-symbols-outlined text-xl">inventory_2</span>
+            <span className="material-symbols-outlined text-2xl">inventory_2</span>
             Menu Digital
           </button>
 
-          <div className="mt-10 pt-10 border-t border-white/10">
-            <button onClick={onLogout} className="w-full flex items-center justify-between px-6 py-4 rounded-2xl text-red-500 font-black text-[11px] uppercase tracking-widest hover:bg-primary/10 transition-all group">
-              <span className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-xl">logout</span>
-                Terminar Sessão
+          <div className="mt-12 pt-12 border-t border-border/50">
+            <button onClick={onLogout} className="w-full flex items-center justify-between px-8 py-5 rounded-[1.5rem] text-primary font-black text-[12px] uppercase tracking-widest hover:bg-primary-soft transition-all group">
+              <span className="flex items-center gap-5">
+                <span className="material-symbols-outlined text-2xl">logout</span>
+                Sair
               </span>
-              <span className="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 transition-all">arrow_forward</span>
+              <span className="material-symbols-outlined text-xl opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all">arrow_forward</span>
             </button>
           </div>
         </nav>
 
-        <div className="mt-auto p-6 bg-white/5 rounded-3xl border border-white/5">
-          <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Empresa ID</p>
-          <code className="text-[10px] text-primary font-mono">{company.id}</code>
+        <div className="mt-auto p-8 rounded-[2.5rem] bg-secondary text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-12 -mt-12"></div>
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2">SISTEMA ATIVO</p>
+          <code className="text-[12px] text-primary font-mono tracking-tighter">{company.id}</code>
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-12 relative">
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-[140px] pointer-events-none"></div>
+      <main className="flex-1 overflow-y-auto p-12 relative custom-scrollbar">
+        <div className="fixed top-0 right-0 w-1/3 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
 
-        <header className="mb-12 flex justify-between items-start relative z-10">
+        <header className="mb-16 flex flex-col lg:flex-row justify-between items-center gap-10 relative z-10 animate-fade-in">
           <div>
-            <h2 className="text-5xl font-black tracking-tight text-black">{activeTab === 'FILA' ? 'A Cozinha' : 'O Menu'}</h2>
-            <div className="flex items-center gap-3 mt-3">
-              <div className="size-2 bg-primary rounded-full animate-pulse"></div>
-              <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Sincronizado em tempo real</p>
+            <h2 className="text-6xl font-black tracking-tighter text-secondary leading-none">
+              {activeTab === 'FILA' ? 'A Cozinha' : 'O Menu'}
+            </h2>
+            <div className="flex items-center gap-3 mt-4">
+              <span className="size-2.5 bg-green-500 rounded-full animate-pulse-soft"></span>
+              <p className="text-text-muted font-black uppercase text-[11px] tracking-[0.4em]">Monitor em Tempo Real</p>
             </div>
           </div>
-          <div className="flex gap-6 items-center">
+
+          <div className="flex flex-wrap justify-center items-center gap-6">
             {activeTab === 'FILA' && (
-              <div className="relative">
+              <div className="relative group">
                 <input
                   type="text"
-                  placeholder="Consultar Senha..."
+                  placeholder="Localizar Senha..."
                   value={ticketSearch}
-                  onChange={(e) => setTicketSearch(e.target.value)}
-                  className="w-64 h-16 bg-white border border-gray-100 rounded-2xl px-12 font-bold text-black shadow-xl shadow-gray-200/40 focus:ring-primary focus:border-primary transition-all outline-none"
+                  onChange={(e) => setTicketSearch(e.target.value.toUpperCase())}
+                  className="w-80 h-20 bg-white border-2 border-border/40 rounded-[1.5rem] px-16 font-black text-xl text-secondary shadow-lg group-focus-within:border-primary transition-all outline-none"
                 />
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">search</span>
+                <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-text-muted/40">search</span>
               </div>
             )}
-            <div className="bg-white px-8 py-5 rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/40 text-center min-w-[160px]">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Pedidos Atuais</p>
-              <p className="text-4xl font-black text-black">{orders.length}</p>
+            <div className="bg-surface px-10 py-6 rounded-[2rem] border border-border shadow-premium flex flex-col items-center min-w-[180px]">
+              <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-1">Pedidos Atuais</p>
+              <p className="text-5xl font-black text-secondary">{orders.length}</p>
             </div>
             {activeTab === 'PRODUTOS' && (
               <button
                 onClick={() => openModal('add')}
-                className="bg-black hover:bg-primary text-white px-10 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-black/20 transition-all active:scale-95 flex items-center gap-3"
+                className="h-20 px-12 bg-primary hover:bg-secondary text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.3em] shadow-premium transition-all flex items-center gap-4"
               >
-                <span className="material-symbols-outlined">add</span>
+                <span className="material-symbols-outlined text-2xl">add</span>
                 NOVO ITEM
               </button>
             )}
@@ -245,133 +259,132 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         <div className="relative z-10">
           {activeTab === 'FILA' ? (
-            <div className="grid grid-cols-1 gap-8">
+            <div className="space-y-12 animate-fade-in">
               {orders.filter(o => ticketSearch === '' || o.ticketCode.includes(ticketSearch)).length === 0 ? (
-                <div className="bg-white rounded-[3rem] p-32 text-center border-2 border-dashed border-gray-100 shadow-sm">
-                  <div className="size-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-200">
-                    <span className="material-symbols-outlined text-5xl">inbox</span>
+                <div className="bg-white rounded-[4rem] p-40 text-center border-2 border-dashed border-border/60 animate-scale-in">
+                  <div className="size-32 bg-background rounded-full flex items-center justify-center mx-auto mb-10 text-border">
+                    <span className="material-symbols-outlined text-6xl">restaurant</span>
                   </div>
-                  <h3 className="text-2xl font-black text-gray-300 uppercase tracking-widest">Sem Pedidos na Fila</h3>
-                  <p className="text-gray-400 mt-2 font-medium">Os novos pedidos aparecerão aqui instantaneamente.</p>
+                  <h3 className="text-3xl font-black text-border uppercase tracking-[0.3em]">Cozinha em Descanso</h3>
+                  <p className="text-text-muted mt-4 font-medium text-lg">Novos pedidos aparecerão instantaneamente aqui.</p>
                 </div>
               ) : (
-                orders.filter(o => ticketSearch === '' || o.ticketCode.includes(ticketSearch)).map(order => (
-                  <div key={order.id} className="bg-white rounded-[3rem] p-12 border border-gray-100 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] hover:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col xl:flex-row gap-12 items-start xl:items-center group overflow-hidden relative">
-                    <div className="absolute top-0 left-0 w-3 h-full transition-all group-hover:w-4" style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#f97316' : order.status === OrderStatus.READY ? '#22c55e' : '#3b82f6' }}></div>
+                <div className="grid grid-cols-1 gap-10">
+                  {orders.filter(o => ticketSearch === '' || o.ticketCode.includes(ticketSearch)).map(order => (
+                    <div key={order.id} className="bg-surface rounded-[3.5rem] p-12 border border-border shell-premium shadow-premium group overflow-hidden relative animate-scale-in">
+                      <div className="absolute top-0 left-0 w-3 h-full transition-all group-hover:w-4" style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#f97316' : order.status === OrderStatus.READY ? '#22c55e' : '#3b82f6' }}></div>
 
-                    <div className="flex items-center gap-8 flex-shrink-0">
-                      <div className="size-28 bg-black rounded-[2rem] flex flex-col items-center justify-center border border-black shadow-2xl shadow-black/20 group-hover:scale-105 transition-transform duration-500">
-                        <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Senha</p>
-                        <h3 className="text-3xl font-black text-white">{order.ticketCode}</h3>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-full">
-                          <span className="material-symbols-outlined text-gray-400 text-[10px]">schedule</span>
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{order.timestamp}</p>
-                        </div>
-                        <h4 className="text-3xl font-black tracking-tighter text-black">{order.customerPhone}</h4>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 px-12 xl:border-x border-gray-50 py-2 w-full bg-gray-50/20 rounded-[2.5rem] mx-6">
-                      <p className="text-[11px] font-black text-black uppercase tracking-[0.2em] mb-6 flex items-center gap-3 opacity-60">
-                        <span className="material-symbols-outlined text-primary">restaurant_menu</span>
-                        ITENS DO PEDIDO
-                      </p>
-                      {order.items && order.items.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {order.items.map((item, i) => (
-                            <div key={i} className="flex flex-col gap-3 p-6 bg-white rounded-[2rem] border border-gray-100 hover:border-primary/20 hover:shadow-xl hover:shadow-gray-200/40 transition-all duration-300 relative group/item">
-                              <div className="flex justify-between items-center">
-                                <span className="font-black text-lg text-black">{item.name}</span>
-                                <span className="size-8 bg-black text-white rounded-xl flex items-center justify-center text-[11px] font-black group-hover/item:bg-primary transition-colors">1</span>
-                              </div>
-                              {item.observation && (
-                                <div className="flex items-start gap-3 pt-3 border-t border-gray-100 bg-orange-50/50 -mx-6 -mb-6 px-6 pb-6 rounded-b-[2rem]">
-                                  <span className="material-symbols-outlined text-[18px] text-orange-600 font-black mt-0.5 animate-pulse">notification_important</span>
-                                  <span className="text-[12px] font-black text-orange-700 italic leading-tight">
-                                    "{item.observation}"
-                                  </span>
-                                </div>
-                              )}
+                      <div className="flex flex-col lg:flex-row gap-12 items-start lg:items-center w-full">
+                        <div className="flex items-center gap-10 flex-shrink-0">
+                          <div className="relative transform group-hover:scale-105 transition-transform duration-700">
+                            <div className="size-32 bg-secondary rounded-[2.5rem] flex flex-col items-center justify-center border-2 border-white/10 shadow-premium">
+                              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">Senha</p>
+                              <h3 className="text-4xl font-black text-white tracking-tighter">{order.ticketCode}</h3>
                             </div>
-                          ))}
+                            <div className="absolute -top-4 -right-4 size-12 bg-primary text-white rounded-full flex items-center justify-center text-[11px] font-black border-4 border-white shadow-xl">
+                              #{order.id.slice(0, 3).toUpperCase()}
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-4">
+                              <h4 className="text-4xl font-black tracking-tighter text-secondary">{order.customerPhone}</h4>
+                              <span className="px-4 py-1.5 bg-primary-soft text-primary rounded-full text-[10px] font-black uppercase tracking-widest">VIP CLIENT</span>
+                            </div>
+                            <div className="flex items-center gap-6 text-[12px] font-black text-text-muted uppercase tracking-widest">
+                              <span className="flex items-center gap-2"><span className="material-symbols-outlined text-xl">schedule</span> {order.timestamp}</span>
+                              <span className={`px-5 py-2 rounded-full shadow-sm ${getStatusColor(order.status)}`}>{order.status}</span>
+                            </div>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="py-12 bg-white rounded-[2.5rem] border border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 text-gray-300">
-                          <span className="material-symbols-outlined text-4xl animate-spin-slow">sync</span>
-                          <p className="text-[11px] font-black uppercase tracking-[0.3em]">Preparando Escolhas...</p>
-                        </div>
-                      )}
-                    </div>
 
-                    <div className="flex flex-row xl:flex-col gap-3 min-w-[240px] w-full xl:w-auto">
-                      <button
-                        onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
-                        className={`flex-1 flex items-center justify-center gap-4 px-10 py-5 rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${order.status === OrderStatus.PREPARING ? 'bg-orange-600 text-white shadow-2xl shadow-orange-600/40 ring-8 ring-orange-600/10' : 'bg-gray-50 text-gray-400 hover:bg-black hover:text-white hover:shadow-xl active:scale-95'}`}
-                      >
-                        <span className="material-symbols-outlined font-black">{order.status === OrderStatus.PREPARING ? 'autofps_select' : 'cooking'}</span>
-                        {order.status === OrderStatus.PREPARING ? 'NA COZINHA' : 'PREPARAR'}
-                      </button>
-                      <button
-                        onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
-                        className={`flex-1 flex items-center justify-center gap-4 px-10 py-5 rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${order.status === OrderStatus.READY ? 'bg-green-600 text-white shadow-2xl shadow-green-600/40 ring-8 ring-green-600/10' : 'bg-gray-50 text-gray-400 hover:bg-black hover:text-white hover:shadow-xl active:scale-95'}`}
-                      >
-                        <span className="material-symbols-outlined font-black">{order.status === OrderStatus.READY ? 'check_circle' : 'notifications_active'}</span>
-                        {order.status === OrderStatus.READY ? 'PRONTO' : 'NOTIFICAR'}
-                      </button>
-                      <button
-                        onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                        className="flex-1 flex items-center justify-center gap-4 px-10 py-5 bg-black text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-primary hover:shadow-2xl hover:shadow-primary/40 transition-all active:scale-95"
-                      >
-                        <span className="material-symbols-outlined font-black">done_all</span>
-                        ENTREGAR
-                      </button>
+                        <div className="flex-1 lg:border-x border-border/50 px-12 min-h-[140px] flex flex-col justify-center gap-8">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {order.items.map((item, i) => (
+                              <div key={i} className="flex flex-col gap-4 p-6 bg-background rounded-[2rem] border border-border group/item hover:border-primary/20 transition-all">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-black text-xl text-secondary">{item.name}</span>
+                                  <span className="size-10 bg-secondary text-white rounded-xl flex items-center justify-center text-[12px] font-black group-hover/item:bg-primary transition-colors">1</span>
+                                </div>
+                                {item.observation && (
+                                  <div className="flex items-start gap-4 p-5 bg-primary-soft rounded-[1.5rem] border border-primary/10">
+                                    <span className="material-symbols-outlined text-primary text-xl font-black animate-pulse-soft">priority_high</span>
+                                    <span className="text-[13px] font-black text-primary/80 italic leading-tight">"{item.observation}"</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-row lg:flex-col gap-4 min-w-[280px] w-full lg:w-auto">
+                          <button
+                            onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
+                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.PREPARING ? 'bg-orange-600 text-white shadow-premium ring-8 ring-orange-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white'}`}
+                          >
+                            <span className="material-symbols-outlined text-2xl">{order.status === OrderStatus.PREPARING ? 'cooking' : 'outdoor_grill'}</span>
+                            {order.status === OrderStatus.PREPARING ? 'COZINHANDO' : 'PREPARAR'}
+                          </button>
+                          <button
+                            onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
+                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.READY ? 'bg-green-600 text-white shadow-premium ring-8 ring-green-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white'}`}
+                          >
+                            <span className="material-symbols-outlined text-2xl">notifications_active</span>
+                            {order.status === OrderStatus.READY ? 'PRONTO' : 'NOTIFICAR'}
+                          </button>
+                          <button
+                            onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
+                            className="flex-1 flex items-center justify-center gap-5 h-20 bg-secondary text-white rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest hover:bg-primary shadow-premium transition-all active:scale-95"
+                          >
+                            <span className="material-symbols-outlined text-2xl">done_all</span>
+                            ENTREGAR
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
           ) : (
-            <div className="space-y-12">
-              <div className="flex items-center gap-3">
+            <div className="space-y-16 animate-fade-in">
+              <div className="flex items-center gap-5 flex-wrap">
                 {['Todos', 'Hambúrgueres', 'Bebidas', 'Acompanhamentos'].map(cat => (
                   <button
                     key={cat} onClick={() => setProductFilter(cat)}
-                    className={`px-8 py-3 rounded-full font-black text-[10px] uppercase tracking-widest transition-all ${productFilter === cat ? 'bg-black text-white shadow-xl shadow-black/20' : 'bg-white text-gray-400 border border-gray-100 hover:border-black hover:text-black'}`}
+                    className={`px-10 py-4 rounded-full font-black text-[11px] uppercase tracking-widest transition-all ${productFilter === cat ? 'bg-secondary text-white shadow-premium' : 'bg-surface text-text-muted border border-border hover:border-secondary'}`}
                   >
                     {cat}
                   </button>
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-10">
                 {filteredProducts.map(p => (
-                  <div key={p.id} className="bg-white rounded-[3rem] overflow-hidden border border-gray-100 shadow-xl shadow-gray-200/20 hover:shadow-2xl hover:shadow-gray-200/50 transition-all duration-500 group flex flex-col">
-                    <div className="relative h-64 bg-gray-50 overflow-hidden">
-                      <img src={p.imageUrl} alt={p.name} className="size-full object-cover group-hover:scale-110 transition-all duration-700" />
-                      <div className="absolute top-6 right-6">
-                        <span className={`px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-2xl ${p.status === ProductStatus.ACTIVE ? 'bg-green-500' : 'bg-red-500'}`}>
+                  <div key={p.id} className="bg-surface rounded-[3.5rem] overflow-hidden border border-border shadow-md hover:shadow-premium transition-all duration-700 group flex flex-col animate-scale-in">
+                    <div className="relative h-72 bg-background overflow-hidden">
+                      <img src={p.imageUrl} alt={p.name} className="size-full object-cover group-hover:scale-110 transition-all duration-1000" />
+                      <div className="absolute top-8 right-8">
+                        <span className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-premium ${p.status === ProductStatus.ACTIVE ? 'bg-green-500' : 'bg-red-500'}`}>
                           {p.status}
                         </span>
                       </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-secondary/40 to-transparent"></div>
                     </div>
-                    <div className="p-8 flex flex-col flex-1 justify-between gap-6">
+                    <div className="p-10 flex flex-col flex-1 justify-between gap-10">
                       <div>
-                        <h4 className="font-black text-2xl text-black truncate">{p.name}</h4>
-                        <div className="flex items-center justify-between mt-2">
-                          <p className="text-primary font-black text-2xl tracking-tight">Kz {p.price.toLocaleString()}</p>
-                          <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full">{p.category}</p>
+                        <h4 className="font-black text-3xl text-secondary tracking-tight mb-3">{p.name}</h4>
+                        <div className="flex items-center justify-between">
+                          <p className="text-primary font-black text-3xl tracking-tighter">Kz {p.price.toLocaleString()}</p>
+                          <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em] bg-background px-4 py-1.5 rounded-full">{p.category}</span>
                         </div>
                       </div>
                       <div className="flex gap-4">
-                        <button onClick={() => openModal('edit', p)} className="flex-1 py-4 bg-gray-50 hover:bg-black hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all">
-                          <span className="material-symbols-outlined text-base">edit_note</span>
+                        <button onClick={() => openModal('edit', p)} className="flex-1 h-16 bg-background hover:bg-secondary hover:text-white rounded-[1.2rem] font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all">
+                          <span className="material-symbols-outlined text-2xl">edit_note</span>
                           EDITAR
                         </button>
-                        <button onClick={() => handleDeleteProduct(p.id)} className="size-14 flex items-center justify-center bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
-                          <span className="material-symbols-outlined text-xl">delete_sweep</span>
+                        <button onClick={() => handleDeleteProduct(p.id)} className="size-16 flex items-center justify-center bg-primary-soft text-primary rounded-[1.2rem] hover:bg-primary hover:text-white transition-all shadow-sm">
+                          <span className="material-symbols-outlined text-2xl">delete</span>
                         </button>
                       </div>
                     </div>
@@ -383,72 +396,73 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         </div>
       </main>
 
-      {/* Modern Modal */}
+      {/* Premium Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/60 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="bg-white rounded-[4rem] w-full max-w-xl shadow-[0_50px_150px_-30px_rgba(0,0,0,0.5)] p-16 animate-in zoom-in-95 duration-300 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="bg-surface rounded-[4.5rem] w-full max-w-2xl shadow-premium p-16 animate-in zoom-in-95 duration-300 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
-            <header className="flex justify-between items-start mb-10">
+            <header className="flex justify-between items-start mb-12">
               <div>
-                <h3 className="text-4xl font-black tracking-tight text-black">
-                  {modalMode === 'add' ? 'Adicionar Item' : 'Configurar Item'}
+                <h3 className="text-5xl font-black tracking-tighter text-secondary">
+                  {modalMode === 'add' ? 'Novo Produto' : 'Editar Produto'}
                 </h3>
-                <p className="text-gray-400 font-medium mt-1">Defina os detalhes do produto no cardápio.</p>
+                <p className="text-text-muted font-medium text-lg mt-2">Personalize os detalhes no menu digital.</p>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="size-12 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:bg-black hover:text-white transition-all">
-                <span className="material-symbols-outlined font-black">close</span>
+              <button onClick={() => setIsModalOpen(false)} className="size-14 bg-background rounded-full flex items-center justify-center text-text-muted hover:bg-primary hover:text-white transition-all">
+                <span className="material-symbols-outlined text-3xl font-black">close</span>
               </button>
             </header>
 
-            <form onSubmit={handleSaveProduct} className="space-y-8">
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-black uppercase tracking-[0.2em] ml-1 opacity-30">Nome do Produto</label>
-                <input type="text" value={pName} onChange={e => setPName(e.target.value)} placeholder="Ex: Master Burger Bacon" className="w-full h-16 bg-gray-50 border-2 border-transparent rounded-2xl px-6 font-bold text-black focus:bg-white focus:border-primary transition-all outline-none" required />
+            <form onSubmit={handleSaveProduct} className="space-y-10">
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Identificação do Item</label>
+                <input type="text" value={pName} onChange={e => setPName(e.target.value)} placeholder="Ex: Grand Deluxe Master" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-black uppercase tracking-[0.2em] ml-1 opacity-30">Preço (Kz)</label>
-                  <input type="number" value={pPrice} onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0.00" className="w-full h-16 bg-gray-50 border-2 border-transparent rounded-2xl px-6 font-bold text-black focus:bg-white focus:border-primary transition-all outline-none" required />
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Investimento (Kz)</label>
+                  <input type="number" value={pPrice} onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-black uppercase tracking-[0.2em] ml-1 opacity-30">Categoria</label>
-                  <select value={pCategory} onChange={e => setPCategory(e.target.value)} className="w-full h-16 bg-gray-50 border-2 border-transparent rounded-2xl px-6 font-black text-[11px] uppercase tracking-widest text-black focus:bg-white focus:border-primary transition-all outline-none appearance-none cursor-pointer">
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Sessão do Menu</label>
+                  <select value={pCategory} onChange={e => setPCategory(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all outline-none appearance-none cursor-pointer">
                     <option>Hambúrgueres</option><option>Bebidas</option><option>Acompanhamentos</option>
                   </select>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <label className="text-[11px] font-black text-black uppercase tracking-[0.2em] ml-1 opacity-30">Imagem Representativa</label>
-                <div className="flex gap-6 items-center bg-gray-50 p-6 rounded-[2.5rem] border-2 border-dashed border-gray-100">
-                  <div className="relative size-32 bg-white rounded-3xl shadow-xl flex items-center justify-center overflow-hidden flex-shrink-0 group">
+                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Impacto Visual</label>
+                <div className="flex gap-8 items-center bg-background/50 p-8 rounded-[3rem] border-2 border-dashed border-border/60 group">
+                  <div className="relative size-40 bg-white rounded-[2rem] shadow-premium flex items-center justify-center overflow-hidden flex-shrink-0">
                     {pImageUrl ? (
-                      <img src={pImageUrl} alt="Preview" className="size-full object-cover group-hover:scale-110 transition-all" />
+                      <img src={pImageUrl} alt="Preview" className="size-full object-cover" />
                     ) : (
-                      <span className="material-symbols-outlined text-gray-200 text-4xl">image_search</span>
+                      <span className="material-symbols-outlined text-border text-6xl">image</span>
                     )}
                     {uploading && (
-                      <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-                        <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      <div className="absolute inset-0 bg-secondary/80 flex items-center justify-center">
+                        <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     )}
                   </div>
                   <div className="flex-1">
-                    <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="p-image" />
-                    <label htmlFor="p-image" className="inline-block px-8 py-4 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl cursor-pointer hover:bg-primary transition-all shadow-xl shadow-black/10">
-                      Submeter Ficheiro
+                    <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="p-image-upload" />
+                    <label htmlFor="p-image-upload" className="inline-flex px-10 py-5 bg-secondary text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl cursor-pointer hover:bg-primary transition-all shadow-premium">
+                      Escolher Imagem
                     </label>
-                    <p className="text-[10px] text-gray-400 mt-3 font-medium">Recomendado: 800x800px (JPG/PNG)</p>
+                    <p className="text-[11px] text-text-muted mt-4 font-medium italic">Selecione uma foto apelativa para os clientes.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-8 flex gap-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-18 py-5 font-black uppercase tracking-[0.2em] text-gray-300 hover:text-black transition-all">Descartar</button>
-                <button type="submit" disabled={saving || uploading} className="flex-[2] h-18 py-5 bg-black hover:bg-primary text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-2xl shadow-black/20 active:scale-95 transition-all disabled:opacity-50">
-                  {saving ? 'A Processar...' : 'Salvar no Menu'}
+              <div className="pt-10 flex gap-6">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-20 font-black uppercase tracking-[0.4em] text-text-muted hover:text-primary transition-all text-[12px]">Descartar</button>
+                <button type="submit" disabled={saving || uploading} className="flex-[2] h-20 bg-primary hover:bg-secondary text-white rounded-[1.8rem] font-black uppercase tracking-[0.4em] text-[13px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
+                  {saving ? 'PROCESSANDO...' : 'FINALIZAR & SALVAR'}
                 </button>
               </div>
             </form>

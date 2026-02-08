@@ -95,113 +95,111 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden font-inter bg-[#F4F4F5]">
-      {/* Red accent circles */}
-      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden bg-background">
+      {/* Decorative Elements */}
+      <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] pointer-events-none animate-pulse-soft"></div>
+      <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px] pointer-events-none animate-pulse-soft" style={{ animationDelay: '1s' }}></div>
 
-      <div className="relative z-10 w-full max-w-[480px] bg-white rounded-[2.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] overflow-hidden border border-gray-100">
-        <header className="px-10 py-10 flex justify-between items-center border-b border-gray-50">
-          <div className="flex items-center gap-4">
-            <div className="size-14 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
-              <span className="material-symbols-outlined text-4xl">restaurant_menu</span>
-            </div>
-            <div>
-              <h2 className="text-3xl font-black text-black tracking-tighter">KwikFood</h2>
-              <p className="text-[10px] text-primary font-black uppercase tracking-[0.3em] mt-1">Smart Queue System</p>
-            </div>
-          </div>
-          <button
-            onClick={onAdminAccess}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 hover:bg-black hover:text-white rounded-full text-[10px] font-black text-gray-400 uppercase tracking-widest transition-all border border-gray-100"
-          >
-            <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
-            ADMIN
-          </button>
-        </header>
-
-        <div className="p-10 flex flex-col gap-10">
-          <div className="space-y-3">
-            <h1 className="text-4xl font-black text-black tracking-tight">O Fim das Filas.</h1>
-            <p className="text-gray-400 font-medium leading-relaxed">
-              Junte-se à fila digital em segundos e aguarde onde preferir. O seu tempo é valioso.
-            </p>
-          </div>
-
-          <div className="space-y-8">
-            <div className="space-y-3">
-              <label className="block text-[11px] font-black text-black uppercase tracking-[0.2em] ml-1 opacity-40">Onde você está?</label>
-              <div className="relative group">
-                <input
-                  type="text"
-                  maxLength={4}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  className="w-full h-24 bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] text-4xl font-black tracking-[0.5em] text-center text-black focus:ring-primary focus:border-primary focus:bg-white transition-all outline-none"
-                  placeholder="CODE"
-                />
-                <div className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-200 group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-3xl">meeting_room</span>
-                </div>
+      <div className="relative z-10 w-full max-w-[500px] animate-fade-in">
+        <div className="bg-surface rounded-[3.5rem] shadow-premium overflow-hidden border border-white/40 glass">
+          <header className="px-12 py-12 flex justify-between items-center border-b border-border/50">
+            <div className="flex items-center gap-5">
+              <div className="size-16 bg-primary rounded-[1.8rem] flex items-center justify-center text-white shadow-lg shadow-primary/30 transform hover:rotate-12 transition-transform duration-500">
+                <span className="material-symbols-outlined text-4xl">restaurant_menu</span>
               </div>
-              <p className="text-[10px] text-gray-300 font-bold uppercase tracking-widest ml-1">Ex: L402, F210 • Procure o código no balcão</p>
-            </div>
-
-            <div className="space-y-3">
-              <label className="block text-[11px] font-black text-black uppercase tracking-[0.2em] ml-1 opacity-40">Seu Telemóvel</label>
-              <div className="flex gap-3">
-                <div className="flex items-center px-6 bg-black text-white rounded-[1.5rem] font-black text-lg">
-                  +244
-                </div>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                  className="flex-1 h-20 bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] px-8 text-xl font-bold text-black focus:ring-primary focus:border-primary focus:bg-white transition-all outline-none"
-                  placeholder="9XX XXX XXX"
-                />
+              <div>
+                <h2 className="text-4xl font-black text-secondary tracking-tighter leading-none">KwikFood</h2>
+                <p className="text-[10px] text-primary font-black uppercase tracking-[0.4em] mt-2">Smart Queue</p>
               </div>
             </div>
-
-            {error && (
-              <div className="p-6 bg-red-50 border border-red-100 rounded-3xl flex items-center gap-4 text-primary text-sm font-black animate-shake">
-                <span className="material-symbols-outlined text-2xl">error</span>
-                <span className="leading-tight uppercase text-[11px] tracking-wider">{error}</span>
-              </div>
-            )}
-
             <button
-              onClick={handleJoin}
-              disabled={loading}
-              className="group relative w-full h-24 bg-primary hover:bg-black text-white rounded-[1.5rem] font-black text-lg shadow-2xl shadow-primary/20 active:scale-[0.97] transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+              onClick={onAdminAccess}
+              className="flex items-center gap-2 px-6 py-3 bg-secondary/5 hover:bg-secondary hover:text-white rounded-full text-[10px] font-black text-secondary/40 uppercase tracking-widest transition-all"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              {loading ? (
-                <div className="size-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  <span>ENTRAR NA FILA AGORA</span>
-                  <span className="material-symbols-outlined text-2xl group-hover:translate-x-2 transition-transform">bolt</span>
-                </>
-              )}
+              <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
+              ADMIN
             </button>
+          </header>
+
+          <div className="p-12 space-y-12">
+            <div className="space-y-4">
+              <h1 className="text-5xl font-black text-secondary tracking-tight leading-[1.1]">Diga adeus às <span className="text-primary">filas.</span></h1>
+              <p className="text-text-muted font-medium leading-relaxed text-lg">
+                Junte-se à fila digital em segundos. Seu tempo vale muito.
+              </p>
+            </div>
+
+            <div className="space-y-10">
+              <div className="space-y-4 group">
+                <label className="block text-[11px] font-black text-secondary uppercase tracking-[0.2em] ml-2 opacity-50">Código do Local</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    maxLength={4}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    className="w-full h-28 bg-background border-2 border-border/50 rounded-[2rem] text-5xl font-black tracking-[0.4em] text-center text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
+                    placeholder="CODE"
+                  />
+                  <div className="absolute right-10 top-1/2 -translate-y-1/2 text-border group-focus-within:text-primary transition-colors">
+                    <span className="material-symbols-outlined text-4xl">pin_drop</span>
+                  </div>
+                </div>
+                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest ml-2 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">info</span>
+                  Procure o código de 4 dígitos no balcão
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <label className="block text-[11px] font-black text-secondary uppercase tracking-[0.2em] ml-2 opacity-50">Seu Telemóvel</label>
+                <div className="flex gap-4">
+                  <div className="flex items-center px-8 bg-secondary text-white rounded-[2rem] font-black text-xl shadow-lg">
+                    +244
+                  </div>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                    className="flex-1 h-24 bg-background border-2 border-border/50 rounded-[2rem] px-10 text-2xl font-black text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
+                    placeholder="9XX XXX XXX"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-8 bg-primary/5 border border-primary/10 rounded-[2rem] flex items-center gap-5 text-primary animate-shake">
+                  <span className="material-symbols-outlined text-3xl font-black">error</span>
+                  <p className="font-black uppercase text-[12px] tracking-wider leading-tight">{error}</p>
+                </div>
+              )}
+
+              <button
+                onClick={handleJoin}
+                disabled={loading}
+                className="group relative w-full h-28 bg-primary hover:bg-primary-dark text-white rounded-[2.2rem] font-black text-xl shadow-premium active:scale-[0.96] transition-all flex items-center justify-center gap-5 disabled:opacity-50 overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12"></div>
+                {loading ? (
+                  <div className="size-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <span>ENTRAR NA FILA</span>
+                    <span className="material-symbols-outlined text-3xl group-hover:translate-x-3 transition-transform duration-500">bolt</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="pt-8 border-t border-gray-50 text-center">
-            <p className="text-[10px] text-gray-300 leading-relaxed font-bold uppercase tracking-[0.15em]">
-              KwikFood Angola • Luanda • 2024<br />
-              <span className="opacity-50">Notificações inteligentes via SMS</span>
+          <footer className="px-12 py-10 bg-secondary/5 text-center">
+            <p className="text-[10px] text-secondary/30 leading-relaxed font-black uppercase tracking-[0.3em]">
+              KwikFood Angola &copy; 2024<br />
+              <span className="text-primary/40">Premium Queue System</span>
             </p>
-          </div>
+          </footer>
         </div>
       </div>
-
-      <footer className="fixed bottom-12 left-0 w-full flex flex-col items-center gap-5 pointer-events-none opacity-20">
-        <div className="h-px w-24 bg-black/10"></div>
-        <p className="text-black text-[10px] tracking-[0.5em] uppercase font-black">
-          PREMIUM SERVICE
-        </p>
-      </footer>
     </div>
   );
 };
