@@ -75,23 +75,18 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
     const initialPosition = (count || 0) + 1;
 
     const { data, error: insertError } = await supabase
-      .from('orders')
-      .insert([{
-        company_id: order.companyId,
-        customer_phone: order.customerPhone,
-        status: order.status,
-        queue_position: initialPosition,
-        estimated_minutes: order.estimatedMinutes,
-        ticket_code: ticketCode,
-        ticket_number: nextNumber,
-        timer_last_started_at: null,
-        timer_accumulated_seconds: 0
-      }])
-      .select()
-      .single();
+      .rpc('create_order_v3', {
+        p_company_id: order.companyId,
+        p_customer_phone: order.customerPhone,
+        p_status: order.status,
+        p_queue_position: initialPosition,
+        p_estimated_minutes: order.estimatedMinutes,
+        p_ticket_code: ticketCode,
+        p_ticket_number: nextNumber
+      });
 
     if (insertError) {
-      console.error('Database Insertion Error:', insertError);
+      console.error('Database RPC Error:', insertError);
       throw insertError;
     }
 
