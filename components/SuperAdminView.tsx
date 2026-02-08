@@ -108,7 +108,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         if (error) throw error;
         setEditingCompany(null);
       } else {
-        const { id: _, ...insertData } = companyData; // Omit id for insertion
+        const insertData: any = { ...companyData };
+        if (!insertData.id) delete insertData.id; // Let DB handle if empty
         const { error } = await supabase.from('companies').insert([insertData]);
         if (error) throw error;
       }
@@ -259,6 +260,17 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                 </div>
 
                 <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Código ID (Referência)</label>
+                    <input
+                      type="text"
+                      value={id}
+                      onChange={e => setId(e.target.value.replace(/\D/g, ''))}
+                      placeholder="0001"
+                      className="w-full h-20 bg-background border-2 border-primary/20 rounded-[1.8rem] px-8 font-black text-lg text-primary focus:border-primary transition-all outline-none"
+                    />
+                  </div>
+
                   <div className="space-y-4">
                     <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Designação Social</label>
                     <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Master Burger Central" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
