@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS orders (
     queue_position SERIAL,
     estimated_minutes INTEGER DEFAULT 15,
     ticket_code TEXT,
+    ticket_number INTEGER,
+    timer_last_started_at TIMESTAMPTZ,
+    timer_accumulated_seconds INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../src/lib/supabase';
 
 interface AdminAuthViewProps {
-    onSuccess: (type: 'SUPER' | 'COMPANY', id?: string) => void;
+    onSuccess: (type: 'SUPER' | 'COMPANY', id?: number) => void;
     onBack: () => void;
 }
 

@@ -22,7 +22,7 @@ export interface Product {
 }
 
 export interface Company {
-  id: string; // Format: 1 Letter + 3 Digits, e.g., L402
+  id: number; // Numeric ID
   name: string;
   location: string;
   nif: string;
@@ -40,7 +40,7 @@ export interface Order {
   id: string;
   ticketCode: string;
   ticketNumber: number;
-  companyId: string;
+  companyId: number;
   customerPhone: string;
   status: OrderStatus;
   items?: CartItem[];

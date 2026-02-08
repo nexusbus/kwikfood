@@ -35,7 +35,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
     setError(null);
 
     // Validation
-    const company = companies.find(c => c.id.toUpperCase() === code.toUpperCase());
+    const company = companies.find(c => c.id.toString() === code.trim());
 
     if (!company) {
       setError('Código do estabelecimento inválido.');
@@ -138,9 +138,9 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
                     type="text"
                     maxLength={4}
                     value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                     className="w-full h-28 bg-background border-2 border-border/50 rounded-[2rem] text-5xl font-black tracking-[0.4em] text-center text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
-                    placeholder="CODE"
+                    placeholder="100"
                   />
                   <div className="absolute right-10 top-1/2 -translate-y-1/2 text-border group-focus-within:text-primary transition-colors">
                     <span className="material-symbols-outlined text-4xl">pin_drop</span>

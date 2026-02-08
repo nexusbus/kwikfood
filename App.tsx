@@ -88,7 +88,6 @@ const App: React.FC = () => {
         />;
       case 'ADMIN_AUTH':
         return <AdminAuthView
-          companies={companies}
           onBack={() => setCurrentView('CUSTOMER_ENTRY')}
           onSuccess={(type, id) => {
             if (type === 'SUPER') {

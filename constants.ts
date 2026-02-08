@@ -19,31 +19,6 @@ export const fetchProducts = async (companyId: string): Promise<Product[]> => {
   })) as Product[];
 };
 
-export const getNextCompanyId = async (): Promise<string> => {
-  try {
-    const { data, error } = await supabase
-      .from('companies')
-      .select('id')
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    if (error) throw error;
-    if (!data || data.length === 0) return 'K100';
-
-    // Pattern: 1 Letter + N Digits
-    const lastId = data[0].id;
-    const match = lastId.match(/^([A-Z])(\d+)$/);
-    if (!match) return 'K100';
-
-    const letter = match[1];
-    const num = parseInt(match[2]);
-    return `${letter}${num + 1}`;
-  } catch (err) {
-    console.error('Error fetching next company ID:', err);
-    return 'K' + Math.floor(100 + Math.random() * 900); // fallback to random on error
-  }
-};
-
 export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticketCode' | 'ticketNumber' | 'timerAccumulatedSeconds' | 'timerLastStartedAt'>) => {
   try {
     // Get today's range

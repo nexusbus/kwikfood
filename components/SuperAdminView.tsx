@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { fetchCompanies, getNextCompanyId } from '../constants';
+import { fetchCompanies } from '../constants';
 import { supabase } from '../src/lib/supabase';
 import { Company } from '../types';
 
@@ -40,8 +40,6 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     const loadData = async () => {
       const cData = await fetchCompanies();
       setCompanies(cData);
-      const nextId = await getNextCompanyId();
-      setId(nextId);
     };
     loadData();
 
@@ -108,13 +106,13 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         if (error) throw error;
         setEditingCompany(null);
       } else {
-        const { error } = await supabase.from('companies').insert([companyData]);
+        const { id: _, ...insertData } = companyData; // Omit id for insertion
+        const { error } = await supabase.from('companies').insert([insertData]);
         if (error) throw error;
       }
 
       setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword('');
-      const nextId = await getNextCompanyId();
-      setId(nextId);
+      setId('');
     } catch (err: any) {
       console.error(err);
       alert('FALHA NA SINCRONIZAÇÃO: ' + (err.message || 'Erro de rede'));
@@ -139,8 +137,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const handleCancelEdit = async () => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword('');
-    const nextId = await getNextCompanyId();
-    setId(nextId);
+    setId('');
   };
 
   const handleSecureDelete = async (e: React.FormEvent) => {
@@ -377,7 +374,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                           </td>
                           <td className="px-12 py-12 text-center">
                             <span className="inline-block px-6 py-2.5 bg-secondary text-white rounded-full text-[12px] font-bold tracking-[0.1em] shadow-premium">
-                              {co.id.slice(0, 8).toUpperCase()}
+                              {co.id}
                             </span>
                           </td>
                           <td className="px-12 py-12">
