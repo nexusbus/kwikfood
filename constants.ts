@@ -19,6 +19,23 @@ export const fetchProducts = async (companyId: string): Promise<Product[]> => {
   })) as Product[];
 };
 
+export const getNextCompanyId = async (): Promise<number> => {
+  try {
+    const { data, error } = await supabase
+      .from('companies')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+    if (!data || data.length === 0) return 1;
+    return Number(data[0].id) + 1;
+  } catch (err) {
+    console.error('Error fetching next company ID:', err);
+    return 1;
+  }
+};
+
 export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticketCode' | 'ticketNumber' | 'timerAccumulatedSeconds' | 'timerLastStartedAt'>) => {
   try {
     // Get today's range

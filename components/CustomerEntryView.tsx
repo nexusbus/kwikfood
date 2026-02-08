@@ -35,7 +35,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
     setError(null);
 
     // Validation
-    const company = companies.find(c => c.id.toString() === code.trim());
+    const company = companies.find(c => c.id.toString().padStart(4, '0') === code.trim().padStart(4, '0'));
 
     if (!company) {
       setError('Código do estabelecimento inválido.');

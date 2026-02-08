@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { fetchCompanies } from '../constants';
+import { fetchCompanies, getNextCompanyId } from '../constants';
 import { supabase } from '../src/lib/supabase';
 import { Company } from '../types';
 
@@ -40,6 +40,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     const loadData = async () => {
       const cData = await fetchCompanies();
       setCompanies(cData);
+      const nextId = await getNextCompanyId();
+      setId(nextId.toString().padStart(4, '0'));
     };
     loadData();
 
@@ -112,7 +114,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       }
 
       setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword('');
-      setId('');
+      const nextId = await getNextCompanyId();
+      setId(nextId.toString().padStart(4, '0'));
     } catch (err: any) {
       console.error(err);
       alert('FALHA NA SINCRONIZAÇÃO: ' + (err.message || 'Erro de rede'));
@@ -123,7 +126,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
   const handleEditClick = (company: Company) => {
     setEditingCompany(company);
-    setId(company.id);
+    setId(company.id.toString().padStart(4, '0'));
     setName(company.name);
     setLocation(company.location);
     setNif(company.nif);
@@ -137,7 +140,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const handleCancelEdit = async () => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword('');
-    setId('');
+    const nextId = await getNextCompanyId();
+    setId(nextId.toString().padStart(4, '0'));
   };
 
   const handleSecureDelete = async (e: React.FormEvent) => {
@@ -373,8 +377,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                             </div>
                           </td>
                           <td className="px-12 py-12 text-center">
-                            <span className="inline-block px-6 py-2.5 bg-secondary text-white rounded-full text-[12px] font-bold tracking-[0.1em] shadow-premium">
-                              {co.id}
+                            <span className="inline-block px-6 py-2.5 bg-secondary text-white rounded-full text-[12px] font-bold tracking-[0.4em] shadow-premium">
+                              {co.id.toString().padStart(4, '0')}
                             </span>
                           </td>
                           <td className="px-12 py-12">
