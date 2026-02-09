@@ -16,7 +16,6 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  const [showChoiceModal, setShowChoiceModal] = useState(false);
 
   const calculateElapsed = (accumulated: number, lastStarted: string | undefined, status: OrderStatus) => {
     if (status === OrderStatus.READY || status === OrderStatus.DELIVERED || !lastStarted) {
@@ -198,7 +197,6 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           item.id === p.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      setShowChoiceModal(true);
       return [...prev, { ...p, observation: '', quantity: 1 }];
     });
   };
@@ -241,14 +239,13 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       alert('Erro ao confirmar pedido.');
     } finally {
       setSubmittingOrder(false);
-      setShowChoiceModal(false);
     }
   };
 
   const totalCart = cart.reduce((acc, p) => acc + (p.price * p.quantity), 0);
 
   return (
-    <div className="bg-background min-h-screen pb-44 selection:bg-primary selection:text-white">
+    <div className="bg-background min-h-screen pb-20 selection:bg-primary selection:text-white">
       {/* Decorative Background */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-40">
         <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[150px]"></div>
@@ -347,6 +344,87 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             </div>
           </div>
         </section>
+
+        {/* Cart Section - Move to Top when PENDING */}
+        {order.status === OrderStatus.PENDING && cart.length > 0 && (
+          <section className="animate-fade-in">
+            <div className="bg-surface rounded-[4rem] shadow-premium p-10 lg:p-12 border-2 border-primary/20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-[60px] -mr-20 -mt-20"></div>
+
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10 border-b border-border/50 pb-8 mb-8">
+                <div className="flex items-center gap-6">
+                  <div className="size-20 bg-secondary rounded-[2.2rem] flex items-center justify-center text-white relative shadow-premium">
+                    <span className="material-symbols-outlined text-4xl">shopping_bag</span>
+                    <span className="absolute -top-3 -right-3 size-10 bg-primary text-white text-[14px] font-black rounded-full flex items-center justify-center shadow-xl ring-8 ring-white/50 animate-pulse-soft">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black tracking-tighter text-secondary">O Meu Pedido</h3>
+                    <p className="text-[12px] font-black text-text-muted uppercase tracking-widest mt-1">Total Acumulado: <span className="text-primary font-black ml-1">Kz {totalCart.toLocaleString()}</span></p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleFinishOrder}
+                  disabled={submittingOrder}
+                  className="group relative w-full lg:w-auto h-24 lg:h-20 px-16 bg-primary hover:bg-secondary text-white rounded-[2rem] font-black text-[13px] tracking-[0.4em] active:scale-[0.96] transition-all shadow-premium flex items-center justify-center gap-6 uppercase overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
+                  {submittingOrder ? (
+                    <div className="size-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-2xl">send</span>
+                      Solicitar Preparação
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
+                {cart.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="bg-background/40 rounded-[2.5rem] p-6 border border-white/50 group hover:bg-white hover:border-primary/20 transition-all animate-scale-in">
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center bg-background rounded-xl p-1 border border-border">
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="size-8 rounded-lg hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center"
+                          >
+                            <span className="material-symbols-outlined text-sm font-black">remove</span>
+                          </button>
+                          <span className="w-10 text-center font-black text-secondary">{item.quantity}</span>
+                          <button
+                            onClick={() => addToCart(item)}
+                            className="size-8 rounded-lg hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center"
+                          >
+                            <span className="material-symbols-outlined text-sm font-black">add</span>
+                          </button>
+                        </div>
+                        <span className="font-black text-lg text-secondary">{item.name}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newCart = cart.filter((_, i) => i !== idx);
+                          setCart(newCart);
+                        }}
+                        className="size-10 rounded-xl hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center"
+                      >
+                        <span className="material-symbols-outlined text-2xl">close</span>
+                      </button>
+                    </div>
+                    <textarea
+                      placeholder="Restrições or observações?"
+                      value={item.observation}
+                      onChange={(e) => updateObservation(idx, e.target.value)}
+                      className="w-full bg-white/60 border-2 border-border/30 rounded-2xl p-5 text-sm font-bold focus:border-primary focus:bg-white resize-none placeholder:text-text-muted/40 outline-none transition-all shadow-sm"
+                      rows={2}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Menu/Products Section */}
         {(order.status === OrderStatus.PENDING || !order.items || order.items.length === 0) ? (
@@ -452,125 +530,6 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           </section>
         )}
       </main>
-
-      {/* Premium Docked Cart */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-[100] p-6 lg:p-12 animate-in slide-in-from-bottom-full duration-1000">
-          <div className="max-w-4xl mx-auto glass rounded-[4rem] shadow-premium p-10 lg:p-12 border border-white/40">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-10">
-              <div className="flex items-center gap-8">
-                <div className="size-20 bg-secondary rounded-[2rem] flex items-center justify-center text-white relative shadow-premium group-hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined text-4xl">shopping_bag</span>
-                  <span className="absolute -top-3 -right-3 size-10 bg-primary text-white text-[14px] font-black rounded-full flex items-center justify-center shadow-xl ring-8 ring-white/50 animate-pulse-soft">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-black tracking-tighter text-secondary">Carrinho</h3>
-                  <p className="text-[12px] font-black text-text-muted uppercase tracking-widest mt-1">Acumulado: <span className="text-primary font-black ml-1">Kz {totalCart.toLocaleString()}</span></p>
-                </div>
-              </div>
-              <button
-                onClick={handleFinishOrder}
-                disabled={submittingOrder || cart.length === 0}
-                className="group relative w-full lg:w-auto h-24 lg:h-20 px-16 bg-primary hover:bg-primary-dark text-white rounded-[2rem] font-black text-[13px] tracking-[0.4em] active:scale-[0.96] transition-all shadow-premium flex items-center justify-center gap-6 uppercase overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
-                {submittingOrder ? (
-                  <div className="size-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-2xl">send</span>
-                    SOLICITAR PREPARAÇÃO
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[30vh] overflow-y-auto pr-4 custom-scrollbar">
-              {cart.map((item, idx) => (
-                <div key={`${item.id}-${idx}`} className="bg-background/40 rounded-[2.5rem] p-6 border border-white/50 group hover:bg-white hover:border-primary/20 transition-all animate-scale-in">
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center bg-background rounded-xl p-1 border border-border">
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="size-8 rounded-lg hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center"
-                        >
-                          <span className="material-symbols-outlined text-sm font-black">remove</span>
-                        </button>
-                        <span className="w-10 text-center font-black text-secondary">{item.quantity}</span>
-                        <button
-                          onClick={() => addToCart(item)}
-                          className="size-8 rounded-lg hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center"
-                        >
-                          <span className="material-symbols-outlined text-sm font-black">add</span>
-                        </button>
-                      </div>
-                      <span className="font-black text-lg text-secondary">{item.name}</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        const newCart = cart.filter((_, i) => i !== idx);
-                        setCart(newCart);
-                      }}
-                      className="size-10 rounded-xl hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center"
-                    >
-                      <span className="material-symbols-outlined text-2xl">close</span>
-                    </button>
-                  </div>
-                  <textarea
-                    placeholder="Preferências ou restrições?"
-                    value={item.observation}
-                    onChange={(e) => updateObservation(idx, e.target.value)}
-                    className="w-full bg-white/60 border-2 border-border/30 rounded-2xl p-5 text-sm font-bold focus:border-primary focus:bg-white resize-none placeholder:text-text-muted/40 outline-none transition-all"
-                    rows={2}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Selection Choice Modal */}
-      {showChoiceModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 animate-fade-in">
-          <div className="absolute inset-0 bg-secondary/80 backdrop-blur-md" onClick={() => setShowChoiceModal(false)}></div>
-          <div className="relative bg-surface w-full max-w-[450px] rounded-[3.5rem] p-12 shadow-premium border border-white/40 glass animate-scale-in">
-            <div className="text-center space-y-8">
-              <div className="size-24 bg-primary-soft rounded-[2.5rem] flex items-center justify-center text-primary mx-auto shadow-lg">
-                <span className="material-symbols-outlined text-5xl font-black">add_shopping_cart</span>
-              </div>
-              <div className="space-y-3">
-                <h3 className="text-3xl font-black text-secondary tracking-tight">Item Adicionado!</h3>
-                <p className="text-text-muted font-medium text-lg">Deseja adicionar mais alguma coisa ou quer que comecemos a preparar agora?</p>
-              </div>
-              <div className="flex flex-col gap-4">
-                <button
-                  onClick={() => setShowChoiceModal(false)}
-                  className="w-full h-20 bg-secondary hover:bg-secondary-dark text-white rounded-[1.8rem] font-black text-[13px] tracking-[0.3em] uppercase transition-all shadow-xl flex items-center justify-center gap-4 group"
-                >
-                  <span className="material-symbols-outlined text-2xl group-hover:-translate-y-1 transition-transform">restaurant_menu</span>
-                  Continuar a Selecionar
-                </button>
-                <button
-                  onClick={handleFinishOrder}
-                  disabled={submittingOrder}
-                  className="w-full h-20 bg-primary hover:bg-primary-dark text-white rounded-[1.8rem] font-black text-[13px] tracking-[0.3em] uppercase transition-all shadow-premium flex items-center justify-center gap-4 disabled:opacity-50 group"
-                >
-                  {submittingOrder ? (
-                    <div className="size-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-2xl group-hover:translate-x-1 transition-transform">bolt</span>
-                      Solicitar Preparação
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {!cart.length && (
         <footer className="max-w-4xl mx-auto px-6 mt-20 mb-32 text-center animate-fade-in">
