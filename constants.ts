@@ -38,51 +38,12 @@ export const getNextCompanyId = async (): Promise<number> => {
 
 export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticketCode' | 'ticketNumber' | 'timerAccumulatedSeconds' | 'timerLastStartedAt'>) => {
   try {
-    // Get today's range
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    // Get current max ticket number for today
-    const { data: lastJobs, error: fetchError } = await supabase
-      .from('orders')
-      .select('ticket_number')
-      .eq('company_id', order.companyId)
-      .gte('created_at', today.toISOString())
-      .lt('created_at', tomorrow.toISOString())
-      .order('ticket_number', { ascending: false })
-      .limit(1);
-
-    if (fetchError) {
-      console.error('Error fetching last ticket index:', fetchError);
-    }
-
-    const nextNumber = (lastJobs && lastJobs.length > 0 ? lastJobs[0].ticket_number : 0) + 1;
-    const ticketCode = nextNumber.toString().padStart(3, '0');
-
-    // Count pending orders for initial queue position (FIFO)
-    const { count, error: countError } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('company_id', order.companyId)
-      .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY]);
-
-    if (countError) {
-      console.error('Error counting queue position:', countError);
-    }
-
-    const initialPosition = (count || 0) + 1;
-
     const { data, error: insertError } = await supabase
-      .rpc('create_order_v3', {
+      .rpc('create_order_v4', {
         p_company_id: order.companyId,
         p_customer_phone: order.customerPhone,
         p_status: order.status,
-        p_queue_position: initialPosition,
-        p_estimated_minutes: order.estimatedMinutes,
-        p_ticket_code: ticketCode,
-        p_ticket_number: nextNumber
+        p_estimated_minutes: order.estimatedMinutes
       });
 
     if (insertError) {
