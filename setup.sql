@@ -93,9 +93,9 @@ DROP FUNCTION IF EXISTS public.create_order_v6(jsonb);
 DROP FUNCTION IF EXISTS public.create_order_v7(jsonb);
 DROP FUNCTION IF EXISTS public.create_order_v8(jsonb);
 
--- 3. FINAL DEFINITIVE FUNCTION (v9)
--- handles JSONB payload and uses EXPLICIT CASTS to avoid type mismatch
-CREATE OR REPLACE FUNCTION public.create_order_v9(p_payload JSONB) 
+-- 3. FINAL DEFINITIVE FUNCTION (p_entry_queue)
+-- namespaced for cache-busting
+CREATE OR REPLACE FUNCTION public.p_entry_queue(p_payload JSONB) 
 RETURNS JSONB AS $$
 DECLARE
   v_next_number INTEGER;
@@ -109,7 +109,7 @@ DECLARE
   v_est_mins INTEGER;
   v_result JSONB;
 BEGIN
-  -- Explicitly cast everything from JSON JSON
+  -- Explicitly cast everything from JSON
   v_co_id := (p_payload->>'company_id')::BIGINT;
   v_phone := (p_payload->>'customer_phone')::TEXT;
   v_status := (p_payload->>'status')::TEXT;
@@ -152,7 +152,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION public.create_order_v9 TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.p_entry_queue TO anon, authenticated;
 
 -- 4. FINAL CACHE RELOAD
+COMMENT ON SCHEMA public IS 'KwikFood API Schema Refreshed';
 NOTIFY pgrst, 'reload schema';
