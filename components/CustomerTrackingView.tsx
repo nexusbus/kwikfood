@@ -16,6 +16,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  const [showChoiceModal, setShowChoiceModal] = useState(false);
 
   const calculateElapsed = (accumulated: number, lastStarted: string | undefined, status: OrderStatus) => {
     if (status === OrderStatus.READY || status === OrderStatus.DELIVERED || !lastStarted) {
@@ -197,6 +198,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           item.id === p.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
+      setShowChoiceModal(true);
       return [...prev, { ...p, observation: '', quantity: 1 }];
     });
   };
@@ -239,6 +241,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       alert('Erro ao confirmar pedido.');
     } finally {
       setSubmittingOrder(false);
+      setShowChoiceModal(false);
     }
   };
 
@@ -523,6 +526,47 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                   />
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Selection Choice Modal */}
+      {showChoiceModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 animate-fade-in">
+          <div className="absolute inset-0 bg-secondary/80 backdrop-blur-md" onClick={() => setShowChoiceModal(false)}></div>
+          <div className="relative bg-surface w-full max-w-[450px] rounded-[3.5rem] p-12 shadow-premium border border-white/40 glass animate-scale-in">
+            <div className="text-center space-y-8">
+              <div className="size-24 bg-primary-soft rounded-[2.5rem] flex items-center justify-center text-primary mx-auto shadow-lg">
+                <span className="material-symbols-outlined text-5xl font-black">add_shopping_cart</span>
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-3xl font-black text-secondary tracking-tight">Item Adicionado!</h3>
+                <p className="text-text-muted font-medium text-lg">Deseja adicionar mais alguma coisa ou quer que comecemos a preparar agora?</p>
+              </div>
+              <div className="flex flex-col gap-4">
+                <button
+                  onClick={() => setShowChoiceModal(false)}
+                  className="w-full h-20 bg-secondary hover:bg-secondary-dark text-white rounded-[1.8rem] font-black text-[13px] tracking-[0.3em] uppercase transition-all shadow-xl flex items-center justify-center gap-4 group"
+                >
+                  <span className="material-symbols-outlined text-2xl group-hover:-translate-y-1 transition-transform">restaurant_menu</span>
+                  Continuar a Selecionar
+                </button>
+                <button
+                  onClick={handleFinishOrder}
+                  disabled={submittingOrder}
+                  className="w-full h-20 bg-primary hover:bg-primary-dark text-white rounded-[1.8rem] font-black text-[13px] tracking-[0.3em] uppercase transition-all shadow-premium flex items-center justify-center gap-4 disabled:opacity-50 group"
+                >
+                  {submittingOrder ? (
+                    <div className="size-6 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-2xl group-hover:translate-x-1 transition-transform">bolt</span>
+                      Solicitar Preparação
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
