@@ -76,73 +76,75 @@ CREATE POLICY "Allow public select sa" ON super_admins FOR SELECT USING (true);
 CREATE POLICY "Allow first admin creation" ON super_admins FOR INSERT WITH CHECK ((SELECT count(*) FROM super_admins) = 0);
 CREATE POLICY "Allow admin all sa" ON super_admins FOR ALL USING (true);
 
--- 7. RPC - Optimized Order Creation (create_order_v6)
--- Handles ticket number generation, queue position, and insertion atomicity.
--- Uses JSONB payload to bypass PostgREST cache/signature matching issues.
-CREATE OR REPLACE FUNCTION create_order_v6(p_payload JSONB) 
-RETURNS orders AS $$
+-- 1. FORCE COLUMN ADDITION (Resilient to existing tables)
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS ticket_code TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS ticket_number INTEGER;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS timer_accumulated_seconds INTEGER DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS timer_last_started_at TIMESTAMPTZ;
+
+-- 2. COMPLETE RESET OF ORDER FUNCTIONS
+DROP FUNCTION IF EXISTS public.create_order_v1(text, text, text, text);
+DROP FUNCTION IF EXISTS public.create_order_v2(text, text, text, text);
+DROP FUNCTION IF EXISTS public.create_order_v3(text, text, text, text);
+DROP FUNCTION IF EXISTS public.create_order_v4(text, text, text, text);
+DROP FUNCTION IF EXISTS public.create_order_v5(text, text, text, text);
+DROP FUNCTION IF EXISTS public.create_order_v6(jsonb);
+DROP FUNCTION IF EXISTS public.create_order_v7(jsonb);
+
+-- 3. FINAL DEFINITIVE FUNCTION (v8)
+-- handles JSONB payload to evade cache matching issues
+CREATE OR REPLACE FUNCTION public.create_order_v8(p_payload JSONB) 
+RETURNS JSONB AS $$
 DECLARE
   v_next_number INTEGER;
   v_initial_pos INTEGER;
   v_ticket_code TEXT;
-  v_order orders;
-  v_today DATE := CURRENT_DATE;
+  v_order_id UUID;
+  v_created_at TIMESTAMPTZ;
   v_co_id BIGINT;
   v_phone TEXT;
   v_status TEXT;
   v_est_mins INTEGER;
+  v_result JSONB;
 BEGIN
-  -- Extract values safely from JSON payload
   v_co_id := (p_payload->>'company_id')::BIGINT;
   v_phone := (p_payload->>'customer_phone');
   v_status := (p_payload->>'status');
   v_est_mins := (p_payload->>'estimated_minutes')::INTEGER;
 
-  -- 1. Get next ticket number for today
-  SELECT COALESCE(MAX(ticket_number), 0) + 1 
-  INTO v_next_number 
-  FROM orders 
-  WHERE company_id = v_co_id 
-    AND created_at::date = v_today;
+  SELECT COALESCE(MAX(ticket_number), 0) + 1 INTO v_next_number 
+  FROM public.orders WHERE company_id = v_co_id AND created_at::date = CURRENT_DATE;
 
-  -- 2. Format ticket code
   v_ticket_code := LPAD(v_next_number::text, 3, '0');
 
-  -- 3. Get initial queue position
-  SELECT COUNT(*) + 1 
-  INTO v_initial_pos 
-  FROM orders 
-  WHERE company_id = v_co_id 
-    AND status IN ('RECEIVED', 'PREPARING', 'READY');
+  SELECT COUNT(*) + 1 INTO v_initial_pos 
+  FROM public.orders WHERE company_id = v_co_id AND status IN ('RECEIVED', 'PREPARING', 'READY');
 
-  -- 4. Insert order
-  INSERT INTO orders (
-    company_id,
-    customer_phone,
-    status,
-    queue_position,
-    estimated_minutes,
-    ticket_code,
-    ticket_number,
-    timer_last_started_at,
-    timer_accumulated_seconds
+  INSERT INTO public.orders (
+    company_id, customer_phone, status, queue_position, 
+    estimated_minutes, ticket_code, ticket_number, timer_accumulated_seconds
   ) VALUES (
-    v_co_id,
-    v_phone,
-    v_status,
-    v_initial_pos,
-    v_est_mins,
-    v_ticket_code,
-    v_next_number,
-    NULL,
-    0
-  ) RETURNING * INTO v_order;
+    v_co_id, v_phone, v_status, v_initial_pos, 
+    v_est_mins, v_ticket_code, v_next_number, 0
+  ) RETURNING id, created_at INTO v_order_id, v_created_at;
 
-  RETURN v_order;
+  SELECT jsonb_build_object(
+    'id', v_order_id,
+    'ticket_code', v_ticket_code,
+    'ticket_number', v_next_number,
+    'company_id', v_co_id,
+    'customer_phone', v_phone,
+    'status', v_status,
+    'queue_position', v_initial_pos,
+    'estimated_minutes', v_est_mins,
+    'created_at', v_created_at
+  ) INTO v_result;
+
+  RETURN v_result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION create_order_v6 TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.create_order_v8 TO anon, authenticated;
 
--- Force reload PostgREST cache
+-- 4. FINAL CACHE RELOAD
 NOTIFY pgrst, 'reload schema';
