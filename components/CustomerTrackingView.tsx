@@ -16,6 +16,9 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
+    typeof Notification !== 'undefined' ? Notification.permission : 'default'
+  );
 
   const calculateElapsed = (accumulated: number, lastStarted: string | undefined, status: OrderStatus) => {
     if (status === OrderStatus.READY || status === OrderStatus.DELIVERED || !lastStarted) {
@@ -38,6 +41,22 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       }
     };
     playNext();
+  };
+
+  const handleRequestPermission = async () => {
+    const granted = await requestNotificationPermission();
+    setNotificationPermission(Notification.permission);
+    if (granted) {
+      showNotification('Notificações Ativadas! 🔔', { body: 'Você receberá atualizações do seu pedido aqui.' });
+    }
+  };
+
+  const handleTestNotification = () => {
+    playNotificationSound();
+    showNotification('Teste de Alerta 🧪', {
+      body: 'Este é um teste para confirmar que os seus alertas estão funcionando.',
+      tag: 'test-notification'
+    });
   };
 
   const formatTime = (seconds: number) => {
@@ -117,8 +136,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             const nextStatus = updatedOrder.status || prev.status;
 
             if (nextStatus !== prev.status) {
+              playNotificationSound();
               if (nextStatus === OrderStatus.READY) {
-                playNotificationSound();
                 showNotification('Seu pedido está pronto! 🍔', { body: 'Pode levantar o seu pedido no balcão.' });
               } else if (nextStatus === OrderStatus.RECEIVED) {
                 showNotification('Pedido Recebido! 📝', { body: 'O restaurante já recebeu o seu pedido.' });
@@ -246,6 +265,40 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
   return (
     <div className="bg-background min-h-screen pb-20 selection:bg-primary selection:text-white">
+      {/* Notification Authorization Banner */}
+      {notificationPermission !== 'granted' && (
+        <div className="bg-secondary text-white p-4 sticky top-0 z-[200] animate-in slide-in-from-top duration-500 shadow-xl border-b border-white/10">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-3xl animate-bounce">notifications_active</span>
+              <p className="font-black text-[13px] uppercase tracking-widest text-center sm:text-left leading-tight">
+                ATIVE AS NOTIFICAÇÕES PARA RECEBER ALERTAS REAL-TIME DO SEU PEDIDO
+              </p>
+            </div>
+            <button
+              onClick={handleRequestPermission}
+              className="bg-white text-secondary px-8 py-3 rounded-full font-black text-[11px] uppercase tracking-tighter hover:bg-primary hover:text-white transition-all shadow-premium active:scale-95 whitespace-nowrap"
+            >
+              PERMITIR ALERTAS
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Test Notification Widget (Floating) */}
+      {notificationPermission === 'granted' && (
+        <button
+          onClick={handleTestNotification}
+          className="fixed bottom-8 left-8 z-[150] bg-white/80 backdrop-blur-md border border-border p-4 rounded-2xl flex items-center gap-3 shadow-premium hover:shadow-2xl transition-all group active:scale-95"
+          title="Testar som e notificação"
+        >
+          <div className="size-10 bg-secondary/10 rounded-xl flex items-center justify-center group-hover:bg-secondary group-hover:text-white transition-colors">
+            <span className="material-symbols-outlined text-2xl">vibration</span>
+          </div>
+          <span className="font-black text-[10px] uppercase tracking-widest text-secondary pr-2">Testar Alerta</span>
+        </button>
+      )}
+
       {/* Decorative Background */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-40">
         <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[150px]"></div>
