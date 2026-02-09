@@ -100,7 +100,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             const newOrderData = await createOrder({
               companyId: company.id,
               customerPhone: phone,
-              status: OrderStatus.RECEIVED,
+              status: OrderStatus.PENDING,
               queuePosition: 1,
               estimatedMinutes: 5,
             });

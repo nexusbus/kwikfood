@@ -228,7 +228,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         .from('orders')
         .update({
           items: cart,
-          total: total
+          total: total,
+          status: OrderStatus.RECEIVED
         })
         .eq('id', order.id);
 
@@ -345,7 +346,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         </section>
 
         {/* Menu/Products Section */}
-        {(!order.items || order.items.length === 0) ? (
+        {(order.status === OrderStatus.PENDING || !order.items || order.items.length === 0) ? (
           <section className="space-y-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="flex flex-col gap-3">
               <h2 className="text-3xl font-black tracking-tight text-secondary">Cardápio do <span className="text-primary">Dia</span></h2>
@@ -466,7 +467,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               </div>
               <button
                 onClick={handleFinishOrder}
-                disabled={submittingOrder}
+                disabled={submittingOrder || cart.length === 0}
                 className="group relative w-full lg:w-auto h-24 lg:h-20 px-16 bg-primary hover:bg-primary-dark text-white rounded-[2rem] font-black text-[13px] tracking-[0.4em] active:scale-[0.96] transition-all shadow-premium flex items-center justify-center gap-6 uppercase overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
@@ -474,8 +475,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                   <div className="size-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <>
-                    <span>CONFIRMAR PEDIDO</span>
-                    <span className="material-symbols-outlined text-3xl group-hover:translate-x-3 transition-transform duration-500">arrow_forward</span>
+                    <span className="material-symbols-outlined text-2xl">send</span>
+                    SOLICITAR PREPARAÇÃO
                   </>
                 )}
               </button>
