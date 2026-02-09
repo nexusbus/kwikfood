@@ -290,6 +290,20 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-12 -mt-12"></div>
           <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2">SISTEMA ATIVO</p>
           <code className="text-[12px] text-primary font-mono tracking-tighter">{company.id}</code>
+
+          <button
+            onClick={async () => {
+              try {
+                const res = await sendSMS({ recipient: '244947007574', message: 'Teste manual KwikFood SMS Hub' });
+                alert('Teste enviado: ' + JSON.stringify(res));
+              } catch (err: any) {
+                alert('Erro no teste: ' + err.message);
+              }
+            }}
+            className="mt-4 w-full py-3 bg-primary/20 hover:bg-primary/40 border border-primary/30 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+          >
+            Testar SMS (947007574)
+          </button>
         </div>
       </aside>
 

@@ -28,21 +28,28 @@ export const sendSMS = async ({ recipient, message }: SMSRequest) => {
 
     try {
         const fetchUrl = `${url}/sendsms?${params.toString()}`;
-        console.log('Sending SMS to:', recipient);
+        console.log('[sendSMS] Recipient:', recipient);
+        console.log('[sendSMS] API Target (masked):', `${url}/sendsms?auth_id=${authId.slice(0, 4)}...&recipient=${recipient}`);
 
+        // Using simple fetch GET request as per likely API pattern
         const response = await fetch(fetchUrl, {
             method: 'GET',
+            mode: 'cors',
         });
 
+        console.log('[sendSMS] HTTP Status:', response.status);
+
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[sendSMS] API Error Body:', errorText);
             throw new Error(`SMS Hub API error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log('SMS Hub Response:', data);
+        console.log('[sendSMS] Success Data:', data);
         return data;
     } catch (error) {
-        console.error('Error in sendSMS:', error);
+        console.error('[sendSMS] Execution Error:', error);
         throw error;
     }
 };
