@@ -39,11 +39,11 @@ export const getNextCompanyId = async (): Promise<number> => {
 export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticketCode' | 'ticketNumber' | 'timerAccumulatedSeconds' | 'timerLastStartedAt'>) => {
   try {
     const { data, error: insertError } = await supabase
-      .rpc('create_order_v4', {
-        p_company_id: order.companyId,
+      .rpc('create_order_v5', {
+        p_company_id: order.companyId.toString(),
         p_customer_phone: order.customerPhone,
         p_status: order.status,
-        p_estimated_minutes: order.estimatedMinutes
+        p_estimated_minutes: order.estimatedMinutes.toString()
       });
 
     if (insertError) {
