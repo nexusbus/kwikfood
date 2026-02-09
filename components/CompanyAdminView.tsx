@@ -76,6 +76,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           companyId: o.company_id,
           ticketCode: o.ticket_code,
           customerPhone: o.customer_phone,
+          timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
           timestamp: new Date(o.created_at).toLocaleString()
         })));
       } catch (err) {
@@ -119,6 +120,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           const elapsed = Math.floor((current - start) / 1000);
           updates.timer_accumulated_seconds = (order.timerAccumulatedSeconds || 0) + elapsed;
           updates.timer_last_started_at = null;
+        } else if (!order.timerAccumulatedSeconds) {
+          // If timer was never started (e.g. skipped PREPARING), 
+          // calculate total time from creation to finish
+          const start = new Date(order.timestamp).getTime();
+          const current = new Date().getTime();
+          const elapsed = Math.floor((current - start) / 1000);
+          updates.timer_accumulated_seconds = elapsed;
         }
       }
 
