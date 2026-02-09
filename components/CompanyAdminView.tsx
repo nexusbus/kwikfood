@@ -338,6 +338,21 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mb-1">Pedidos Atuais</p>
               <p className="text-4xl font-black text-secondary">{orders.length}</p>
             </div>
+            <button
+              onClick={async () => {
+                const num = '244947007574';
+                try {
+                  const res = await sendSMS({ recipient: num, message: 'Teste KwikFood SMS Hub Header' });
+                  alert(`Sucesso! Resposta: ${JSON.stringify(res)}`);
+                } catch (err: any) {
+                  alert(`Erro no Envio: ${err.message}`);
+                }
+              }}
+              className="h-20 px-8 bg-red-500 hover:bg-red-600 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.3em] shadow-premium transition-all flex items-center gap-4"
+            >
+              <span className="material-symbols-outlined text-2xl">sms</span>
+              TESTAR SMS DIRETAMENTE
+            </button>
             {activeTab === 'PRODUTOS' && (
               <button
                 onClick={() => openModal('add')}
