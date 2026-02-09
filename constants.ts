@@ -39,7 +39,7 @@ export const getNextCompanyId = async (): Promise<number> => {
 export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticketCode' | 'ticketNumber' | 'timerAccumulatedSeconds' | 'timerLastStartedAt'>) => {
   try {
     const { data, error: insertError } = await supabase
-      .rpc('create_order_v6', {
+      .rpc('create_order_v7', {
         p_payload: {
           company_id: order.companyId,
           customer_phone: order.customerPhone,
@@ -53,6 +53,7 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
       throw insertError;
     }
 
+    // Since v7 returns JSONB, the data is already the object with the properties as defined in the function
     return {
       ...data,
       id: data.id,
@@ -62,8 +63,8 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
       customerPhone: data.customer_phone,
       queuePosition: data.queue_position,
       estimatedMinutes: data.estimated_minutes,
-      timerAccumulatedSeconds: data.timer_accumulated_seconds,
-      timerLastStartedAt: data.timer_last_started_at,
+      timerAccumulatedSeconds: 0,
+      timerLastStartedAt: null,
       timestamp: data.created_at
     } as Order;
   } catch (err) {
