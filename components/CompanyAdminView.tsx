@@ -352,7 +352,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         </div>
 
                         <div className="flex-1 lg:border-x border-border/50 px-8 py-4 min-h-[140px] flex flex-col justify-center gap-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="flex flex-col gap-6">
                             {order.items.map((item, i) => (
                               <div key={i} className="flex flex-col gap-4 p-6 bg-white rounded-[2rem] border-2 border-border/50 shadow-sm group/item hover:border-primary/30 transition-all">
                                 <div className="flex items-start gap-5">
