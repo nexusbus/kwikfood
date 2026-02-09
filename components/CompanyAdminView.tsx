@@ -385,21 +385,24 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         <div className="flex flex-row lg:flex-col gap-4 min-w-[280px] w-full lg:w-auto">
                           <button
                             onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
-                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.PREPARING ? 'bg-orange-600 text-white shadow-premium ring-8 ring-orange-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white'}`}
+                            disabled={order.status !== OrderStatus.RECEIVED && order.status !== OrderStatus.PREPARING}
+                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.PREPARING ? 'bg-orange-600 text-white shadow-premium ring-8 ring-orange-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background'}`}
                           >
                             <span className="material-symbols-outlined text-2xl">{order.status === OrderStatus.PREPARING ? 'cooking' : 'outdoor_grill'}</span>
                             {order.status === OrderStatus.PREPARING ? 'COZINHANDO' : 'PREPARAR'}
                           </button>
                           <button
                             onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
-                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.READY ? 'bg-green-600 text-white shadow-premium ring-8 ring-green-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white'}`}
+                            disabled={order.status !== OrderStatus.PREPARING && order.status !== OrderStatus.READY}
+                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.READY ? 'bg-green-600 text-white shadow-premium ring-8 ring-green-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background'}`}
                           >
                             <span className="material-symbols-outlined text-2xl">notifications_active</span>
                             {order.status === OrderStatus.READY ? 'PRONTO' : 'NOTIFICAR'}
                           </button>
                           <button
                             onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                            className="flex-1 flex items-center justify-center gap-5 h-20 bg-secondary text-white rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest hover:bg-primary shadow-premium transition-all active:scale-95"
+                            disabled={order.status !== OrderStatus.READY}
+                            className="flex-1 flex items-center justify-center gap-5 h-20 bg-secondary text-white rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest hover:bg-primary shadow-premium transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-secondary"
                           >
                             <span className="material-symbols-outlined text-2xl">done_all</span>
                             ENTREGAR
