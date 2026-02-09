@@ -352,26 +352,26 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         </div>
 
                         <div className="flex-1 lg:border-x border-border/50 px-8 py-4 min-h-[140px] flex flex-col justify-center gap-6">
-                          <div className="flex flex-col gap-6">
+                          <div className="flex flex-col gap-3">
                             {order.items.map((item, i) => (
-                              <div key={i} className="flex flex-col gap-4 p-6 bg-white rounded-[2rem] border-2 border-border/50 shadow-sm group/item hover:border-primary/30 transition-all">
+                              <div key={i} className="flex flex-col gap-3 p-4 bg-white rounded-[1.2rem] border-2 border-border/50 shadow-sm group/item hover:border-primary/30 transition-all">
                                 <div className="flex items-start gap-5">
-                                  <div className="size-12 bg-secondary text-white rounded-xl flex items-center justify-center text-lg font-black group-hover/item:bg-primary transition-colors flex-shrink-0 shadow-lg">
+                                  <div className="size-9 bg-secondary text-white rounded-lg flex items-center justify-center text-[10px] font-black group-hover/item:bg-primary transition-colors flex-shrink-0 shadow-md">
                                     {item.quantity}
                                   </div>
                                   <div className="flex-1 pt-1">
-                                    <span className="font-black text-2xl text-secondary leading-tight block">
+                                    <span className="font-black text-[12px] text-secondary uppercase tracking-widest leading-tight block">
                                       {item.name}
                                     </span>
                                   </div>
                                 </div>
 
                                 {item.observation && (
-                                  <div className="flex items-start gap-4 p-5 bg-orange-50 rounded-[1.5rem] border-l-8 border-orange-400 animate-pulse-soft">
+                                  <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-[1rem] border-l-4 border-orange-400 animate-pulse-soft">
                                     <span className="material-symbols-outlined text-orange-600 text-2xl font-black">warning</span>
                                     <div className="flex-1">
                                       <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">Restrição / Observação</p>
-                                      <span className="text-base font-black text-orange-800 uppercase leading-snug">
+                                      <span className="text-[10px] font-black text-orange-800 uppercase leading-snug block">
                                         {item.observation}
                                       </span>
                                     </div>
