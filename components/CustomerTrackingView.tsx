@@ -44,6 +44,11 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   };
 
   const handleRequestPermission = async () => {
+    if (Notification.permission === 'denied') {
+      alert('As notificações foram bloqueadas no seu navegador. Por favor, clique no ícone do cadeado ao lado do endereço (URL) e mude para "Permitir".');
+      return;
+    }
+
     const granted = await requestNotificationPermission();
     setNotificationPermission(Notification.permission);
     if (granted) {
@@ -67,8 +72,6 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   };
 
   useEffect(() => {
-    requestNotificationPermission();
-
     const loadData = async () => {
       setLoadingProducts(true);
       try {
