@@ -265,7 +265,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         <header className="mb-16 flex flex-col lg:flex-row justify-between items-center gap-10 relative z-10 animate-fade-in">
           <div>
-            <h2 className="text-6xl font-black tracking-tighter text-secondary leading-none">
+            <h2 className="text-4xl lg:text-5xl font-black tracking-tighter text-secondary leading-none">
               {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : 'Histórico'}
             </h2>
             <div className="flex items-center gap-3 mt-4">
@@ -333,7 +333,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           </div>
                           <div className="space-y-3">
                             <div className="flex items-center gap-4">
-                              <h4 className="text-4xl font-black tracking-tighter text-secondary">{order.customerPhone}</h4>
+                              <h4 className="text-2xl md:text-3xl font-black tracking-tighter text-secondary">{order.customerPhone}</h4>
                               <span className="px-4 py-1.5 bg-primary-soft text-primary rounded-full text-[10px] font-black uppercase tracking-widest">VIP CLIENT</span>
                             </div>
                             <div className="flex items-center gap-6 text-[12px] font-black text-text-muted uppercase tracking-widest">
@@ -349,7 +349,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                               <div key={i} className="flex flex-col gap-4 p-6 bg-background rounded-[2rem] border border-border group/item hover:border-primary/20 transition-all">
                                 <div className="flex justify-between items-center">
                                   <span className="font-black text-xl text-secondary">{item.name}</span>
-                                  <span className="size-10 bg-secondary text-white rounded-xl flex items-center justify-center text-[12px] font-black group-hover/item:bg-primary transition-colors">1</span>
+                                  <span className="size-10 bg-secondary text-white rounded-xl flex items-center justify-center text-[12px] font-black group-hover/item:bg-primary transition-colors">{item.quantity}</span>
                                 </div>
                                 {item.observation && (
                                   <div className="flex items-start gap-4 p-5 bg-primary-soft rounded-[1.5rem] border border-primary/10">
@@ -418,7 +418,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     </div>
                     <div className="p-10 flex flex-col flex-1 justify-between gap-10">
                       <div>
-                        <h4 className="font-black text-3xl text-secondary tracking-tight mb-3">{p.name}</h4>
+                        <h4 className="font-black text-2xl text-secondary tracking-tight mb-3">{p.name}</h4>
                         <div className="flex items-center justify-between">
                           <p className="text-primary font-black text-3xl tracking-tighter">Kz {p.price.toLocaleString()}</p>
                           <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em] bg-background px-4 py-1.5 rounded-full">{p.category}</span>

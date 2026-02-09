@@ -189,14 +189,28 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     return () => clearInterval(interval);
   }, [order.status, order.timerAccumulatedSeconds, order.timerLastStartedAt]);
 
-  const addToCart = (p: Product) => setCart([...cart, { ...p, observation: '' }]);
+  const addToCart = (p: Product) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === p.id);
+      if (existing) {
+        return prev.map(item =>
+          item.id === p.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { ...p, observation: '', quantity: 1 }];
+    });
+  };
+
   const removeFromCart = (pId: string) => {
-    const idx = cart.findLastIndex(c => c.id === pId);
-    if (idx > -1) {
-      const newCart = [...cart];
-      newCart.splice(idx, 1);
-      setCart(newCart);
-    }
+    setCart(prev => {
+      const existing = prev.find(item => item.id === pId);
+      if (existing && existing.quantity > 1) {
+        return prev.map(item =>
+          item.id === pId ? { ...item, quantity: item.quantity - 1 } : item
+        );
+      }
+      return prev.filter(item => item.id !== pId);
+    });
   };
 
   const updateObservation = (idx: number, text: string) => {
@@ -209,7 +223,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     if (cart.length === 0) return;
     setSubmittingOrder(true);
     try {
-      const total = cart.reduce((acc, p) => acc + p.price, 0);
+      const total = cart.reduce((acc, p) => acc + (p.price * p.quantity), 0);
       const { error } = await supabase
         .from('orders')
         .update({
@@ -227,7 +241,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     }
   };
 
-  const totalCart = cart.reduce((acc, p) => acc + p.price, 0);
+  const totalCart = cart.reduce((acc, p) => acc + (p.price * p.quantity), 0);
 
   return (
     <div className="bg-background min-h-screen pb-44 selection:bg-primary selection:text-white">
@@ -270,7 +284,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                 <span className="size-2.5 bg-primary rounded-full animate-pulse-soft"></span>
                 <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em]">Sincronizado Agora</p>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black tracking-tight text-secondary leading-tight">
+              <h1 className="text-4xl md:text-6xl font-black tracking-tight text-secondary leading-tight">
                 {order.status === OrderStatus.RECEIVED ? 'Na Fila' :
                   order.status === OrderStatus.PREPARING ? 'Preparando' :
                     order.status === OrderStatus.READY ? 'Pronto!' : 'Entregue'}
@@ -334,7 +348,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         {(!order.items || order.items.length === 0) ? (
           <section className="space-y-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="flex flex-col gap-3">
-              <h2 className="text-5xl font-black tracking-tight text-secondary">Cardápio do <span className="text-primary">Dia</span></h2>
+              <h2 className="text-4xl font-black tracking-tight text-secondary">Cardápio do <span className="text-primary">Dia</span></h2>
               <p className="text-text-muted font-medium text-lg">Faça o seu pedido enquanto aguarda pela sua vez.</p>
             </div>
 
@@ -344,8 +358,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                 return (
                   <div key={p.id} className="bg-white rounded-[2.8rem] p-8 border border-white/60 shadow-md hover:shadow-premium transition-all group relative overflow-hidden animate-scale-in">
                     {inCart > 0 && (
-                      <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-bl-[3rem] flex items-center justify-center text-primary font-black text-3xl animate-fade-in">
-                        {inCart}
+                      <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-bl-[3rem] flex items-center justify-center text-primary font-black text-2xl animate-fade-in">
+                        {cart.find(item => item.id === p.id)?.quantity || 0}
                       </div>
                     )}
                     <div className="flex gap-8">
@@ -355,8 +369,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       </div>
                       <div className="flex-1 flex flex-col justify-between py-2">
                         <div>
-                          <h3 className="font-black text-2xl text-secondary leading-tight tracking-tight mb-2">{p.name}</h3>
-                          <p className="text-primary font-black text-2xl">Kz {p.price.toLocaleString()}</p>
+                          <h3 className="font-black text-xl text-secondary leading-tight tracking-tight mb-2">{p.name}</h3>
+                          <p className="text-primary font-black text-xl">Kz {p.price.toLocaleString()}</p>
                         </div>
                         <div className="flex items-center gap-4">
                           {inCart > 0 && (
@@ -415,9 +429,10 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       </div>
                     )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex flex-col items-end gap-1">
+                    <span className="text-sm font-black text-primary uppercase tracking-widest">{item.quantity}x</span>
                     <span className="font-black text-xl text-secondary bg-white px-8 py-4 rounded-[1.5rem] border border-border shadow-sm min-w-[160px] inline-block text-center">
-                      Kz {item.price.toLocaleString()}
+                      Kz {(item.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -442,10 +457,10 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               <div className="flex items-center gap-8">
                 <div className="size-20 bg-secondary rounded-[2rem] flex items-center justify-center text-white relative shadow-premium group-hover:scale-110 transition-transform">
                   <span className="material-symbols-outlined text-4xl">shopping_bag</span>
-                  <span className="absolute -top-3 -right-3 size-10 bg-primary text-white text-[14px] font-black rounded-full flex items-center justify-center shadow-xl ring-8 ring-white/50 animate-pulse-soft">{cart.length}</span>
+                  <span className="absolute -top-3 -right-3 size-10 bg-primary text-white text-[14px] font-black rounded-full flex items-center justify-center shadow-xl ring-8 ring-white/50 animate-pulse-soft">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
                 </div>
                 <div>
-                  <h3 className="text-3xl font-black tracking-tighter text-secondary">Carrinho</h3>
+                  <h3 className="text-2xl font-black tracking-tighter text-secondary">Carrinho</h3>
                   <p className="text-[12px] font-black text-text-muted uppercase tracking-widest mt-1">Acumulado: <span className="text-primary font-black ml-1">Kz {totalCart.toLocaleString()}</span></p>
                 </div>
               </div>
@@ -470,8 +485,31 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               {cart.map((item, idx) => (
                 <div key={`${item.id}-${idx}`} className="bg-background/40 rounded-[2.5rem] p-6 border border-white/50 group hover:bg-white hover:border-primary/20 transition-all animate-scale-in">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="font-black text-lg text-secondary">{item.name}</span>
-                    <button onClick={() => removeFromCart(item.id)} className="size-10 rounded-xl hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center bg-background rounded-xl p-1 border border-border">
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="size-8 rounded-lg hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center"
+                        >
+                          <span className="material-symbols-outlined text-sm font-black">remove</span>
+                        </button>
+                        <span className="w-10 text-center font-black text-secondary">{item.quantity}</span>
+                        <button
+                          onClick={() => addToCart(item)}
+                          className="size-8 rounded-lg hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center"
+                        >
+                          <span className="material-symbols-outlined text-sm font-black">add</span>
+                        </button>
+                      </div>
+                      <span className="font-black text-lg text-secondary">{item.name}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newCart = cart.filter((_, i) => i !== idx);
+                        setCart(newCart);
+                      }}
+                      className="size-10 rounded-xl hover:bg-primary-soft text-text-muted hover:text-primary transition-all flex items-center justify-center"
+                    >
                       <span className="material-symbols-outlined text-2xl">close</span>
                     </button>
                   </div>
