@@ -60,7 +60,11 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         if (prods) setProducts(prods.map(p => ({ ...p, imageUrl: p.image_url })));
 
         // Hydrate order to get latest status if refreshed
-        const { data: latestOrder } = await supabase.from('orders').select('*').eq('id', order.id).single();
+        const { data: latestOrder } = await supabase
+          .from('orders')
+          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at')
+          .eq('id', order.id)
+          .single();
         if (latestOrder) {
           setOrder({
             ...order,
@@ -81,7 +85,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           // Calculate dynamic queue position
           const { count: posCount } = await supabase
             .from('orders')
-            .select('*', { count: 'exact', head: true })
+            .select('id', { count: 'exact', head: true })
             .eq('company_id', order.companyId)
             .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
             .lt('created_at', latestOrder.created_at);

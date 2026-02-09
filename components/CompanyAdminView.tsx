@@ -46,7 +46,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         const { data: oData } = await supabase
           .from('orders')
-          .select('*')
+          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at')
           .eq('company_id', company.id)
           .neq('status', OrderStatus.DELIVERED)
           .order('created_at', { ascending: true });
@@ -65,7 +65,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         const { data: hData } = await supabase
           .from('orders')
-          .select('*')
+          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at')
           .eq('company_id', company.id)
           .eq('status', OrderStatus.DELIVERED)
           .order('created_at', { ascending: false })
