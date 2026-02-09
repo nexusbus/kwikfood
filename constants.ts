@@ -41,7 +41,7 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
     const { data, error: insertError } = await supabase
       .rpc('create_order_v9', {
         p_payload: {
-          company_id: order.companyId,
+          company_id: Number(order.companyId),
           customer_phone: order.customerPhone,
           status: order.status,
           estimated_minutes: order.estimatedMinutes
@@ -49,8 +49,8 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
       });
 
     if (insertError) {
-      console.error('Database RPC Error:', insertError);
-      throw insertError;
+      console.error('RPC Error (create_order_v9):', insertError);
+      throw new Error(`Erro na base de dados: ${insertError.message}`);
     }
 
     // Since v7 returns JSONB, the data is already the object with the properties as defined in the function

@@ -76,7 +76,8 @@ CREATE POLICY "Allow public select sa" ON super_admins FOR SELECT USING (true);
 CREATE POLICY "Allow first admin creation" ON super_admins FOR INSERT WITH CHECK ((SELECT count(*) FROM super_admins) = 0);
 CREATE POLICY "Allow admin all sa" ON super_admins FOR ALL USING (true);
 
--- 1. FORCE COLUMN ADDITION (Resilient to existing tables)
+-- 1. FORCE COLUMN CONSISTENCY (Fixes "operator does not exist: text = bigint")
+ALTER TABLE public.orders ALTER COLUMN company_id TYPE BIGINT USING company_id::BIGINT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS ticket_code TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS ticket_number INTEGER;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS timer_accumulated_seconds INTEGER DEFAULT 0;
@@ -90,10 +91,11 @@ DROP FUNCTION IF EXISTS public.create_order_v4(text, text, text, text);
 DROP FUNCTION IF EXISTS public.create_order_v5(text, text, text, text);
 DROP FUNCTION IF EXISTS public.create_order_v6(jsonb);
 DROP FUNCTION IF EXISTS public.create_order_v7(jsonb);
+DROP FUNCTION IF EXISTS public.create_order_v8(jsonb);
 
--- 3. FINAL DEFINITIVE FUNCTION (v8)
--- handles JSONB payload to evade cache matching issues
-CREATE OR REPLACE FUNCTION public.create_order_v8(p_payload JSONB) 
+-- 3. FINAL DEFINITIVE FUNCTION (v9)
+-- handles JSONB payload and uses EXPLICIT CASTS to avoid type mismatch
+CREATE OR REPLACE FUNCTION public.create_order_v9(p_payload JSONB) 
 RETURNS JSONB AS $$
 DECLARE
   v_next_number INTEGER;
@@ -107,18 +109,24 @@ DECLARE
   v_est_mins INTEGER;
   v_result JSONB;
 BEGIN
+  -- Explicitly cast everything from JSON JSON
   v_co_id := (p_payload->>'company_id')::BIGINT;
-  v_phone := (p_payload->>'customer_phone');
-  v_status := (p_payload->>'status');
+  v_phone := (p_payload->>'customer_phone')::TEXT;
+  v_status := (p_payload->>'status')::TEXT;
   v_est_mins := (p_payload->>'estimated_minutes')::INTEGER;
 
+  -- Use explicit casts in EVERY comparison to avoid type mismatch
   SELECT COALESCE(MAX(ticket_number), 0) + 1 INTO v_next_number 
-  FROM public.orders WHERE company_id = v_co_id AND created_at::date = CURRENT_DATE;
+  FROM public.orders 
+  WHERE (company_id::BIGINT = v_co_id::BIGINT) 
+    AND (created_at::date = CURRENT_DATE);
 
   v_ticket_code := LPAD(v_next_number::text, 3, '0');
 
   SELECT COUNT(*) + 1 INTO v_initial_pos 
-  FROM public.orders WHERE company_id = v_co_id AND status IN ('RECEIVED', 'PREPARING', 'READY');
+  FROM public.orders 
+  WHERE (company_id::BIGINT = v_co_id::BIGINT) 
+    AND (status::TEXT IN ('RECEIVED', 'PREPARING', 'READY'));
 
   INSERT INTO public.orders (
     company_id, customer_phone, status, queue_position, 
@@ -144,7 +152,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-GRANT EXECUTE ON FUNCTION public.create_order_v8 TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.create_order_v9 TO anon, authenticated;
 
 -- 4. FINAL CACHE RELOAD
 NOTIFY pgrst, 'reload schema';

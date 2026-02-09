@@ -67,6 +67,36 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
           }
 
           try {
+            // LOGIN LOGIC: Check if there's an existing active order for this phone/company
+            const { data: existingOrder } = await supabase
+              .from('orders')
+              .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at')
+              .eq('company_id', company.id)
+              .eq('customer_phone', phone)
+              .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
+              .maybeSingle();
+
+            if (existingOrder) {
+              // Found active order, just transition to tracking
+              onJoinQueue({
+                id: existingOrder.id,
+                companyId: existingOrder.company_id,
+                customerPhone: existingOrder.customer_phone,
+                status: existingOrder.status as OrderStatus,
+                queuePosition: existingOrder.queue_position,
+                estimatedMinutes: existingOrder.estimated_minutes,
+                ticketCode: existingOrder.ticket_code,
+                ticketNumber: existingOrder.ticket_number,
+                timestamp: existingOrder.created_at,
+                items: existingOrder.items || [],
+                total: existingOrder.total || 0,
+                timerAccumulatedSeconds: existingOrder.timer_accumulated_seconds || 0,
+                timerLastStartedAt: existingOrder.timer_last_started_at
+              });
+              return;
+            }
+
+            // Otherwise, create a new one
             const newOrderData = await createOrder({
               companyId: company.id,
               customerPhone: phone,
@@ -136,11 +166,12 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
                 <div className="relative">
                   <input
                     type="text"
+                    inputMode="numeric"
                     maxLength={4}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                     className="w-full h-28 bg-background border-2 border-border/50 rounded-[2rem] text-5xl font-black tracking-[0.4em] text-center text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
-                    placeholder="100"
+                    placeholder="0001"
                   />
                   <div className="absolute right-10 top-1/2 -translate-y-1/2 text-border group-focus-within:text-primary transition-colors">
                     <span className="material-symbols-outlined text-4xl">pin_drop</span>
