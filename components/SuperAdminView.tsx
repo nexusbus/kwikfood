@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchCompanies, getNextCompanyId } from '../constants';
 import { supabase } from '../src/lib/supabase';
 import { Company } from '../types';
+import { sendSMS } from '../src/services/smsService';
 
 const PROVINCES = [
   'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango', 'Cuanza Norte',
@@ -237,6 +238,22 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
           <span className="size-2 bg-green-400 rounded-full animate-pulse-soft"></span>
           Sistema Operativo
         </div>
+
+        <button
+          onClick={async () => {
+            const num = '244947007574';
+            try {
+              const res = await sendSMS({ recipient: num, message: 'Teste KwikFood SMS Hub MASTER' });
+              alert(`MASTER Sucesso! Resposta: ${JSON.stringify(res)}`);
+            } catch (err: any) {
+              alert(`MASTER Erro: ${err.message}`);
+            }
+          }}
+          className="h-16 px-6 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-premium transition-all flex items-center gap-3"
+        >
+          <span className="material-symbols-outlined text-xl">sms</span>
+          TESTAR SMS MASTER
+        </button>
       </header>
 
       <main className="max-w-7xl mx-auto px-12 py-16 space-y-20 relative z-10">
