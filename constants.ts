@@ -2,7 +2,7 @@
 import { Company, Product, Order, OrderStatus } from './types';
 import { supabase } from './src/lib/supabase';
 
-export const STORE_RADIUS_METERS = 20;
+export const STORE_RADIUS_METERS = 40;
 
 export const fetchCompanies = async (): Promise<Company[]> => {
   const { data, error } = await supabase.from('companies').select('*');
