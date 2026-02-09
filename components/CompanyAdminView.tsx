@@ -351,18 +351,30 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           </div>
                         </div>
 
-                        <div className="flex-1 lg:border-x border-border/50 px-12 min-h-[140px] flex flex-col justify-center gap-8">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="flex-1 lg:border-x border-border/50 px-8 py-4 min-h-[140px] flex flex-col justify-center gap-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {order.items.map((item, i) => (
-                              <div key={i} className="flex flex-col gap-4 p-6 bg-background rounded-[2rem] border border-border group/item hover:border-primary/20 transition-all">
-                                <div className="flex justify-between items-center">
-                                  <span className="font-black text-lg text-secondary truncate pr-2">{item.name}</span>
-                                  <span className="size-9 bg-secondary text-white rounded-lg flex items-center justify-center text-[11px] font-black group-hover/item:bg-primary transition-colors flex-shrink-0">{item.quantity}</span>
+                              <div key={i} className="flex flex-col gap-4 p-6 bg-white rounded-[2rem] border-2 border-border/50 shadow-sm group/item hover:border-primary/30 transition-all">
+                                <div className="flex items-start gap-5">
+                                  <div className="size-12 bg-secondary text-white rounded-xl flex items-center justify-center text-lg font-black group-hover/item:bg-primary transition-colors flex-shrink-0 shadow-lg">
+                                    {item.quantity}
+                                  </div>
+                                  <div className="flex-1 pt-1">
+                                    <span className="font-black text-2xl text-secondary leading-tight block">
+                                      {item.name}
+                                    </span>
+                                  </div>
                                 </div>
+
                                 {item.observation && (
-                                  <div className="flex items-start gap-4 p-5 bg-primary-soft rounded-[1.5rem] border border-primary/10">
-                                    <span className="material-symbols-outlined text-primary text-xl font-black animate-pulse-soft">priority_high</span>
-                                    <span className="text-[13px] font-black text-primary/80 italic leading-tight">"{item.observation}"</span>
+                                  <div className="flex items-start gap-4 p-5 bg-orange-50 rounded-[1.5rem] border-l-8 border-orange-400 animate-pulse-soft">
+                                    <span className="material-symbols-outlined text-orange-600 text-2xl font-black">warning</span>
+                                    <div className="flex-1">
+                                      <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">Restrição / Observação</p>
+                                      <span className="text-base font-black text-orange-800 uppercase leading-snug">
+                                        {item.observation}
+                                      </span>
+                                    </div>
                                   </div>
                                 )}
                               </div>
