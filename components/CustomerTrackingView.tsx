@@ -44,15 +44,26 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   };
 
   const handleRequestPermission = async () => {
+    if (!window.isSecureContext) {
+      alert('🔒 SEGURANÇA: As notificações do browser só funcionam em sites SEGUROS (HTTPS). Por favor, garanta que está a aceder via https:// para poder ativar os alertas.');
+      return;
+    }
+
     if (Notification.permission === 'denied') {
-      alert('As notificações foram bloqueadas no seu navegador. Por favor, clique no ícone do cadeado ao lado do endereço (URL) e mude para "Permitir".');
+      alert('🚫 BLOQUEADO: As notificações foram negadas anteriormente neste browser. Para ativar, clique no ícone do CADEADO ao lado do URL (endereço do site) e mude para "Permitir".');
       return;
     }
 
     const granted = await requestNotificationPermission();
     setNotificationPermission(Notification.permission);
+
     if (granted) {
       showNotification('Notificações Ativadas! 🔔', { body: 'Você receberá atualizações do seu pedido aqui.' });
+    } else {
+      // If it's not denied but not granted, it might have been closed/ignored
+      if (Notification.permission === 'default') {
+        alert('ℹ️ AVISO: A janela de permissão foi fechada ou ignorada. Por favor, clique novamente em "Permitir Alertas" e aceite o pedido do browser.');
+      }
     }
   };
 
