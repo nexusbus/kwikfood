@@ -139,7 +139,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
                 <span className="material-symbols-outlined text-4xl">restaurant_menu</span>
               </div>
               <div>
-                <h2 className="text-4xl font-black text-secondary tracking-tighter leading-none">KwikFood</h2>
+                <h2 className="text-3xl font-black text-secondary tracking-tighter leading-none">KwikFood</h2>
                 <p className="text-[10px] text-primary font-black uppercase tracking-[0.4em] mt-2">Smart Queue</p>
               </div>
             </div>
@@ -154,7 +154,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
           <div className="p-12 space-y-12">
             <div className="space-y-4">
-              <h1 className="text-5xl font-black text-secondary tracking-tight leading-[1.1]">Diga adeus às <span className="text-primary">filas.</span></h1>
+              <h1 className="text-4xl font-black text-secondary tracking-tight leading-[1.1]">Diga adeus às <span className="text-primary">filas.</span></h1>
               <p className="text-text-muted font-medium leading-relaxed text-lg">
                 Junte-se à fila digital em segundos. Seu tempo vale muito.
               </p>
@@ -170,7 +170,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
                     maxLength={4}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full h-28 bg-background border-2 border-border/50 rounded-[2rem] text-5xl font-black tracking-[0.4em] text-center text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
+                    className="w-full h-24 bg-background border-2 border-border/50 rounded-[2rem] text-4xl font-black tracking-[0.4em] text-center text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
                     placeholder="0001"
                   />
                   <div className="absolute right-10 top-1/2 -translate-y-1/2 text-border group-focus-within:text-primary transition-colors">
@@ -212,7 +212,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               <button
                 onClick={handleJoin}
                 disabled={loading}
-                className="group relative w-full h-28 bg-primary hover:bg-primary-dark text-white rounded-[2.2rem] font-black text-xl shadow-premium active:scale-[0.96] transition-all flex items-center justify-center gap-5 disabled:opacity-50 overflow-hidden"
+                className="group relative w-full h-24 bg-primary hover:bg-primary-dark text-white rounded-[2.2rem] font-black text-lg shadow-premium active:scale-[0.96] transition-all flex items-center justify-center gap-5 disabled:opacity-50 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12"></div>
                 {loading ? (

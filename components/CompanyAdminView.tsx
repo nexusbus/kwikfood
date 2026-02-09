@@ -273,8 +273,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         <header className="mb-16 flex flex-col lg:flex-row justify-between items-center gap-10 relative z-10 animate-fade-in">
           <div>
-            <h2 className="text-4xl lg:text-5xl font-black tracking-tighter text-secondary leading-none">
-              {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : 'Histórico'}
+            <h2 className="text-3xl lg:text-5xl font-black tracking-tighter text-secondary leading-none">
+              {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : 'Audit & Histórico'}
             </h2>
             <div className="flex items-center gap-3 mt-4">
               <span className="size-2.5 bg-green-500 rounded-full animate-pulse-soft"></span>
@@ -295,9 +295,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-text-muted/40">search</span>
               </div>
             )}
-            <div className="bg-surface px-10 py-6 rounded-[2rem] border border-border shadow-premium flex flex-col items-center min-w-[180px]">
-              <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-1">Pedidos Atuais</p>
-              <p className="text-5xl font-black text-secondary">{orders.length}</p>
+            <div className="bg-surface px-8 py-5 rounded-[1.5rem] border border-border shadow-premium flex flex-col items-center min-w-[150px]">
+              <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mb-1">Pedidos Atuais</p>
+              <p className="text-4xl font-black text-secondary">{orders.length}</p>
             </div>
             {activeTab === 'PRODUTOS' && (
               <button
@@ -331,9 +331,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       <div className="flex flex-col lg:flex-row gap-12 items-start lg:items-center w-full">
                         <div className="flex items-center gap-10 flex-shrink-0">
                           <div className="relative transform group-hover:scale-105 transition-transform duration-700">
-                            <div className="size-32 bg-secondary rounded-[2.5rem] flex flex-col items-center justify-center border-2 border-white/10 shadow-premium">
-                              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">Senha</p>
-                              <h3 className="text-4xl font-black text-white tracking-tighter">{order.ticketCode}</h3>
+                            <div className="size-24 bg-secondary rounded-[1.8rem] flex flex-col items-center justify-center border-2 border-white/10 shadow-premium">
+                              <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-0.5">Senha</p>
+                              <h3 className="text-3xl font-black text-white tracking-tighter">{order.ticketCode}</h3>
                             </div>
                             <div className="absolute -top-4 -right-4 size-12 bg-primary text-white rounded-full flex items-center justify-center text-[11px] font-black border-4 border-white shadow-xl">
                               #{order.id.slice(0, 3).toUpperCase()}
@@ -344,9 +344,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                               <h4 className="text-2xl md:text-3xl font-black tracking-tighter text-secondary">{order.customerPhone}</h4>
                               <span className="px-4 py-1.5 bg-primary-soft text-primary rounded-full text-[10px] font-black uppercase tracking-widest">VIP CLIENT</span>
                             </div>
-                            <div className="flex items-center gap-6 text-[12px] font-black text-text-muted uppercase tracking-widest">
-                              <span className="flex items-center gap-2"><span className="material-symbols-outlined text-xl">schedule</span> {order.timestamp}</span>
-                              <span className={`px-5 py-2 rounded-full shadow-sm ${getStatusColor(order.status)}`}>{order.status}</span>
+                            <div className="flex flex-wrap items-center gap-4 text-[11px] font-black text-text-muted uppercase tracking-widest">
+                              <span className="flex items-center gap-2 pr-4 border-r border-border/50"><span className="material-symbols-outlined text-lg">schedule</span> {order.timestamp}</span>
+                              <span className={`px-4 py-1.5 rounded-full shadow-sm ${getStatusColor(order.status)}`}>{order.status}</span>
                             </div>
                           </div>
                         </div>
@@ -356,8 +356,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                             {order.items.map((item, i) => (
                               <div key={i} className="flex flex-col gap-4 p-6 bg-background rounded-[2rem] border border-border group/item hover:border-primary/20 transition-all">
                                 <div className="flex justify-between items-center">
-                                  <span className="font-black text-xl text-secondary">{item.name}</span>
-                                  <span className="size-10 bg-secondary text-white rounded-xl flex items-center justify-center text-[12px] font-black group-hover/item:bg-primary transition-colors">{item.quantity}</span>
+                                  <span className="font-black text-lg text-secondary truncate pr-2">{item.name}</span>
+                                  <span className="size-9 bg-secondary text-white rounded-lg flex items-center justify-center text-[11px] font-black group-hover/item:bg-primary transition-colors flex-shrink-0">{item.quantity}</span>
                                 </div>
                                 {item.observation && (
                                   <div className="flex items-start gap-4 p-5 bg-primary-soft rounded-[1.5rem] border border-primary/10">
@@ -466,30 +466,30 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               <div className="bg-surface rounded-[4.5rem] shadow-premium border border-border overflow-hidden">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
-                      <th className="px-16 py-12">Ticket</th>
-                      <th className="px-12 py-12">Contacto</th>
-                      <th className="px-12 py-12">Tempo Total</th>
-                      <th className="px-16 py-12 text-right">Data/Hora</th>
+                    <tr className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] border-b border-border/50">
+                      <th className="px-12 py-10">Ticket</th>
+                      <th className="px-10 py-10">Contacto</th>
+                      <th className="px-10 py-10">Tempo Total</th>
+                      <th className="px-12 py-10 text-right">Data/Hora</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/30">
+                  <tbody className="divide-y divide-border/20">
                     {historyOrders.map((hOrder) => (
                       <tr key={hOrder.id} className="group hover:bg-background/40 transition-all duration-500">
-                        <td className="px-16 py-12">
-                          <div className="flex items-center gap-6">
-                            <div className="size-14 bg-secondary text-white rounded-2xl flex items-center justify-center font-black text-lg group-hover:bg-primary transition-colors">
+                        <td className="px-12 py-10">
+                          <div className="flex items-center gap-5">
+                            <div className="size-12 bg-secondary text-white rounded-xl flex items-center justify-center font-black text-base group-hover:bg-primary transition-colors">
                               #{hOrder.ticketCode}
                             </div>
-                            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1">Ref: {hOrder.id.slice(0, 8)}</p>
+                            <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1 hidden sm:block">Ref: {hOrder.id.slice(0, 8)}</p>
                           </div>
                         </td>
-                        <td className="px-12 py-12 text-[15px] font-black text-secondary">{hOrder.customerPhone}</td>
-                        <td className="px-12 py-12 font-black text-secondary">
+                        <td className="px-10 py-10 text-[14px] font-black text-secondary">{hOrder.customerPhone}</td>
+                        <td className="px-10 py-10 font-black text-secondary text-[14px]">
                           {Math.floor((hOrder.timerAccumulatedSeconds || 0) / 60)}m {(hOrder.timerAccumulatedSeconds || 0) % 60}s
                         </td>
-                        <td className="px-16 py-12 text-right">
-                          <p className="text-[14px] font-black text-secondary">{hOrder.timestamp}</p>
+                        <td className="px-12 py-10 text-right">
+                          <p className="text-[13px] font-black text-secondary">{hOrder.timestamp}</p>
                         </td>
                       </tr>
                     ))}
@@ -509,7 +509,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
             <header className="flex justify-between items-start mb-12">
               <div>
-                <h3 className="text-5xl font-black tracking-tighter text-secondary">
+                <h3 className="text-3xl lg:text-4xl font-black tracking-tighter text-secondary">
                   {modalMode === 'add' ? 'Novo Produto' : 'Editar Produto'}
                 </h3>
                 <p className="text-text-muted font-medium text-lg mt-2">Personalize os detalhes no menu digital.</p>

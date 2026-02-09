@@ -263,7 +263,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             <span className="material-symbols-outlined text-4xl">bolt</span>
           </div>
           <div className="hidden sm:block">
-            <h2 className="text-3xl font-black tracking-tighter text-secondary leading-none">KwikFood</h2>
+            <h2 className="text-2xl font-black tracking-tighter text-secondary leading-none">KwikFood</h2>
             <p className="text-[10px] uppercase tracking-[0.4em] font-black text-primary mt-1">{company?.name || 'Angola'}</p>
           </div>
         </div>
@@ -284,7 +284,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                 <span className="size-2.5 bg-primary rounded-full animate-pulse-soft"></span>
                 <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em]">Sincronizado Agora</p>
               </div>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tight text-secondary leading-tight">
+              <h1 className="text-3xl md:text-5xl font-black tracking-tight text-secondary leading-tight">
                 {order.status === OrderStatus.RECEIVED ? 'Na Fila' :
                   order.status === OrderStatus.PREPARING ? 'Preparando' :
                     order.status === OrderStatus.READY ? 'Pronto!' : 'Entregue'}
@@ -314,8 +314,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             <div className="size-64 rounded-[3.5rem] bg-secondary flex flex-col items-center justify-center relative shadow-premium group transform hover:scale-105 transition-all duration-700">
               <div className="absolute inset-3 border-2 border-white/5 rounded-[2.8rem] border-dashed"></div>
               <div className="relative text-center">
-                <span className="text-4xl font-black text-primary leading-none block mb-1">{formatTime(elapsedSeconds)}</span>
-                <span className="absolute -top-10 left-1/2 -translate-x-1/2 text-primary/40 material-symbols-outlined text-4xl animate-spin-slow">timer</span>
+                <span className="text-3xl font-black text-primary leading-none block mb-1">{formatTime(elapsedSeconds)}</span>
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-primary/40 material-symbols-outlined text-2xl animate-spin-slow">timer</span>
               </div>
               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.5em] mt-2">DURAÇÃO TOTAL</p>
               <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest mt-2">EM ATENDIMENTO</p>
@@ -348,7 +348,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         {(!order.items || order.items.length === 0) ? (
           <section className="space-y-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="flex flex-col gap-3">
-              <h2 className="text-4xl font-black tracking-tight text-secondary">Cardápio do <span className="text-primary">Dia</span></h2>
+              <h2 className="text-3xl font-black tracking-tight text-secondary">Cardápio do <span className="text-primary">Dia</span></h2>
               <p className="text-text-muted font-medium text-lg">Faça o seu pedido enquanto aguarda pela sua vez.</p>
             </div>
 
@@ -405,13 +405,13 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                   <span className="material-symbols-outlined text-5xl">receipt_long</span>
                 </div>
                 <div>
-                  <h3 className="text-4xl font-black tracking-tight text-secondary">Detalhes</h3>
+                  <h3 className="text-2xl font-black tracking-tight text-secondary">Detalhes do Pedido</h3>
                   <p className="text-text-muted text-sm font-black uppercase tracking-[0.3em] mt-1">Conta Confirmada</p>
                 </div>
               </div>
               <div className="text-center md:text-right px-10 py-6 bg-background rounded-3xl border border-border">
                 <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-2">Total FINAL</p>
-                <p className="text-5xl font-black text-secondary tracking-tighter">Kz {order.total?.toLocaleString()}</p>
+                <p className="text-3xl font-black text-secondary tracking-tighter">Kz {order.total?.toLocaleString()}</p>
               </div>
             </div>
 
@@ -460,7 +460,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                   <span className="absolute -top-3 -right-3 size-10 bg-primary text-white text-[14px] font-black rounded-full flex items-center justify-center shadow-xl ring-8 ring-white/50 animate-pulse-soft">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black tracking-tighter text-secondary">Carrinho</h3>
+                  <h3 className="text-xl font-black tracking-tighter text-secondary">Carrinho</h3>
                   <p className="text-[12px] font-black text-text-muted uppercase tracking-widest mt-1">Acumulado: <span className="text-primary font-black ml-1">Kz {totalCart.toLocaleString()}</span></p>
                 </div>
               </div>
