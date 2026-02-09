@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Company, Product, ProductStatus, Order, OrderStatus } from '../types';
 import { fetchProducts } from '../constants';
 import { supabase } from '../src/lib/supabase';
+import { sendSMS } from '../src/services/smsService';
 
 interface CompanyAdminViewProps {
   company: Company;
@@ -132,6 +133,30 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       const { error } = await supabase.from('orders').update(updates).eq('id', orderId);
       if (error) throw error;
+
+      // Trigger SMS notification
+      if (status === OrderStatus.PREPARING || status === OrderStatus.READY || status === OrderStatus.DELIVERED) {
+        let message = '';
+        switch (status) {
+          case OrderStatus.PREPARING:
+            message = `KwikFood: O seu pedido ${order.ticketCode} está a ser preparado!`;
+            break;
+          case OrderStatus.READY:
+            message = `KwikFood: O seu pedido ${order.ticketCode} está pronto! Pode vir levantar.`;
+            break;
+          case OrderStatus.DELIVERED:
+            message = `KwikFood: O seu pedido ${order.ticketCode} foi entregue. Bom apetite!`;
+            break;
+        }
+
+        if (message && order.customerPhone) {
+          try {
+            await sendSMS({ recipient: order.customerPhone, message });
+          } catch (smsErr) {
+            console.error('Failed to send SMS notification:', smsErr);
+          }
+        }
+      }
     } catch (err) {
       alert('Erro ao atualizar pedido.');
     }
