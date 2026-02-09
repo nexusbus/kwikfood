@@ -291,19 +291,6 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2">SISTEMA ATIVO</p>
           <code className="text-[12px] text-primary font-mono tracking-tighter">{company.id}</code>
 
-          <button
-            onClick={async () => {
-              try {
-                const res = await sendSMS({ recipient: '244947007574', message: 'Teste manual KwikFood SMS Hub' });
-                alert('Teste enviado: ' + JSON.stringify(res));
-              } catch (err: any) {
-                alert('Erro no teste: ' + err.message);
-              }
-            }}
-            className="mt-4 w-full py-3 bg-primary/20 hover:bg-primary/40 border border-primary/30 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-          >
-            Testar SMS (947007574)
-          </button>
         </div>
       </aside>
 
@@ -338,21 +325,6 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mb-1">Pedidos Atuais</p>
               <p className="text-4xl font-black text-secondary">{orders.length}</p>
             </div>
-            <button
-              onClick={async () => {
-                const num = '244947007574';
-                try {
-                  const res = await sendSMS({ recipient: num, message: 'Teste KwikFood SMS Hub Header' });
-                  alert(`Sucesso! Resposta: ${JSON.stringify(res)}`);
-                } catch (err: any) {
-                  alert(`Erro no Envio: ${err.message}`);
-                }
-              }}
-              className="h-20 px-8 bg-red-500 hover:bg-red-600 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.3em] shadow-premium transition-all flex items-center gap-4"
-            >
-              <span className="material-symbols-outlined text-2xl">sms</span>
-              TESTAR SMS DIRETAMENTE
-            </button>
             {activeTab === 'PRODUTOS' && (
               <button
                 onClick={() => openModal('add')}
@@ -571,79 +543,81 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       </main>
 
       {/* Premium Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="bg-surface rounded-[4.5rem] w-full max-w-2xl shadow-premium p-16 animate-in zoom-in-95 duration-300 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+      {
+        isModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+            <div className="bg-surface rounded-[4.5rem] w-full max-w-2xl shadow-premium p-16 animate-in zoom-in-95 duration-300 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
-            <header className="flex justify-between items-start mb-12">
-              <div>
-                <h3 className="text-3xl lg:text-4xl font-black tracking-tighter text-secondary">
-                  {modalMode === 'add' ? 'Novo Produto' : 'Editar Produto'}
-                </h3>
-                <p className="text-text-muted font-medium text-lg mt-2">Personalize os detalhes no menu digital.</p>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} className="size-14 bg-background rounded-full flex items-center justify-center text-text-muted hover:bg-primary hover:text-white transition-all">
-                <span className="material-symbols-outlined text-3xl font-black">close</span>
-              </button>
-            </header>
-
-            <form onSubmit={handleSaveProduct} className="space-y-10">
-              <div className="space-y-3">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Identificação do Item</label>
-                <input type="text" value={pName} onChange={e => setPName(e.target.value)} placeholder="Ex: Grand Deluxe Master" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
-              </div>
-
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Investimento (Kz)</label>
-                  <input type="number" value={pPrice} onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
+              <header className="flex justify-between items-start mb-12">
+                <div>
+                  <h3 className="text-3xl lg:text-4xl font-black tracking-tighter text-secondary">
+                    {modalMode === 'add' ? 'Novo Produto' : 'Editar Produto'}
+                  </h3>
+                  <p className="text-text-muted font-medium text-lg mt-2">Personalize os detalhes no menu digital.</p>
                 </div>
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Sessão do Menu</label>
-                  <select value={pCategory} onChange={e => setPCategory(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all outline-none appearance-none cursor-pointer">
-                    <option>Hambúrgueres</option><option>Bebidas</option><option>Acompanhamentos</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Impacto Visual</label>
-                <div className="flex gap-8 items-center bg-background/50 p-8 rounded-[3rem] border-2 border-dashed border-border/60 group">
-                  <div className="relative size-40 bg-white rounded-[2rem] shadow-premium flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {pImageUrl ? (
-                      <img src={pImageUrl} alt="Preview" className="size-full object-cover" />
-                    ) : (
-                      <span className="material-symbols-outlined text-border text-6xl">image</span>
-                    )}
-                    {uploading && (
-                      <div className="absolute inset-0 bg-secondary/80 flex items-center justify-center">
-                        <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="p-image-upload" />
-                    <label htmlFor="p-image-upload" className="inline-flex px-10 py-5 bg-secondary text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl cursor-pointer hover:bg-primary transition-all shadow-premium">
-                      Escolher Imagem
-                    </label>
-                    <p className="text-[11px] text-text-muted mt-4 font-medium italic">Selecione uma foto apelativa para os clientes.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-10 flex gap-6">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-20 font-black uppercase tracking-[0.4em] text-text-muted hover:text-primary transition-all text-[12px]">Descartar</button>
-                <button type="submit" disabled={saving || uploading} className="flex-[2] h-20 bg-primary hover:bg-secondary text-white rounded-[1.8rem] font-black uppercase tracking-[0.4em] text-[13px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
-                  {saving ? 'PROCESSANDO...' : 'FINALIZAR & SALVAR'}
+                <button onClick={() => setIsModalOpen(false)} className="size-14 bg-background rounded-full flex items-center justify-center text-text-muted hover:bg-primary hover:text-white transition-all">
+                  <span className="material-symbols-outlined text-3xl font-black">close</span>
                 </button>
-              </div>
-            </form>
+              </header>
+
+              <form onSubmit={handleSaveProduct} className="space-y-10">
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Identificação do Item</label>
+                  <input type="text" value={pName} onChange={e => setPName(e.target.value)} placeholder="Ex: Grand Deluxe Master" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Investimento (Kz)</label>
+                    <input type="number" value={pPrice} onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Sessão do Menu</label>
+                    <select value={pCategory} onChange={e => setPCategory(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all outline-none appearance-none cursor-pointer">
+                      <option>Hambúrgueres</option><option>Bebidas</option><option>Acompanhamentos</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Impacto Visual</label>
+                  <div className="flex gap-8 items-center bg-background/50 p-8 rounded-[3rem] border-2 border-dashed border-border/60 group">
+                    <div className="relative size-40 bg-white rounded-[2rem] shadow-premium flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {pImageUrl ? (
+                        <img src={pImageUrl} alt="Preview" className="size-full object-cover" />
+                      ) : (
+                        <span className="material-symbols-outlined text-border text-6xl">image</span>
+                      )}
+                      {uploading && (
+                        <div className="absolute inset-0 bg-secondary/80 flex items-center justify-center">
+                          <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="p-image-upload" />
+                      <label htmlFor="p-image-upload" className="inline-flex px-10 py-5 bg-secondary text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl cursor-pointer hover:bg-primary transition-all shadow-premium">
+                        Escolher Imagem
+                      </label>
+                      <p className="text-[11px] text-text-muted mt-4 font-medium italic">Selecione uma foto apelativa para os clientes.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-10 flex gap-6">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-20 font-black uppercase tracking-[0.4em] text-text-muted hover:text-primary transition-all text-[12px]">Descartar</button>
+                  <button type="submit" disabled={saving || uploading} className="flex-[2] h-20 bg-primary hover:bg-secondary text-white rounded-[1.8rem] font-black uppercase tracking-[0.4em] text-[13px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
+                    {saving ? 'PROCESSANDO...' : 'FINALIZAR & SALVAR'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 
