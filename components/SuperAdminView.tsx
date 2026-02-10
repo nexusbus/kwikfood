@@ -239,21 +239,6 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
           Sistema Operativo
         </div>
 
-        <button
-          onClick={async () => {
-            const num = '244947007574';
-            try {
-              const res = await sendSMS({ recipient: num, message: 'Teste Diagnóstico KwikFood' });
-              alert(`Teste enviado! Verifique os logs do Supabase.`);
-            } catch (err: any) {
-              alert(`Erro: ${err.message}`);
-            }
-          }}
-          className="h-16 px-6 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-premium transition-all flex items-center gap-3"
-        >
-          <span className="material-symbols-outlined text-xl">sms</span>
-          TESTAR SMS (DIAGNÓSTICO)
-        </button>
       </header>
 
       <main className="max-w-7xl mx-auto px-12 py-16 space-y-20 relative z-10">
