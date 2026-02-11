@@ -648,7 +648,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             <div className="flex flex-col items-center gap-10">
               <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20">
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.net?code=${company.id.toString().padStart(4, '0')}`)}`}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
                   alt="QR Code"
                   className="size-64"
                 />
