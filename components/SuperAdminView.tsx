@@ -93,7 +93,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
     setLoading(true);
     try {
-      const companyData = {
+      const dbData = {
         id: editingCompany ? editingCompany.id : id,
         name,
         location,
@@ -102,23 +102,20 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         lng,
         email,
         password,
-        logoUrl
+        logo_url: logoUrl // Map to snake_case for DB
       };
 
       if (editingCompany) {
         const { error } = await supabase
           .from('companies')
-          .update(companyData)
+          .update(dbData)
           .eq('id', editingCompany.id);
         if (error) throw error;
         setEditingCompany(null);
       } else {
-        const insertData: any = { ...companyData };
+        const insertData: any = { ...dbData };
         if (!insertData.id) delete insertData.id;
-        const { error } = await supabase.from('companies').insert([{
-          ...insertData,
-          logo_url: logoUrl // Match DB column name
-        }]);
+        const { error } = await supabase.from('companies').insert([insertData]);
         if (error) throw error;
       }
 
