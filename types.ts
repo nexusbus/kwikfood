@@ -32,6 +32,7 @@ export interface Company {
   lng: number;
   email?: string;
   password?: string;
+  logoUrl?: string; // Add logo URL
 }
 
 export interface CartItem extends Product {

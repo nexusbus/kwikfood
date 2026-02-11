@@ -7,7 +7,10 @@ export const STORE_RADIUS_METERS = 40;
 export const fetchCompanies = async (): Promise<Company[]> => {
   const { data, error } = await supabase.from('companies').select('*');
   if (error) throw error;
-  return data as Company[];
+  return data.map(co => ({
+    ...co,
+    logoUrl: co.logo_url
+  })) as Company[];
 };
 
 export const fetchProducts = async (companyId: string): Promise<Product[]> => {

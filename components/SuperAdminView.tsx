@@ -27,6 +27,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [logoLoading, setLogoLoading] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
   const [showQRModal, setShowQRModal] = useState<Company | null>(null);
@@ -99,7 +101,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         lat,
         lng,
         email,
-        password
+        password,
+        logoUrl
       };
 
       if (editingCompany) {
@@ -111,12 +114,15 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         setEditingCompany(null);
       } else {
         const insertData: any = { ...companyData };
-        if (!insertData.id) delete insertData.id; // Let DB handle if empty
-        const { error } = await supabase.from('companies').insert([insertData]);
+        if (!insertData.id) delete insertData.id;
+        const { error } = await supabase.from('companies').insert([{
+          ...insertData,
+          logo_url: logoUrl // Match DB column name
+        }]);
         if (error) throw error;
       }
 
-      setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword('');
+      setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
       const nextId = await getNextCompanyId();
       setId(nextId.toString().padStart(4, '0'));
     } catch (err: any) {
@@ -137,12 +143,13 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setLng(company.lng);
     setEmail(company.email || '');
     setPassword(company.password || '');
+    setLogoUrl(company.logoUrl || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCancelEdit = async () => {
     setEditingCompany(null);
-    setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword('');
+    setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
     const nextId = await getNextCompanyId();
     setId(nextId.toString().padStart(4, '0'));
   };
@@ -182,6 +189,34 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       setDeleteError(err.message || 'Erro crítico na desativação.');
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLogoLoading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('logos')
+        .getPublicUrl(filePath);
+
+      setLogoUrl(publicUrl);
+    } catch (err: any) {
+      alert('Erro no upload do logotipo: ' + err.message);
+    } finally {
+      setLogoLoading(false);
     }
   };
 
@@ -300,6 +335,31 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
                   </div>
 
+                  <div className="md:col-span-2 space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Logótipo da Empresa</label>
+                    <div className="flex items-center gap-8 p-8 bg-background border-2 border-border/40 rounded-[1.8rem]">
+                      <div className="size-24 bg-surface rounded-2xl flex items-center justify-center overflow-hidden border border-border relative group">
+                        {logoUrl ? (
+                          <img src={logoUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="material-symbols-outlined text-4xl text-text-muted">image</span>
+                        )}
+                        {logoLoading && (
+                          <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                            <span className="material-symbols-outlined animate-spin text-primary">sync</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <label className="inline-block px-8 py-4 bg-secondary text-white rounded-xl font-black text-[10px] uppercase tracking-widest cursor-pointer hover:bg-primary transition-all shadow-premium">
+                          {logoLoading ? 'A CARREGAR...' : logoUrl ? 'ALTERAR IMAGEM' : 'SELECIONAR LOGOTIPO'}
+                          <input type="file" onChange={handleLogoUpload} className="hidden" accept="image/*" disabled={logoLoading} />
+                        </label>
+                        <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest ml-1">PNG ou JPG até 2MB</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="md:col-span-2 space-y-6">
                     <div className="flex flex-col md:flex-row gap-6">
                       <div className="flex-1 space-y-4">
@@ -376,8 +436,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                         <tr key={co.id} className="group hover:bg-background/40 transition-all duration-500 relative">
                           <td className="px-16 py-12">
                             <div className="flex items-center gap-8">
-                              <div className="size-20 bg-background rounded-[2.2rem] flex items-center justify-center text-secondary font-black text-3xl group-hover:bg-primary group-hover:text-white transition-all duration-700 shadow-sm border border-border">
-                                {co.name.charAt(0)}
+                              <div className="size-20 bg-background rounded-[2.2rem] flex items-center justify-center text-secondary font-black text-3xl group-hover:bg-primary group-hover:text-white transition-all duration-700 shadow-sm border border-border overflow-hidden">
+                                {co.logoUrl ? (
+                                  <img src={co.logoUrl} alt={co.name} className="w-full h-full object-cover" />
+                                ) : co.name.charAt(0)}
                               </div>
                               <div>
                                 <p className="text-2xl font-black text-secondary group-hover:translate-x-2 transition-transform duration-500">{co.name}</p>

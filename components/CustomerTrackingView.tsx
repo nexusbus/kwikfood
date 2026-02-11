@@ -346,8 +346,12 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           >
             <span className="material-symbols-outlined text-2xl sm:text-3xl group-hover:-translate-x-1 transition-transform">home</span>
           </button>
-          <div className="bg-primary text-white size-10 sm:size-14 flex items-center justify-center rounded-[1rem] sm:rounded-[1.5rem] shadow-premium transform hover:scale-105 transition-all">
-            <span className="material-symbols-outlined text-2xl sm:text-4xl">bolt</span>
+          <div className="bg-primary text-white size-10 sm:size-14 flex items-center justify-center rounded-[1rem] sm:rounded-[1.5rem] shadow-premium transform hover:scale-105 transition-all overflow-hidden">
+            {company?.logoUrl ? (
+              <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="material-symbols-outlined text-2xl sm:text-4xl">bolt</span>
+            )}
           </div>
           <div className="flex flex-col">
             <h2 className="text-lg sm:text-2xl font-black tracking-tighter text-secondary leading-none">KwikFood</h2>
@@ -423,8 +427,12 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
           <div className="mt-10 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
             <div className="bg-background/50 backdrop-blur-sm flex items-center gap-4 sm:gap-6 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border border-white/50 group hover:bg-white transition-all">
-              <div className="size-12 sm:size-16 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center text-primary shadow-md border border-border group-hover:rotate-12 transition-transform">
-                <span className="material-symbols-outlined text-2xl sm:text-3xl">storefront</span>
+              <div className="size-12 sm:size-16 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center text-primary shadow-md border border-border group-hover:rotate-12 transition-transform overflow-hidden">
+                {company?.logoUrl ? (
+                  <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="material-symbols-outlined text-2xl sm:text-3xl">storefront</span>
+                )}
               </div>
               <div className="overflow-hidden">
                 <p className="text-[9px] sm:text-[10px] font-black text-text-muted uppercase tracking-widest mb-0.5 sm:mb-1">Local</p>
