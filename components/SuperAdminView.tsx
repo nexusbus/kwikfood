@@ -29,6 +29,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [geoLoading, setGeoLoading] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
+  const [showQRModal, setShowQRModal] = useState<Company | null>(null);
   const [adminConfirmEmail, setAdminConfirmEmail] = useState('');
   const [adminConfirmPassword, setAdminConfirmPassword] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -239,21 +240,6 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
           Sistema Operativo
         </div>
 
-        <button
-          onClick={async () => {
-            const num = '244947007574';
-            try {
-              const res = await sendSMS({ recipient: num, message: 'Triplo Teste' });
-              alert(`3 Mensagens enviadas! Veja qual delas chega com o nome KWIKFOOD.`);
-            } catch (err: any) {
-              alert(`Erro: ${err.message}`);
-            }
-          }}
-          className="h-16 px-6 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-premium transition-all flex items-center gap-3"
-        >
-          <span className="material-symbols-outlined text-xl">sms</span>
-          TRIPLO TESTE (SENDER)
-        </button>
       </header>
 
       <main className="max-w-7xl mx-auto px-12 py-16 space-y-20 relative z-10">
@@ -421,10 +407,13 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                           </td>
                           <td className="px-16 py-12 text-right">
                             <div className="flex justify-end gap-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-10 transition-all duration-700">
+                              <button onClick={() => setShowQRModal(co)} className="size-16 bg-white border border-border/80 rounded-[1.5rem] flex items-center justify-center text-text-muted hover:text-primary hover:shadow-premium transition-all">
+                                <span className="material-symbols-outlined text-3xl">qr_code_2</span>
+                              </button>
                               <button onClick={() => handleEditClick(co)} className="size-16 bg-white border border-border/80 rounded-[1.5rem] flex items-center justify-center text-text-muted hover:text-secondary hover:shadow-premium transition-all">
                                 <span className="material-symbols-outlined text-3xl">edit_note</span>
                               </button>
-                              <button onClick={() => setShowDeleteModal(co.id)} className="size-16 bg-primary-soft rounded-[1.5rem] flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-md">
+                              <button onClick={() => setShowDeleteModal(co.id.toString())} className="size-16 bg-primary-soft rounded-[1.5rem] flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-md">
                                 <span className="material-symbols-outlined text-3xl">delete</span>
                               </button>
                             </div>
@@ -592,6 +581,51 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+
+            <div className="text-center mb-12">
+              <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
+                <span className="material-symbols-outlined text-5xl">qr_code_2</span>
+              </div>
+              <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{showQRModal.name}</h3>
+              <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
+                Código do Local: <span className="text-primary font-black">{showQRModal.id.toString().padStart(4, '0')}</span>
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-10">
+              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.net?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
+                  alt="QR Code"
+                  className="size-64"
+                />
+              </div>
+
+              <div className="w-full space-y-4">
+                <button
+                  onClick={() => window.print()}
+                  className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
+                >
+                  <span className="material-symbols-outlined">print</span>
+                  IMPRIMIR QR CODE
+                </button>
+                <button
+                  onClick={() => setShowQRModal(null)}
+                  className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
+                >
+                  FECHAR
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

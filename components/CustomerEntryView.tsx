@@ -15,6 +15,18 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [paramsChecked, setParamsChecked] = useState(false);
+
+  useEffect(() => {
+    if (!paramsChecked) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlCode = urlParams.get('code');
+      if (urlCode) {
+        setCode(urlCode);
+      }
+      setParamsChecked(true);
+    }
+  }, [paramsChecked]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371e3; // metres

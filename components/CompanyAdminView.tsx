@@ -30,6 +30,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [ticketSearch, setTicketSearch] = useState('');
+  const [showQRModal, setShowQRModal] = useState(false);
 
   // Form state
   const [pName, setPName] = useState('');
@@ -275,7 +276,17 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             Audit & Histórico
           </button>
 
-          <div className="mt-12 pt-12 border-t border-border/50">
+          <div className="mt-8">
+            <button
+              onClick={() => setShowQRModal(true)}
+              className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.5rem] bg-primary/10 text-primary border border-primary/20 transition-all font-black text-[12px] uppercase tracking-widest hover:bg-primary hover:text-white"
+            >
+              <span className="material-symbols-outlined text-2xl">qr_code_2</span>
+              Meu QR Code
+            </button>
+          </div>
+
+          <div className="mt-4 pt-8 border-t border-border/50">
             <button onClick={onLogout} className="w-full flex items-center justify-between px-8 py-5 rounded-[1.5rem] text-primary font-black text-[12px] uppercase tracking-widest hover:bg-primary-soft transition-all group">
               <span className="flex items-center gap-5">
                 <span className="material-symbols-outlined text-2xl">logout</span>
@@ -617,6 +628,51 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           </div>
         )
       }
+
+      {/* QR Code Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+
+            <div className="text-center mb-12">
+              <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
+                <span className="material-symbols-outlined text-5xl">qr_code_2</span>
+              </div>
+              <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{company.name}</h3>
+              <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
+                Código do Local: <span className="text-primary font-black">{company.id.toString().padStart(4, '0')}</span>
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-10">
+              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.net?code=${company.id.toString().padStart(4, '0')}`)}`}
+                  alt="QR Code"
+                  className="size-64"
+                />
+              </div>
+
+              <div className="w-full space-y-4">
+                <button
+                  onClick={() => window.print()}
+                  className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
+                >
+                  <span className="material-symbols-outlined">print</span>
+                  IMPRIMIR PARA BALCÃO
+                </button>
+                <button
+                  onClick={() => setShowQRModal(false)}
+                  className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
+                >
+                  FECHAR
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 };
