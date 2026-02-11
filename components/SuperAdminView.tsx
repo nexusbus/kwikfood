@@ -661,12 +661,21 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             </div>
 
             <div className="flex flex-col items-center gap-10">
-              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
-                  alt="QR Code"
-                  className="size-64"
-                />
+              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group">
+                <div className="relative">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
+                    alt="QR Code"
+                    className="size-64"
+                  />
+                  {showQRModal.logoUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
+                        <img src={showQRModal.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="w-full space-y-4">
