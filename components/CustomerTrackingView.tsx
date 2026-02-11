@@ -275,6 +275,25 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     }
   };
 
+  const handleCancelOrder = async () => {
+    if (!confirm('Tem a certeza que deseja cancelar a sua entrada na fila?')) return;
+
+    setSubmittingOrder(true);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: OrderStatus.CANCELLED })
+        .eq('id', order.id);
+
+      if (error) throw error;
+      onNewOrder(); // Redirect to home
+    } catch (err) {
+      alert('Erro ao cancelar entrada.');
+    } finally {
+      setSubmittingOrder(false);
+    }
+  };
+
   const totalCart = cart.reduce((acc, p) => acc + (p.price * p.quantity), 0);
 
   return (
@@ -368,15 +387,28 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                 </span>
               </div>
 
-              {order.status === OrderStatus.DELIVERED && (
-                <button
-                  onClick={onNewOrder}
-                  className="mt-6 sm:mt-8 px-8 py-4 sm:px-12 sm:py-5 bg-primary text-white rounded-full font-black text-[11px] sm:text-[13px] uppercase tracking-[0.3em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-3 sm:gap-4 animate-bounce-soft mx-auto lg:mx-0 w-full sm:w-auto"
-                >
-                  <span className="material-symbols-outlined text-xl sm:text-2xl">add_circle</span>
-                  NOVO PEDIDO
-                </button>
-              )}
+              <div className="flex flex-col sm:flex-row items-center gap-4 mt-6 sm:mt-8">
+                {order.status === OrderStatus.DELIVERED && (
+                  <button
+                    onClick={onNewOrder}
+                    className="px-8 py-4 sm:px-12 sm:py-5 bg-primary text-white rounded-full font-black text-[11px] sm:text-[13px] uppercase tracking-[0.3em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-3 sm:gap-4 animate-bounce-soft w-full sm:w-auto"
+                  >
+                    <span className="material-symbols-outlined text-xl sm:text-2xl">add_circle</span>
+                    NOVO PEDIDO
+                  </button>
+                )}
+
+                {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
+                  <button
+                    onClick={handleCancelOrder}
+                    disabled={submittingOrder}
+                    className="px-8 py-4 sm:px-10 sm:py-5 bg-secondary/5 hover:bg-red-500 hover:text-white text-secondary/40 rounded-full font-black text-[10px] sm:text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-3 w-full sm:w-auto group"
+                  >
+                    <span className="material-symbols-outlined text-xl group-hover:rotate-90 transition-transform">close</span>
+                    CANCELAR ENTRADA
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="size-48 sm:size-64 rounded-[2.5rem] sm:rounded-[3.5rem] bg-secondary flex flex-col items-center justify-center relative shadow-premium group transform hover:scale-105 transition-all duration-700">

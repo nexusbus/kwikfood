@@ -4,7 +4,8 @@ export enum OrderStatus {
   RECEIVED = 'RECEIVED',
   PREPARING = 'PREPARING',
   READY = 'READY',
-  DELIVERED = 'DELIVERED'
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED'
 }
 
 export enum ProductStatus {
