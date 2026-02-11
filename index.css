@@ -48,14 +48,21 @@ h5,
   background: var(--glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(15px);
   }
 
   to {
@@ -67,7 +74,7 @@ h5,
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.97);
   }
 
   to {
@@ -84,7 +91,7 @@ h5,
   }
 
   50% {
-    opacity: 0.6;
+    opacity: 0.7;
   }
 }
 
@@ -96,16 +103,16 @@ h5,
   }
 
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-6px);
   }
 }
 
 .animate-fade-in {
-  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-pulse-soft {
@@ -123,6 +130,25 @@ h5,
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  :root {
+    --shadow-premium: 0 20px 40px -10px rgba(225, 29, 72, 0.1), 0 10px 20px -15px rgba(0, 0, 0, 0.1);
+  }
+
+  .p-mobile-compact {
+    padding: 1.5rem !important;
+  }
+
+  .gap-mobile-compact {
+    gap: 1rem !important;
+  }
+
+  .text-mobile-balance {
+    text-wrap: balance;
   }
 }
 
@@ -148,12 +174,12 @@ h5,
 input,
 select,
 button {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 input:focus {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 40px -10px rgba(225, 29, 72, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 15px 30px -10px rgba(225, 29, 72, 0.1);
 }
 
 .btn-premium {
@@ -164,13 +190,13 @@ input:focus {
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  letter-spacing: 0.05em;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .btn-premium:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }

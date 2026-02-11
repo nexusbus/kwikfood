@@ -319,51 +319,51 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         <div className="absolute bottom-[-10%] left-[-20%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[150px]"></div>
       </div>
 
-      <header className="glass sticky top-0 z-[60] px-8 py-6 flex items-center justify-between border-b border-white/50 animate-fade-in">
-        <div className="flex items-center gap-5">
+      <header className="glass sticky top-0 z-[60] px-4 py-4 sm:px-8 sm:py-6 flex items-center justify-between border-b border-white/50 animate-fade-in">
+        <div className="flex items-center gap-3 sm:gap-5">
           <button
             onClick={onNewOrder}
-            className="size-14 bg-white/50 hover:bg-white rounded-[1.5rem] flex items-center justify-center text-secondary shadow-sm hover:shadow-md transition-all group"
+            className="size-10 sm:size-14 bg-white/50 hover:bg-white rounded-[1rem] sm:rounded-[1.5rem] flex items-center justify-center text-secondary shadow-sm hover:shadow-md transition-all group"
           >
-            <span className="material-symbols-outlined text-3xl group-hover:-translate-x-1 transition-transform">home</span>
+            <span className="material-symbols-outlined text-2xl sm:text-3xl group-hover:-translate-x-1 transition-transform">home</span>
           </button>
-          <div className="bg-primary text-white size-14 flex items-center justify-center rounded-[1.5rem] shadow-premium transform hover:scale-105 transition-all">
-            <span className="material-symbols-outlined text-4xl">bolt</span>
+          <div className="bg-primary text-white size-10 sm:size-14 flex items-center justify-center rounded-[1rem] sm:rounded-[1.5rem] shadow-premium transform hover:scale-105 transition-all">
+            <span className="material-symbols-outlined text-2xl sm:text-4xl">bolt</span>
           </div>
-          <div className="hidden sm:block">
-            <h2 className="text-2xl font-black tracking-tighter text-secondary leading-none">KwikFood</h2>
-            <p className="text-[10px] uppercase tracking-[0.4em] font-black text-primary mt-1">{company?.name || 'Angola'}</p>
+          <div className="flex flex-col">
+            <h2 className="text-lg sm:text-2xl font-black tracking-tighter text-secondary leading-none">KwikFood</h2>
+            <p className="text-[8px] sm:text-[10px] uppercase tracking-[0.4em] font-black text-primary mt-0.5 sm:mt-1 truncate max-w-[100px] sm:max-w-none">{company?.name || 'Angola'}</p>
           </div>
         </div>
-        <div className="bg-secondary text-white px-8 py-4 rounded-full font-black text-[14px] tracking-widest uppercase shadow-2xl flex items-center gap-3">
-          <span className="text-primary/60">SENHA</span>
-          <span className="text-white text-xl">#{order.ticketCode}</span>
+        <div className="bg-secondary text-white px-4 py-2.5 sm:px-8 sm:py-4 rounded-full font-black text-[11px] sm:text-[14px] tracking-widest uppercase shadow-2xl flex items-center gap-3">
+          <span className="text-primary/60 hidden xs:inline">SENHA</span>
+          <span className="text-white text-base sm:text-xl">#{order.ticketCode}</span>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-12 space-y-16 relative z-10">
         {/* Status Dashboard */}
-        <section className="bg-surface rounded-[4rem] shadow-premium p-12 border border-white/60 relative overflow-hidden animate-scale-in">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
+        <section className="bg-surface rounded-[2.5rem] sm:rounded-[4rem] shadow-premium p-8 sm:p-12 border border-white/60 relative overflow-hidden animate-scale-in">
+          <div className="absolute top-0 right-0 w-60 h-60 bg-primary/5 rounded-full blur-[80px] -mr-30 -mt-30"></div>
 
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-16 relative z-10">
-            <div className="text-center lg:text-left space-y-6">
-              <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-primary-soft rounded-full">
-                <span className="size-2.5 bg-primary rounded-full animate-pulse-soft"></span>
-                <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em]">Sincronizado Agora</p>
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-10 lg:gap-16 relative z-10">
+            <div className="text-center lg:text-left space-y-4 sm:space-y-6">
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-primary-soft rounded-full">
+                <span className="size-2 bg-primary rounded-full animate-pulse-soft"></span>
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Sincronizado</p>
               </div>
-              <h1 className="text-3xl md:text-5xl font-black tracking-tight text-secondary leading-tight">
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-secondary leading-tight">
                 {order.status === OrderStatus.RECEIVED ? 'Na Fila' :
                   order.status === OrderStatus.PREPARING ? 'Preparando' :
                     order.status === OrderStatus.READY ? 'Pronto!' : 'Entregue'}
               </h1>
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-5 text-text-muted font-bold uppercase text-[12px] tracking-widest">
-                <span className="flex items-center gap-2 pb-1 border-b-2 border-primary/20">
-                  <span className="material-symbols-outlined text-xl">group</span>
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-5 text-text-muted font-bold uppercase text-[10px] sm:text-[12px] tracking-widest">
+                <span className="flex items-center gap-1.5 pb-0.5 border-b border-primary/20">
+                  <span className="material-symbols-outlined text-lg sm:text-xl">group</span>
                   Posição: <span className="text-secondary">{order.queuePosition}º</span>
                 </span>
-                <span className="flex items-center gap-2 pb-1 border-b-2 border-primary/20">
-                  <span className="material-symbols-outlined text-xl">schedule</span>
+                <span className="flex items-center gap-1.5 pb-0.5 border-b border-primary/20">
+                  <span className="material-symbols-outlined text-lg sm:text-xl">schedule</span>
                   Senha: <span className="text-primary">#{order.ticketCode}</span>
                 </span>
               </div>
@@ -371,42 +371,41 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               {order.status === OrderStatus.DELIVERED && (
                 <button
                   onClick={onNewOrder}
-                  className="mt-8 px-12 py-5 bg-primary text-white rounded-full font-black text-[13px] uppercase tracking-[0.3em] shadow-premium hover:bg-secondary transition-all flex items-center gap-4 animate-bounce-soft"
+                  className="mt-6 sm:mt-8 px-8 py-4 sm:px-12 sm:py-5 bg-primary text-white rounded-full font-black text-[11px] sm:text-[13px] uppercase tracking-[0.3em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-3 sm:gap-4 animate-bounce-soft mx-auto lg:mx-0 w-full sm:w-auto"
                 >
-                  <span className="material-symbols-outlined text-2xl">add_circle</span>
-                  FAZER NOVO PEDIDO
+                  <span className="material-symbols-outlined text-xl sm:text-2xl">add_circle</span>
+                  NOVO PEDIDO
                 </button>
               )}
             </div>
 
-            <div className="size-64 rounded-[3.5rem] bg-secondary flex flex-col items-center justify-center relative shadow-premium group transform hover:scale-105 transition-all duration-700">
-              <div className="absolute inset-3 border-2 border-white/5 rounded-[2.8rem] border-dashed"></div>
+            <div className="size-48 sm:size-64 rounded-[2.5rem] sm:rounded-[3.5rem] bg-secondary flex flex-col items-center justify-center relative shadow-premium group transform hover:scale-105 transition-all duration-700">
+              <div className="absolute inset-2 sm:inset-3 border-2 border-white/5 rounded-[2.2rem] sm:rounded-[2.8rem] border-dashed"></div>
               <div className="relative text-center">
-                <span className="text-3xl font-black text-primary leading-none block mb-1">{formatTime(elapsedSeconds)}</span>
-                <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-primary/40 material-symbols-outlined text-2xl animate-spin-slow">timer</span>
+                <span className="text-2xl sm:text-3xl font-black text-primary leading-none block mb-1">{formatTime(elapsedSeconds)}</span>
+                <span className="absolute -top-6 sm:-top-8 left-1/2 -translate-x-1/2 text-primary/40 material-symbols-outlined text-xl sm:text-2xl animate-spin-slow">timer</span>
               </div>
-              <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.5em] mt-2">DURAÇÃO TOTAL</p>
-              <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest mt-2">EM ATENDIMENTO</p>
+              <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-[0.5em] mt-1 sm:mt-2">DURAÇÃO</p>
             </div>
           </div>
 
-          <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <div className="bg-background/50 backdrop-blur-sm flex items-center gap-6 p-8 rounded-[2.5rem] border border-white/50 group hover:bg-white/80 transition-all">
-              <div className="size-16 bg-white rounded-2xl flex items-center justify-center text-primary shadow-md border border-border group-hover:rotate-12 transition-transform">
-                <span className="material-symbols-outlined text-3xl">storefront</span>
+          <div className="mt-10 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
+            <div className="bg-background/50 backdrop-blur-sm flex items-center gap-4 sm:gap-6 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border border-white/50 group hover:bg-white transition-all">
+              <div className="size-12 sm:size-16 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center text-primary shadow-md border border-border group-hover:rotate-12 transition-transform">
+                <span className="material-symbols-outlined text-2xl sm:text-3xl">storefront</span>
               </div>
-              <div>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Local</p>
-                <p className="text-xl font-black text-secondary">{company?.name}</p>
+              <div className="overflow-hidden">
+                <p className="text-[9px] sm:text-[10px] font-black text-text-muted uppercase tracking-widest mb-0.5 sm:mb-1">Local</p>
+                <p className="text-base sm:text-xl font-black text-secondary truncate">{company?.name}</p>
               </div>
             </div>
-            <div className="bg-background/50 backdrop-blur-sm flex items-center gap-6 p-8 rounded-[2.5rem] border border-white/50 group hover:bg-white/80 transition-all">
-              <div className="size-16 bg-white rounded-2xl flex items-center justify-center text-primary shadow-md border border-border group-hover:rotate-12 transition-transform">
-                <span className="material-symbols-outlined text-3xl">smartphone</span>
+            <div className="bg-background/50 backdrop-blur-sm flex items-center gap-4 sm:gap-6 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border border-white/50 group hover:bg-white transition-all">
+              <div className="size-12 sm:size-16 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center text-primary shadow-md border border-border group-hover:rotate-12 transition-transform">
+                <span className="material-symbols-outlined text-2xl sm:text-3xl">smartphone</span>
               </div>
               <div>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Contacto</p>
-                <p className="text-xl font-black text-secondary">{order.customerPhone}</p>
+                <p className="text-[9px] sm:text-[10px] font-black text-text-muted uppercase tracking-widest mb-0.5 sm:mb-1">Contacto</p>
+                <p className="text-base sm:text-xl font-black text-secondary">{order.customerPhone}</p>
               </div>
             </div>
           </div>
@@ -415,33 +414,33 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         {/* Cart Section - Move to Top when PENDING */}
         {order.status === OrderStatus.PENDING && cart.length > 0 && (
           <section className="animate-fade-in">
-            <div className="bg-surface rounded-[4rem] shadow-premium p-10 lg:p-12 border-2 border-primary/20 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-[60px] -mr-20 -mt-20"></div>
+            <div className="bg-surface rounded-[2rem] sm:rounded-[4rem] shadow-premium p-6 sm:p-12 border-2 border-primary/20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[40px] -mr-16 -mt-16"></div>
 
-              <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10 border-b border-border/50 pb-8 mb-8">
-                <div className="flex items-center gap-6">
-                  <div className="size-20 bg-secondary rounded-[2.2rem] flex items-center justify-center text-white relative shadow-premium">
-                    <span className="material-symbols-outlined text-4xl">shopping_bag</span>
-                    <span className="absolute -top-3 -right-3 size-10 bg-primary text-white text-[14px] font-black rounded-full flex items-center justify-center shadow-xl ring-8 ring-white/50 animate-pulse-soft">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8 relative z-10 border-b border-border/50 pb-6 sm:pb-8 mb-6 sm:mb-8">
+                <div className="flex items-center gap-4 sm:gap-6">
+                  <div className="size-14 sm:size-20 bg-secondary rounded-[1.25rem] sm:rounded-[2.2rem] flex items-center justify-center text-white relative shadow-premium">
+                    <span className="material-symbols-outlined text-3xl sm:text-4xl">shopping_bag</span>
+                    <span className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 size-7 sm:size-10 bg-primary text-white text-xs sm:text-[14px] font-black rounded-full flex items-center justify-center shadow-xl ring-4 sm:ring-8 ring-white/50 animate-pulse-soft">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-black tracking-tighter text-secondary">O Meu Pedido</h3>
-                    <p className="text-[12px] font-black text-text-muted uppercase tracking-widest mt-1">Total Acumulado: <span className="text-primary font-black ml-1">Kz {totalCart.toLocaleString()}</span></p>
+                  <div className="text-center sm:text-left">
+                    <h3 className="text-xl sm:text-2xl font-black tracking-tighter text-secondary">O Meu Pedido</h3>
+                    <p className="text-[10px] sm:text-[12px] font-black text-text-muted uppercase tracking-widest mt-1">Total: <span className="text-primary font-black ml-1">Kz {totalCart.toLocaleString()}</span></p>
                   </div>
                 </div>
 
                 <button
                   onClick={handleFinishOrder}
                   disabled={submittingOrder}
-                  className="group relative w-full lg:w-auto h-24 lg:h-20 px-16 bg-primary hover:bg-secondary text-white rounded-[2rem] font-black text-[13px] tracking-[0.4em] active:scale-[0.96] transition-all shadow-premium flex items-center justify-center gap-6 uppercase overflow-hidden"
+                  className="group relative w-full sm:w-auto h-16 sm:h-20 px-8 sm:px-12 bg-primary hover:bg-secondary text-white rounded-[1rem] sm:rounded-[1.5rem] font-black text-[11px] sm:text-[13px] tracking-widest active:scale-[0.96] transition-all shadow-premium flex items-center justify-center gap-4 uppercase overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
                   {submittingOrder ? (
-                    <div className="size-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="size-6 sm:size-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
                     <>
-                      <span className="material-symbols-outlined text-2xl">send</span>
-                      Solicitar Preparação
+                      <span className="material-symbols-outlined text-xl sm:text-2xl">send</span>
+                      Confirmar
                     </>
                   )}
                 </button>
@@ -501,41 +500,41 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               <p className="text-text-muted font-medium text-lg">Faça o seu pedido enquanto aguarda pela sua vez.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 sm:gap-8">
               {products.map(p => {
                 const inCart = cart.filter(c => c.id === p.id).length;
                 return (
-                  <div key={p.id} className="bg-white rounded-[2.8rem] p-8 border border-white/60 shadow-md hover:shadow-premium transition-all group relative overflow-hidden animate-scale-in">
+                  <div key={p.id} className="bg-white rounded-[1.5rem] sm:rounded-[2.8rem] p-4 sm:p-8 border border-white/60 shadow-md hover:shadow-premium transition-all group relative overflow-hidden animate-scale-in">
                     {inCart > 0 && (
-                      <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-bl-[3rem] flex items-center justify-center text-primary font-black text-2xl animate-fade-in">
+                      <div className="absolute top-0 right-0 w-12 h-12 sm:w-20 sm:h-20 bg-primary/10 rounded-bl-[1.5rem] sm:rounded-bl-[3rem] flex items-center justify-center text-primary font-black text-lg sm:text-2xl animate-fade-in">
                         {cart.find(item => item.id === p.id)?.quantity || 0}
                       </div>
                     )}
-                    <div className="flex gap-8">
-                      <div className="size-36 rounded-[2.5rem] overflow-hidden shadow-premium flex-shrink-0 relative">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+                      <div className="size-full xs:h-32 sm:size-36 rounded-[1rem] sm:rounded-[2.5rem] overflow-hidden shadow-sm flex-shrink-0 relative">
                         <img src={p.imageUrl} className="size-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                         <div className="absolute inset-0 bg-secondary/10 group-hover:bg-transparent transition-colors"></div>
                       </div>
-                      <div className="flex-1 flex flex-col justify-between py-2">
+                      <div className="flex-1 flex flex-col justify-between py-1">
                         <div>
-                          <h3 className="font-black text-xl text-secondary leading-tight tracking-tight mb-2">{p.name}</h3>
-                          <p className="text-primary font-black text-xl">Kz {p.price.toLocaleString()}</p>
+                          <h3 className="font-black text-base sm:text-xl text-secondary leading-tight tracking-tight mb-1 sm:mb-2 line-clamp-2">{p.name}</h3>
+                          <p className="text-primary font-black text-base sm:text-xl">Kz {p.price.toLocaleString()}</p>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 sm:gap-4 mt-3 sm:mt-0">
                           {inCart > 0 && (
                             <button
                               onClick={() => removeFromCart(p.id)}
-                              className="size-12 rounded-2xl bg-primary-soft flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
+                              className="size-10 sm:size-12 rounded-xl sm:rounded-2xl bg-primary-soft flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
                             >
-                              <span className="material-symbols-outlined text-xl font-black">remove</span>
+                              <span className="material-symbols-outlined text-lg font-black">remove</span>
                             </button>
                           )}
                           <button
                             onClick={() => addToCart(p)}
-                            className="flex-1 h-12 rounded-2xl bg-secondary text-white flex items-center justify-center gap-3 hover:bg-primary transition-all font-black text-[11px] tracking-widest uppercase shadow-lg shadow-secondary/20"
+                            className="flex-1 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-secondary text-white flex items-center justify-center gap-2 sm:gap-3 hover:bg-primary transition-all font-black text-[9px] sm:text-[11px] tracking-widest uppercase shadow-lg shadow-secondary/20"
                           >
-                            <span className="material-symbols-outlined text-xl">add_shopping_cart</span>
-                            {inCart > 0 ? 'ADICIONAR MAIS' : 'ADICIONAR'}
+                            <span className="material-symbols-outlined text-lg sm:text-xl">{inCart > 0 ? 'add' : 'add_shopping_cart'}</span>
+                            <span className="hidden xs:inline">{inCart > 0 ? 'MAIS' : 'PEDIR'}</span>
                           </button>
                         </div>
                       </div>
@@ -546,41 +545,41 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             </div>
           </section>
         ) : (
-          <section className="bg-surface rounded-[4rem] p-16 space-y-12 shadow-premium border border-white relative overflow-hidden animate-scale-in" style={{ animationDelay: '0.2s' }}>
-            <div className="absolute top-0 left-0 w-full h-3 bg-primary/50"></div>
-            <div className="flex flex-col md:flex-row items-center justify-between gap-10">
-              <div className="flex items-center gap-8">
-                <div className="size-20 bg-secondary rounded-3xl flex items-center justify-center text-primary shadow-premium">
-                  <span className="material-symbols-outlined text-5xl">receipt_long</span>
+          <section className="bg-surface rounded-[2rem] sm:rounded-[4rem] p-8 sm:p-16 space-y-8 sm:space-y-12 shadow-premium border border-white relative overflow-hidden animate-scale-in" style={{ animationDelay: '0.2s' }}>
+            <div className="absolute top-0 left-0 w-full h-2 bg-primary/50"></div>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-10">
+              <div className="flex items-center gap-5 sm:gap-8">
+                <div className="size-14 sm:size-20 bg-secondary rounded-2xl sm:rounded-3xl flex items-center justify-center text-primary shadow-premium">
+                  <span className="material-symbols-outlined text-3xl sm:text-5xl">receipt_long</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black tracking-tight text-secondary">Detalhes do Pedido</h3>
-                  <p className="text-text-muted text-sm font-black uppercase tracking-[0.3em] mt-1">Conta Confirmada</p>
+                  <h3 className="text-xl sm:text-2xl font-black tracking-tight text-secondary">Detalhes do Pedido</h3>
+                  <p className="text-[10px] sm:text-sm font-black uppercase tracking-[0.3em] mt-0.5 sm:mt-1">Confirmado</p>
                 </div>
               </div>
-              <div className="text-center md:text-right px-10 py-6 bg-background rounded-3xl border border-border">
-                <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-2">Total FINAL</p>
-                <p className="text-3xl font-black text-secondary tracking-tighter">Kz {order.total?.toLocaleString()}</p>
+              <div className="text-center sm:text-right px-8 py-4 sm:px-10 sm:py-6 bg-background rounded-2xl sm:rounded-3xl border border-border w-full sm:w-auto">
+                <p className="text-[9px] sm:text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-1 sm:mb-2">Total</p>
+                <p className="text-2xl sm:text-3xl font-black text-secondary tracking-tighter">Kz {order.total?.toLocaleString()}</p>
               </div>
             </div>
 
-            <div className="divide-y divide-border/50 border-y border-border/50 bg-background/30 rounded-[3.5rem] px-12 py-6">
+            <div className="divide-y divide-border/30 border-y border-border/30 bg-background/20 rounded-[1.5rem] sm:rounded-[3.5rem] px-6 sm:px-12 py-4">
               {order.items.map((item, i) => (
-                <div key={i} className="py-10 flex justify-between items-center group animate-fade-in" style={{ animationDelay: `${0.1 * i}s` }}>
-                  <div className="space-y-4 flex-1">
-                    <p className="font-black text-2xl text-secondary group-hover:text-primary transition-colors">{item.name}</p>
+                <div key={i} className="py-6 sm:py-10 flex flex-col sm:flex-row justify-between sm:items-center gap-4 group animate-fade-in" style={{ animationDelay: `${0.1 * i}s` }}>
+                  <div className="space-y-2 sm:space-y-4 flex-1">
+                    <p className="font-black text-lg sm:text-2xl text-secondary group-hover:text-primary transition-colors">{item.name}</p>
                     {item.observation && (
-                      <div className="inline-flex items-center gap-4 bg-primary-soft/50 px-6 py-3 rounded-2xl border border-primary/10 shadow-sm">
-                        <span className="material-symbols-outlined text-primary text-xl font-black animate-pulse-soft">info</span>
-                        <p className="text-primary font-bold italic text-sm">
+                      <div className="inline-flex items-center gap-3 bg-primary-soft/50 px-4 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl border border-primary/10 shadow-sm">
+                        <span className="material-symbols-outlined text-primary text-base sm:text-xl font-black animate-pulse-soft">info</span>
+                        <p className="text-primary font-bold italic text-xs sm:text-sm">
                           "{item.observation}"
                         </p>
                       </div>
                     )}
                   </div>
-                  <div className="text-right flex flex-col items-end gap-1">
-                    <span className="text-sm font-black text-primary uppercase tracking-widest">{item.quantity}x</span>
-                    <span className="font-black text-xl text-secondary bg-white px-8 py-4 rounded-[1.5rem] border border-border shadow-sm min-w-[160px] inline-block text-center">
+                  <div className="flex justify-between sm:justify-end items-center gap-4">
+                    <span className="text-xs sm:text-sm font-black text-primary uppercase tracking-widest">{item.quantity}x</span>
+                    <span className="font-black text-lg sm:text-xl text-secondary bg-white px-6 py-3 sm:px-8 sm:py-4 rounded-xl sm:rounded-[1.5rem] border border-border shadow-sm min-w-[120px] sm:min-w-[160px] text-center">
                       Kz {(item.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
@@ -588,10 +587,10 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               ))}
             </div>
 
-            <div className="flex items-center gap-5 p-8 bg-primary-soft rounded-[3rem] border border-primary/20 animate-pulse-soft">
-              <span className="material-symbols-outlined text-primary text-4xl">verified_user</span>
-              <p className="text-[12px] font-black text-primary uppercase tracking-[0.2em] leading-relaxed">
-                Seu pedido foi autenticado e está sendo processado em tempo real. Por favor, aguarde a notificação de pronto.
+            <div className="flex items-center gap-4 sm:gap-5 p-6 sm:p-8 bg-primary-soft rounded-[1.5rem] sm:rounded-[3rem] border border-primary/20 animate-pulse-soft">
+              <span className="material-symbols-outlined text-primary text-3xl sm:text-4xl">verified_user</span>
+              <p className="text-[11px] sm:text-[12px] font-black text-primary uppercase tracking-[0.1em] sm:tracking-[0.2em] leading-relaxed">
+                Seu pedido foi autenticado. Aguarde a notificação de pronto para levantar no balcão.
               </p>
             </div>
           </section>
