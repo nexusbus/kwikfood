@@ -68,6 +68,7 @@ const App: React.FC = () => {
         />;
       case 'CUSTOMER_TRACKING':
         return <CustomerTrackingView
+          key={activeOrder?.id}
           order={activeOrder!}
           onNewOrder={async (company, phone) => {
             if (company && phone) {
