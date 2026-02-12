@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from './src/lib/supabase';
-import { AppView, Company, Order } from './types';
-import { fetchCompanies } from './constants';
+import { AppView, Company, Order, OrderStatus } from './types';
+import { fetchCompanies, createOrder } from './constants';
 import SuperAdminView from './components/SuperAdminView';
 import CompanyAdminView from './components/CompanyAdminView';
 import CustomerEntryView from './components/CustomerEntryView';
@@ -69,9 +69,26 @@ const App: React.FC = () => {
       case 'CUSTOMER_TRACKING':
         return <CustomerTrackingView
           order={activeOrder!}
-          onNewOrder={() => {
-            setActiveOrder(null);
-            setCurrentView('CUSTOMER_ENTRY');
+          onNewOrder={async (company, phone) => {
+            if (company && phone) {
+              try {
+                const newOrder = await createOrder({
+                  companyId: company.id,
+                  customerPhone: phone,
+                  status: OrderStatus.PENDING,
+                  queuePosition: 1,
+                  estimatedMinutes: 5,
+                });
+                setActiveOrder(newOrder);
+              } catch (err) {
+                console.error("Failed to create new order:", err);
+                setActiveOrder(null);
+                setCurrentView('CUSTOMER_ENTRY');
+              }
+            } else {
+              setActiveOrder(null);
+              setCurrentView('CUSTOMER_ENTRY');
+            }
           }}
         />;
       case 'CUSTOMER_ENTRY':

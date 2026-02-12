@@ -5,7 +5,7 @@ import { requestNotificationPermission, showNotification } from '../src/lib/noti
 
 interface CustomerTrackingViewProps {
   order: Order;
-  onNewOrder: () => void;
+  onNewOrder: (company?: Company, phone?: string) => void;
 }
 
 const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: initialOrder, onNewOrder }) => {
@@ -376,9 +376,10 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Sincronizado</p>
               </div>
               <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-secondary leading-tight">
-                {order.status === OrderStatus.RECEIVED ? 'Na Fila' :
-                  order.status === OrderStatus.PREPARING ? 'Preparando' :
-                    order.status === OrderStatus.READY ? 'Pronto!' : 'Entregue'}
+                {order.status === OrderStatus.PENDING ? 'Seja Bem-vindo!' :
+                  order.status === OrderStatus.RECEIVED ? 'Na Fila' :
+                    order.status === OrderStatus.PREPARING ? 'Preparando' :
+                      order.status === OrderStatus.READY ? 'Pronto!' : 'Entregue'}
               </h1>
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-5 text-text-muted font-bold uppercase text-[10px] sm:text-[12px] tracking-widest">
                 <span className="flex items-center gap-1.5 pb-0.5 border-b border-primary/20">
@@ -394,7 +395,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               <div className="flex flex-col sm:flex-row items-center gap-4 mt-6 sm:mt-8">
                 {order.status === OrderStatus.DELIVERED && (
                   <button
-                    onClick={onNewOrder}
+                    onClick={() => onNewOrder(company || undefined, order.customerPhone)}
                     className="px-8 py-4 sm:px-12 sm:py-5 bg-primary text-white rounded-full font-black text-[11px] sm:text-[13px] uppercase tracking-[0.3em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-3 sm:gap-4 animate-bounce-soft w-full sm:w-auto"
                   >
                     <span className="material-symbols-outlined text-xl sm:text-2xl">add_circle</span>
@@ -536,8 +537,15 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         {(order.status === OrderStatus.PENDING || !order.items || order.items.length === 0) ? (
           <section className="space-y-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="flex flex-col gap-3">
-              <h2 className="text-3xl font-black tracking-tight text-secondary">Cardápio do <span className="text-primary">Dia</span></h2>
-              <p className="text-text-muted font-medium text-lg">Faça o seu pedido enquanto aguarda pela sua vez.</p>
+              <h2 className="text-3xl font-black tracking-tight text-secondary">
+                {order.status === OrderStatus.PENDING ? 'O que deseja ' : 'Cardápio do '}
+                <span className="text-primary">{order.status === OrderStatus.PENDING ? 'comprar?' : 'Dia'}</span>
+              </h2>
+              <p className="text-text-muted font-medium text-lg">
+                {order.status === OrderStatus.PENDING
+                  ? 'Selecione os produtos abaixo para entrar na fila.'
+                  : 'Faça o seu pedido enquanto aguarda pela sua vez.'}
+              </p>
             </div>
 
             <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 sm:gap-8">
