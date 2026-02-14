@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchCompanies, createOrder, STORE_RADIUS_METERS } from '../constants';
 import { Order, OrderStatus, Company } from '../types';
 import { supabase } from '../src/lib/supabase';
+import Logo from './Logo';
 
 interface CustomerEntryViewProps {
   companies: Company[];
@@ -146,15 +147,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
       <div className="relative z-10 w-full max-w-[480px] animate-fade-in">
         <div className="bg-surface rounded-[2.5rem] sm:rounded-[3.5rem] shadow-premium overflow-hidden border border-white/40 glass">
           <header className="px-8 py-8 sm:px-12 sm:py-12 flex justify-between items-center border-b border-border/50">
-            <div className="flex items-center gap-4 sm:gap-5">
-              <div className="size-12 sm:size-16 bg-primary rounded-[1.2rem] sm:rounded-[1.8rem] flex items-center justify-center text-white shadow-lg shadow-primary/30 transform hover:rotate-12 transition-transform duration-500">
-                <span className="material-symbols-outlined text-3xl sm:text-4xl">restaurant_menu</span>
-              </div>
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black text-secondary tracking-tighter leading-none">KwikFood</h2>
-                <p className="text-[9px] sm:text-[10px] text-primary font-black uppercase tracking-[0.4em] mt-1.5 sm:mt-2">Smart Queue</p>
-              </div>
-            </div>
+            <Logo variant="full" size={48} className="sm:h-16" />
             <button
               onClick={onAdminAccess}
               className="flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-secondary/5 hover:bg-secondary hover:text-white rounded-full text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-widest transition-all"

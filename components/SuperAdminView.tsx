@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { fetchCompanies, getNextCompanyId } from '../constants';
+import { fetchCompanies, getNextCompanyId, STORE_RADIUS_METERS } from '../constants';
+import Logo from './Logo';
 import { supabase } from '../src/lib/supabase';
 import { Company } from '../types';
 import { sendSMS } from '../src/services/smsService';
@@ -39,6 +40,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [activeView, setActiveView] = useState<'ESTABELECIMENTOS' | 'AUDITORIA'>('ESTABELECIMENTOS');
   const [auditOrders, setAuditOrders] = useState<any[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -241,15 +243,15 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         <div className="absolute bottom-[-10%] left-[-20%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[150px]"></div>
       </div>
 
-      <header className="glass sticky top-0 z-[60] px-12 py-8 flex items-center justify-between border-b border-white/50 animate-fade-in">
+      <header className="glass sticky top-0 z-[50] px-12 py-8 flex items-center justify-between border-b border-white/50 animate-fade-in">
         <div className="flex items-center gap-6">
           <button onClick={onBack} className="size-16 bg-white/50 hover:bg-secondary hover:text-white rounded-[1.5rem] flex items-center justify-center transition-all shadow-md group">
             <span className="material-symbols-outlined text-3xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
           </button>
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter text-secondary leading-none">Super Admin</h1>
-            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mt-2">KwikFood Master Console</p>
-          </div>
+          <button onClick={() => setIsSidebarOpen(true)} className="size-16 bg-white/50 hover:bg-secondary hover:text-white rounded-[1.5rem] flex items-center justify-center transition-all shadow-md group lg:hidden">
+            <span className="material-symbols-outlined text-3xl group-hover:-translate-x-1 transition-transform">menu</span>
+          </button>
+          <Logo variant="full" color="dark" size={48} />
         </div>
 
         <div className="flex items-center gap-4 bg-background/50 p-2 rounded-[1.5rem] border border-border/50">
@@ -273,6 +275,16 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         </div>
 
       </header>
+
+      <aside className={`fixed left-0 top-0 h-full w-80 bg-secondary text-white z-[60] transition-all duration-700 ease-premium shadow-2xl overflow-hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="p-10 border-b border-white/5 bg-gradient-to-br from-secondary to-black/50">
+          <Logo variant="full" color="white" size={48} />
+          <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mt-3">Control Tower</p>
+        </div>
+        <button onClick={() => setIsSidebarOpen(false)} className="absolute top-8 right-8 size-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all lg:hidden">
+          <span className="material-symbols-outlined text-3xl">close</span>
+        </button>
+      </aside>
 
       <main className="max-w-7xl mx-auto px-12 py-16 space-y-20 relative z-10">
         {activeView === 'ESTABELECIMENTOS' ? (

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../src/lib/supabase';
+import Logo from './Logo';
 
 interface AdminAuthViewProps {
     onSuccess: (type: 'SUPER' | 'COMPANY', id?: number) => void;
@@ -104,13 +105,9 @@ const AdminAuthView: React.FC<AdminAuthViewProps> = ({ onSuccess, onBack }) => {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
 
                     <header className="text-center mb-12">
-                        <div className="size-24 bg-primary text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium transform hover:rotate-12 transition-transform duration-500">
-                            <span className="material-symbols-outlined text-5xl">
-                                {isRegistering ? 'admin_panel_settings' : 'lock_open'}
-                            </span>
-                        </div>
-                        <h2 className="text-4xl font-black text-secondary tracking-tighter leading-none mb-4">
-                            {isRegistering ? 'Setup Master' : 'Portal de Acesso'}
+                        <Logo variant="full" size={60} className="mx-auto mb-6" />
+                        <h2 className="text-4xl font-black text-secondary tracking-tighter mb-4 animate-scale-in">
+                            Terminal de Controlo
                         </h2>
                         <div className="flex items-center justify-center gap-3">
                             <span className="size-2 bg-primary rounded-full animate-pulse-soft"></span>

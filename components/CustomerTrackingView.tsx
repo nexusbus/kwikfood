@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Company, Order, OrderStatus, Product, CartItem } from '../types';
 import { supabase } from '../src/lib/supabase';
 import { requestNotificationPermission, showNotification } from '../src/lib/notifications';
+import Logo from './Logo';
 
 interface CustomerTrackingViewProps {
   order: Order;
@@ -346,13 +347,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           >
             <span className="material-symbols-outlined text-2xl sm:text-3xl group-hover:-translate-x-1 transition-transform">home</span>
           </button>
-          <div className="bg-primary text-white size-10 sm:size-14 flex items-center justify-center rounded-[1rem] sm:rounded-[1.5rem] shadow-premium transform hover:scale-105 transition-all overflow-hidden">
-            {company?.logoUrl ? (
-              <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="material-symbols-outlined text-2xl sm:text-4xl">bolt</span>
-            )}
-          </div>
+          <Logo variant="full" size={40} className="sm:h-14" />
           <div className="flex flex-col">
             <h2 className="text-lg sm:text-2xl font-black tracking-tighter text-secondary leading-none">KwikFood</h2>
             <p className="text-[8px] sm:text-[10px] uppercase tracking-[0.4em] font-black text-primary mt-0.5 sm:mt-1 truncate max-w-[100px] sm:max-w-none">{company?.name || 'Angola'}</p>
