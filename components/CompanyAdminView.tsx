@@ -63,7 +63,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           estimatedMinutes: o.estimated_minutes,
           timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
           timerLastStartedAt: o.timer_last_started_at,
-          timestamp: new Date(o.created_at).toLocaleTimeString()
+          timestamp: new Date(o.created_at).toLocaleString()
         })));
 
         const { data: hData } = await supabase
@@ -351,7 +351,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           {activeTab === 'FILA' ? (
             <div className="space-y-12 animate-fade-in">
               {orders.filter(o => ticketSearch === '' || o.ticketCode.includes(ticketSearch)).length === 0 ? (
-                <div className="bg-white rounded-[4rem] p-40 text-center border-2 border-dashed border-border/60 animate-scale-in">
+                <div className="bg-white rounded-none p-40 text-center border-2 border-dashed border-border/60 animate-scale-in">
                   <div className="size-32 bg-background rounded-full flex items-center justify-center mx-auto mb-10 text-border">
                     <span className="material-symbols-outlined text-6xl">restaurant</span>
                   </div>
@@ -361,7 +361,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               ) : (
                 <div className="grid grid-cols-1 gap-10">
                   {orders.filter(o => ticketSearch === '' || o.ticketCode.includes(ticketSearch)).map(order => (
-                    <div key={order.id} className="bg-surface rounded-[3.5rem] p-12 border border-border shell-premium shadow-premium group overflow-hidden relative animate-scale-in">
+                    <div key={order.id} className="bg-surface rounded-none p-12 border border-border shell-premium shadow-premium group overflow-hidden relative animate-scale-in">
                       <div className="absolute top-0 left-0 w-3 h-full transition-all group-hover:w-4" style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#f97316' : order.status === OrderStatus.READY ? '#22c55e' : '#3b82f6' }}></div>
 
                       <div className="flex flex-col lg:flex-row gap-12 items-start lg:items-center w-full">
@@ -422,7 +422,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           <button
                             onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
                             disabled={order.status !== OrderStatus.RECEIVED && order.status !== OrderStatus.PREPARING}
-                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.PREPARING ? 'bg-orange-600 text-white shadow-premium ring-8 ring-orange-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background'}`}
+                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-none font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.PREPARING ? 'bg-orange-600 text-white shadow-premium ring-8 ring-orange-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background'}`}
                           >
                             <span className="material-symbols-outlined text-2xl">{order.status === OrderStatus.PREPARING ? 'cooking' : 'outdoor_grill'}</span>
                             {order.status === OrderStatus.PREPARING ? 'COZINHANDO' : 'PREPARAR'}
@@ -430,7 +430,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           <button
                             onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
                             disabled={order.status !== OrderStatus.PREPARING && order.status !== OrderStatus.READY}
-                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.READY ? 'bg-green-600 text-white shadow-premium ring-8 ring-green-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background'}`}
+                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-none font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.READY ? 'bg-green-600 text-white shadow-premium ring-8 ring-green-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background'}`}
                           >
                             <span className="material-symbols-outlined text-2xl">notifications_active</span>
                             {order.status === OrderStatus.READY ? 'PRONTO' : 'NOTIFICAR'}
@@ -438,7 +438,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           <button
                             onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
                             disabled={order.status !== OrderStatus.READY}
-                            className="flex-1 flex items-center justify-center gap-5 h-20 bg-secondary text-white rounded-[1.8rem] font-black text-[12px] uppercase tracking-widest hover:bg-primary shadow-premium transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-secondary"
+                            className="flex-1 flex items-center justify-center gap-5 h-20 bg-secondary text-white rounded-none font-black text-[12px] uppercase tracking-widest hover:bg-primary shadow-premium transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-secondary"
                           >
                             <span className="material-symbols-outlined text-2xl">done_all</span>
                             ENTREGAR
@@ -520,6 +520,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     <tr className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] border-b border-border/50">
                       <th className="px-12 py-10">Ticket</th>
                       <th className="px-10 py-10">Contacto</th>
+                      <th className="px-10 py-10">Estado</th>
                       <th className="px-10 py-10">Tempo Total</th>
                       <th className="px-12 py-10 text-right">Data/Hora</th>
                     </tr>
@@ -536,6 +537,11 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           </div>
                         </td>
                         <td className="px-10 py-10 text-[14px] font-black text-secondary">{hOrder.customerPhone}</td>
+                        <td className="px-10 py-10">
+                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(hOrder.status as OrderStatus)}`}>
+                            {hOrder.status}
+                          </span>
+                        </td>
                         <td className="px-10 py-10 font-black text-secondary text-[14px]">
                           {Math.floor((hOrder.timerAccumulatedSeconds || 0) / 60)}m {(hOrder.timerAccumulatedSeconds || 0) % 60}s
                         </td>
