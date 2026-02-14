@@ -333,7 +333,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       {/* Sidebar Backdrop - Click to Close */}
       {showSidebar && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[150] animate-fade-in lg:hidden"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[150] animate-fade-in"
           onClick={() => setShowSidebar(false)}
         />
       )}
