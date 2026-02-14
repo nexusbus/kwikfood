@@ -243,10 +243,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     <div className="flex h-screen bg-background overflow-hidden selection:bg-primary selection:text-white">
       {/* Premium Sidebar */}
       <aside className="w-80 glass border-r border-white/50 p-8 flex flex-col gap-12 relative z-[100] animate-in slide-in-from-left duration-1000">
-        <div className="flex flex-col gap-6">
-          <Logo variant="full" size={48} />
-          <div className="px-6 py-4 bg-primary-soft rounded-2xl border border-primary/10">
-            <h1 className="text-sm font-black tracking-tight text-secondary leading-none truncate">{company.name}</h1>
+        <div className="flex items-center gap-5 relative group">
+          <Logo variant="icon" size={48} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
+          <div className="overflow-hidden">
+            <h1 className="text-xl font-black tracking-tighter text-secondary leading-none truncate">{company.name}</h1>
             <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mt-2">Portal Parceiro</p>
           </div>
         </div>

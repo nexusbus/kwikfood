@@ -40,7 +40,6 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [activeView, setActiveView] = useState<'ESTABELECIMENTOS' | 'AUDITORIA'>('ESTABELECIMENTOS');
   const [auditOrders, setAuditOrders] = useState<any[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -243,13 +242,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         <div className="absolute bottom-[-10%] left-[-20%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[150px]"></div>
       </div>
 
-      <header className="glass sticky top-0 z-[50] px-12 py-8 flex items-center justify-between border-b border-white/50 animate-fade-in">
+      <header className="glass sticky top-0 z-[60] px-12 py-8 flex items-center justify-between border-b border-white/50 animate-fade-in">
         <div className="flex items-center gap-6">
           <button onClick={onBack} className="size-16 bg-white/50 hover:bg-secondary hover:text-white rounded-[1.5rem] flex items-center justify-center transition-all shadow-md group">
             <span className="material-symbols-outlined text-3xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
-          </button>
-          <button onClick={() => setIsSidebarOpen(true)} className="size-16 bg-white/50 hover:bg-secondary hover:text-white rounded-[1.5rem] flex items-center justify-center transition-all shadow-md group lg:hidden">
-            <span className="material-symbols-outlined text-3xl group-hover:-translate-x-1 transition-transform">menu</span>
           </button>
           <Logo variant="full" color="dark" size={48} />
         </div>
@@ -273,18 +269,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
           <span className="size-2 bg-green-400 rounded-full animate-pulse-soft"></span>
           Sistema Operativo
         </div>
-
       </header>
 
-      <aside className={`fixed left-0 top-0 h-full w-80 bg-secondary text-white z-[60] transition-all duration-700 ease-premium shadow-2xl overflow-hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="p-10 border-b border-white/5 bg-gradient-to-br from-secondary to-black/50">
-          <Logo variant="full" color="white" size={48} />
-          <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mt-3">Control Tower</p>
-        </div>
-        <button onClick={() => setIsSidebarOpen(false)} className="absolute top-8 right-8 size-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all lg:hidden">
-          <span className="material-symbols-outlined text-3xl">close</span>
-        </button>
-      </aside>
 
       <main className="max-w-7xl mx-auto px-12 py-16 space-y-20 relative z-10">
         {activeView === 'ESTABELECIMENTOS' ? (
@@ -583,133 +569,137 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       </main>
 
       {/* Premium Delete Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+      {
+        showDeleteModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+            <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
-            <div className="text-center mb-12">
-              <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 animate-pulse-soft shadow-premium">
-                <span className="material-symbols-outlined text-5xl">warning</span>
-              </div>
-              <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">Cuidado Crítico</h3>
-              <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
-                A exclusão desta unidade é irreversível e removerá todos os produtos associados. Confirme as credenciais MASTER.
-              </p>
-            </div>
-
-            <form onSubmit={handleSecureDelete} className="space-y-8">
-              <div className="space-y-3">
-                <label className="text-[11px) font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Email de Autorização</label>
-                <input
-                  type="email"
-                  required
-                  value={adminConfirmEmail}
-                  onChange={e => setAdminConfirmEmail(e.target.value)}
-                  className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none"
-                  placeholder="master@kwikfood.com"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-[11px) font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Chave de Segurança</label>
-                <input
-                  type="password"
-                  required
-                  value={adminConfirmPassword}
-                  onChange={e => setAdminConfirmPassword(e.target.value)}
-                  className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none"
-                  placeholder="••••••••"
-                />
-              </div>
-
-              {deleteError && (
-                <div className="p-6 bg-primary-soft text-primary text-[12px] font-black rounded-2xl text-center uppercase tracking-widest border border-primary/20 animate-fade-in">
-                  {deleteError}
+              <div className="text-center mb-12">
+                <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 animate-pulse-soft shadow-premium">
+                  <span className="material-symbols-outlined text-5xl">warning</span>
                 </div>
-              )}
-
-              <div className="flex flex-col gap-6 mt-12">
-                <button
-                  type="submit"
-                  disabled={deleteLoading}
-                  className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all disabled:opacity-50 relative overflow-hidden group"
-                >
-                  <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
-                  {deleteLoading ? 'DESINTEGRANDO...' : 'EXECUTAR EXCLUSÃO'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowDeleteModal(null);
-                    setDeleteError(null);
-                    setAdminConfirmEmail('');
-                    setAdminConfirmPassword('');
-                  }}
-                  className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
-                >
-                  DESISTIR AGORA
-                </button>
+                <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">Cuidado Crítico</h3>
+                <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
+                  A exclusão desta unidade é irreversível e removerá todos os produtos associados. Confirme as credenciais MASTER.
+                </p>
               </div>
-            </form>
+
+              <form onSubmit={handleSecureDelete} className="space-y-8">
+                <div className="space-y-3">
+                  <label className="text-[11px) font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Email de Autorização</label>
+                  <input
+                    type="email"
+                    required
+                    value={adminConfirmEmail}
+                    onChange={e => setAdminConfirmEmail(e.target.value)}
+                    className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none"
+                    placeholder="master@kwikfood.com"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[11px) font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Chave de Segurança</label>
+                  <input
+                    type="password"
+                    required
+                    value={adminConfirmPassword}
+                    onChange={e => setAdminConfirmPassword(e.target.value)}
+                    className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none"
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                {deleteError && (
+                  <div className="p-6 bg-primary-soft text-primary text-[12px] font-black rounded-2xl text-center uppercase tracking-widest border border-primary/20 animate-fade-in">
+                    {deleteError}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-6 mt-12">
+                  <button
+                    type="submit"
+                    disabled={deleteLoading}
+                    className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all disabled:opacity-50 relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
+                    {deleteLoading ? 'DESINTEGRANDO...' : 'EXECUTAR EXCLUSÃO'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeleteModal(null);
+                      setDeleteError(null);
+                      setAdminConfirmEmail('');
+                      setAdminConfirmPassword('');
+                    }}
+                    className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
+                  >
+                    DESISTIR AGORA
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* QR Code Modal */}
-      {showQRModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+      {
+        showQRModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+            <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
-            <div className="text-center mb-12">
-              <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
-                <span className="material-symbols-outlined text-5xl">qr_code_2</span>
-              </div>
-              <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{showQRModal.name}</h3>
-              <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
-                Código do Local: <span className="text-primary font-black">{showQRModal.id.toString().padStart(4, '0')}</span>
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center gap-10">
-              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group">
-                <div className="relative">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
-                    alt="QR Code"
-                    className="size-64"
-                  />
-                  {showQRModal.logoUrl && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
-                        <img src={showQRModal.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
-                      </div>
-                    </div>
-                  )}
+              <div className="text-center mb-12">
+                <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
+                  <span className="material-symbols-outlined text-5xl">qr_code_2</span>
                 </div>
+                <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{showQRModal.name}</h3>
+                <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
+                  Código do Local: <span className="text-primary font-black">{showQRModal.id.toString().padStart(4, '0')}</span>
+                </p>
               </div>
 
-              <div className="w-full space-y-4">
-                <button
-                  onClick={() => window.print()}
-                  className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
-                >
-                  <span className="material-symbols-outlined">print</span>
-                  IMPRIMIR QR CODE
-                </button>
-                <button
-                  onClick={() => setShowQRModal(null)}
-                  className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
-                >
-                  FECHAR
-                </button>
+              <div className="flex flex-col items-center gap-10">
+                <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group">
+                  <div className="relative">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
+                      alt="QR Code"
+                      className="size-64"
+                    />
+                    {showQRModal.logoUrl && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
+                          <img src={showQRModal.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="w-full space-y-4">
+                  <button
+                    onClick={() => window.print()}
+                    className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
+                  >
+                    <span className="material-symbols-outlined">print</span>
+                    IMPRIMIR QR CODE
+                  </button>
+                  <button
+                    onClick={() => setShowQRModal(null)}
+                    className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
+                  >
+                    FECHAR
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 
