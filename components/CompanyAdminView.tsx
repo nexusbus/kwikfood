@@ -443,11 +443,6 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 <div className="grid grid-cols-1 gap-10">
                   {filteredOrders.map(order => (
                     <div key={order.id} className="bg-surface rounded-none p-6 lg:p-8 border border-border shell-premium shadow-premium group overflow-hidden relative animate-scale-in">
-                      <div className="absolute top-0 right-0 p-6 z-10">
-                        <p className="text-2xl font-black text-primary tracking-tighter bg-white/80 backdrop-blur px-4 py-2 rounded-xl border border-primary/20 shadow-sm">
-                          Kz {order.total.toLocaleString()}
-                        </p>
-                      </div>
                       <div className="absolute top-0 left-0 w-3 h-full transition-all group-hover:w-4" style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#f97316' : order.status === OrderStatus.READY ? '#22c55e' : '#3b82f6' }}></div>
 
                       <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center w-full">
@@ -469,6 +464,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                             <div className="flex flex-wrap items-center gap-4 text-[11px] font-black text-text-muted uppercase tracking-widest">
                               <span className="flex items-center gap-2 pr-4 border-r border-border/50"><span className="material-symbols-outlined text-lg">schedule</span> {order.timestamp}</span>
                               <span className={`px-4 py-1.5 rounded-full shadow-sm ${getStatusColor(order.status)}`}>{order.status}</span>
+                            </div>
+                            <div className="pt-1">
+                              <p className="text-2xl font-black text-primary tracking-tighter">Kz {(order.total || 0).toLocaleString()}</p>
                             </div>
                           </div>
                         </div>
