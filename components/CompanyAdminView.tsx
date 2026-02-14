@@ -32,6 +32,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [ticketSearch, setTicketSearch] = useState('');
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   // Form state
   const [pName, setPName] = useState('');
@@ -103,6 +104,19 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       supabase.removeChannel(oChannel);
     };
   }, [company.id]);
+
+  const mainContentRef = React.useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (showSidebar) setShowSidebar(false);
+    };
+    const main = mainContentRef.current;
+    if (main) {
+      main.addEventListener('scroll', handleScroll);
+      return () => main.removeEventListener('scroll', handleScroll);
+    }
+  }, [showSidebar]);
 
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
     try {
@@ -240,9 +254,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const filteredProducts = productFilter === 'Todos' ? products : products.filter(p => p.category === productFilter);
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden selection:bg-primary selection:text-white">
-      {/* Premium Sidebar */}
-      <aside className="w-80 glass border-r border-white/50 p-8 flex flex-col gap-12 relative z-[100] animate-in slide-in-from-left duration-1000">
+    <div className="flex h-screen bg-background overflow-hidden selection:bg-primary selection:text-white relative">
+      {/* Premium Sidebar - Collapsible */}
+      <aside className={`fixed inset-y-0 left-0 w-80 bg-white/95 backdrop-blur-xl border-r border-white/50 p-8 flex flex-col gap-12 z-[200] transition-transform duration-500 ease-in-out shadow-2xl ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center gap-5 relative group">
           <Logo variant="icon" size={48} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
           <div className="overflow-hidden">
@@ -304,17 +318,28 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-12 relative custom-scrollbar">
+      <main
+        ref={mainContentRef}
+        className="flex-1 overflow-y-auto p-8 lg:p-12 relative custom-scrollbar"
+      >
         <div className="fixed top-0 right-0 w-1/3 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
 
-        <header className="mb-16 flex flex-col lg:flex-row justify-between items-center gap-10 relative z-10 animate-fade-in">
-          <div>
-            <h2 className="text-3xl lg:text-5xl font-black tracking-tighter text-secondary leading-none">
-              {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : 'Audit & Histórico'}
-            </h2>
-            <div className="flex items-center gap-3 mt-4">
-              <span className="size-2.5 bg-green-500 rounded-full animate-pulse-soft"></span>
-              <p className="text-text-muted font-black uppercase text-[11px] tracking-[0.4em]">Monitor em Tempo Real</p>
+        <header className="mb-10 flex flex-col lg:flex-row justify-between items-center gap-8 relative z-10 animate-fade-in">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="group flex items-center justify-center p-2 rounded-xl hover:bg-primary-soft transition-all active:scale-90"
+            >
+              <Logo variant="icon" size={40} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
+            </button>
+            <div>
+              <h2 className="text-2xl lg:text-4xl font-black tracking-tighter text-secondary leading-none">
+                {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : 'Audit & Histórico'}
+              </h2>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="size-2 bg-green-500 rounded-full animate-pulse-soft"></span>
+                <p className="text-text-muted font-black uppercase text-[9px] tracking-[0.3em]">Monitor em Tempo Real</p>
+              </div>
             </div>
           </div>
 
@@ -361,15 +386,15 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               ) : (
                 <div className="grid grid-cols-1 gap-10">
                   {orders.filter(o => ticketSearch === '' || o.ticketCode.includes(ticketSearch)).map(order => (
-                    <div key={order.id} className="bg-surface rounded-none p-12 border border-border shell-premium shadow-premium group overflow-hidden relative animate-scale-in">
+                    <div key={order.id} className="bg-surface rounded-none p-6 lg:p-8 border border-border shell-premium shadow-premium group overflow-hidden relative animate-scale-in">
                       <div className="absolute top-0 left-0 w-3 h-full transition-all group-hover:w-4" style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#f97316' : order.status === OrderStatus.READY ? '#22c55e' : '#3b82f6' }}></div>
 
-                      <div className="flex flex-col lg:flex-row gap-12 items-start lg:items-center w-full">
-                        <div className="flex items-center gap-10 flex-shrink-0">
+                      <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center w-full">
+                        <div className="flex items-center gap-8 flex-shrink-0">
                           <div className="relative transform group-hover:scale-105 transition-transform duration-700">
-                            <div className="size-24 bg-secondary rounded-[1.8rem] flex flex-col items-center justify-center border-2 border-white/10 shadow-premium">
-                              <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-0.5">Senha</p>
-                              <h3 className="text-3xl font-black text-white tracking-tighter">{order.ticketCode}</h3>
+                            <div className="size-20 bg-secondary rounded-none flex flex-col items-center justify-center border-2 border-white/10 shadow-premium">
+                              <p className="text-[8px] font-black text-primary uppercase tracking-[0.3em] mb-0.5">Senha</p>
+                              <h3 className="text-2xl font-black text-white tracking-tighter">{order.ticketCode}</h3>
                             </div>
                             <div className="absolute -top-4 -right-4 size-12 bg-primary text-white rounded-full flex items-center justify-center text-[11px] font-black border-4 border-white shadow-xl">
                               #{order.id.slice(0, 3).toUpperCase()}
@@ -403,11 +428,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                                 </div>
 
                                 {item.observation && (
-                                  <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-[1rem] border-l-4 border-orange-400 animate-pulse-soft">
-                                    <span className="material-symbols-outlined text-orange-600 text-2xl font-black">warning</span>
+                                  <div className="flex items-start gap-3 p-2 bg-orange-50 rounded-none border-l-4 border-orange-400 animate-pulse-soft">
+                                    <span className="material-symbols-outlined text-orange-600 text-xl font-black">warning</span>
                                     <div className="flex-1">
-                                      <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">Restrição / Observação</p>
-                                      <span className="text-[10px] font-black text-orange-800 uppercase leading-snug block">
+                                      <p className="text-[8px] font-black text-orange-600 uppercase tracking-widest mb-0.5">OBS / RESTRIÇÃO</p>
+                                      <span
+                                        className="font-black text-orange-800 uppercase leading-snug block transition-all duration-300"
+                                        style={{
+                                          fontSize: item.observation.length > 100 ? '7px' : item.observation.length > 50 ? '8px' : '10px'
+                                        }}
+                                      >
                                         {item.observation}
                                       </span>
                                     </div>
