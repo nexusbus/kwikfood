@@ -257,13 +257,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     <div className="flex h-screen bg-background overflow-hidden selection:bg-primary selection:text-white relative">
       {/* Premium Sidebar - Collapsible */}
       <aside className={`fixed inset-y-0 left-0 w-80 bg-white/95 backdrop-blur-xl border-r border-white/50 p-8 flex flex-col gap-12 z-[200] transition-transform duration-500 ease-in-out shadow-2xl ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center gap-5 relative group">
+        <button
+          onClick={() => setShowSidebar(false)}
+          className="flex items-center gap-5 relative group text-left w-full hover:opacity-80 transition-opacity"
+        >
           <Logo variant="icon" size={48} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
           <div className="overflow-hidden">
             <h1 className="text-xl font-black tracking-tighter text-secondary leading-none truncate">{company.name}</h1>
             <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mt-2">Portal Parceiro</p>
           </div>
-        </div>
+        </button>
 
         <nav className="flex flex-col gap-4">
           <button
