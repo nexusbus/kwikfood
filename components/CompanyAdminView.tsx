@@ -13,12 +13,27 @@ interface CompanyAdminViewProps {
 
 const getStatusColor = (status: OrderStatus) => {
   switch (status) {
-    case OrderStatus.RECEIVED: return 'bg-blue-100 text-blue-600';
+    case OrderStatus.PENDING: return 'bg-blue-100 text-blue-600';
+    case OrderStatus.RECEIVED: return 'bg-yellow-100 text-yellow-600';
     case OrderStatus.PREPARING: return 'bg-orange-100 text-orange-600';
     case OrderStatus.READY: return 'bg-green-100 text-green-600';
     case OrderStatus.DELIVERED: return 'bg-gray-100 text-gray-600';
     case OrderStatus.CANCELLED: return 'bg-red-100 text-red-600';
     default: return 'bg-gray-100 text-gray-600';
+  }
+};
+
+const getStatusLabel = (order: Order) => {
+  if (order.status === OrderStatus.CANCELLED) {
+    return order.cancelledBy === 'admin' ? 'Cancelado pelo Admin' : 'Cancelado pelo Cliente';
+  }
+  switch (order.status) {
+    case OrderStatus.PENDING: return 'Pendente';
+    case OrderStatus.RECEIVED: return 'Recebido';
+    case OrderStatus.PREPARING: return 'Preparando';
+    case OrderStatus.READY: return 'Pronto';
+    case OrderStatus.DELIVERED: return 'Entregue';
+    default: return order.status;
   }
 };
 
@@ -57,7 +72,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         const { data: oData } = await supabase
           .from('orders')
-          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at')
+          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by')
           .eq('company_id', company.id)
           .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
           .order('created_at', { ascending: true });
@@ -71,12 +86,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           estimatedMinutes: o.estimated_minutes,
           timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
           timerLastStartedAt: o.timer_last_started_at,
+          cancelledBy: o.cancelled_by,
           timestamp: new Date(o.created_at).toLocaleString()
         })));
 
         const { data: hData } = await supabase
           .from('orders')
-          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at')
+          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by')
           .eq('company_id', company.id)
           .in('status', [OrderStatus.DELIVERED, OrderStatus.CANCELLED])
           .order('created_at', { ascending: false })
@@ -88,6 +104,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           ticketCode: o.ticket_code,
           customerPhone: o.customer_phone,
           timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
+          cancelledBy: o.cancelled_by,
           timestamp: new Date(o.created_at).toLocaleString()
         })));
       } catch (err) {
@@ -132,6 +149,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       const updates: any = { status };
       const now = new Date().toISOString();
+
+      if (status === OrderStatus.CANCELLED) {
+        updates.cancelled_by = 'admin';
+      }
 
       if (status === OrderStatus.PREPARING) {
         // Start or resume timer
@@ -459,11 +480,11 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           <div className="space-y-3">
                             <div className="flex items-center gap-4">
                               <h4 className="text-2xl md:text-3xl font-black tracking-tighter text-secondary">{order.customerPhone}</h4>
-                              <span className="px-4 py-1.5 bg-primary-soft text-primary rounded-full text-[10px] font-black uppercase tracking-widest">VIP CLIENT</span>
+                              <span className="px-4 py-1.5 bg-primary-soft text-primary rounded-full text-[10px] font-black uppercase tracking-widest">CLIENTE VIP</span>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-[11px] font-black text-text-muted uppercase tracking-widest">
                               <span className="flex items-center gap-2 pr-4 border-r border-border/50"><span className="material-symbols-outlined text-lg">schedule</span> {order.timestamp}</span>
-                              <span className={`px-4 py-1.5 rounded-full shadow-sm ${getStatusColor(order.status)}`}>{order.status}</span>
+                              <span className={`px-4 py-1.5 rounded-full shadow-sm ${getStatusColor(order.status)} underline`}>{getStatusLabel(order)}</span>
                             </div>
                             <div className="pt-1">
                               <p className="text-2xl font-black text-primary tracking-tighter">Kz {(order.total || 0).toLocaleString()}</p>
@@ -686,7 +707,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 <table className="w-full text-left">
                   <thead>
                     <tr className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] border-b border-border/50">
-                      <th className="px-12 py-10">Ticket</th>
+                      <th className="px-12 py-10">Senha</th>
                       <th className="px-10 py-10">Contacto</th>
                       <th className="px-10 py-10">Estado</th>
                       <th className="px-10 py-10 text-right">Valor</th>
@@ -708,7 +729,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         <td className="px-10 py-10 text-[14px] font-black text-secondary">{hOrder.customerPhone}</td>
                         <td className="px-10 py-10">
                           <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(hOrder.status as OrderStatus)}`}>
-                            {hOrder.status}
+                            {getStatusLabel(hOrder)}
                           </span>
                         </td>
                         <td className="px-10 py-10 font-black text-secondary text-[14px] text-right">

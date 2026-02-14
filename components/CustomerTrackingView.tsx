@@ -283,7 +283,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ status: OrderStatus.CANCELLED })
+        .update({ status: OrderStatus.CANCELLED, cancelled_by: 'customer' })
         .eq('id', order.id);
 
       if (error) throw error;

@@ -54,6 +54,7 @@ export interface Order {
   timerAccumulatedSeconds: number;
   timerLastStartedAt?: string;
   timestamp: string;
+  cancelledBy?: 'admin' | 'customer';
 }
 
 export interface SuperAdmin {
