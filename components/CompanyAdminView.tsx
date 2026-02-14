@@ -104,6 +104,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           ticketCode: o.ticket_code,
           customerPhone: o.customer_phone,
           timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
+          timerLastStartedAt: o.timer_last_started_at,
           cancelledBy: o.cancelled_by,
           timestamp: new Date(o.created_at).toLocaleString()
         })));
@@ -329,6 +330,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
   return (
     <div className="flex h-screen bg-background overflow-hidden selection:bg-primary selection:text-white relative">
+      {/* Sidebar Backdrop - Click to Close */}
+      {showSidebar && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[150] animate-fade-in lg:hidden"
+          onClick={() => setShowSidebar(false)}
+        />
+      )}
       {/* Premium Sidebar - Collapsible */}
       <aside className={`fixed inset-y-0 left-0 w-80 bg-white/95 backdrop-blur-xl border-r border-white/50 p-8 flex flex-col gap-12 z-[200] transition-transform duration-500 ease-in-out shadow-2xl ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
         <button

@@ -56,7 +56,6 @@ export interface Order {
   timestamp: string;
   cancelledBy?: 'admin' | 'customer';
 }
-
 export interface SuperAdmin {
   id: string;
   email: string;
