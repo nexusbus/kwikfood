@@ -42,6 +42,12 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [pImageUrl, setPImageUrl] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // History filters
+  const [hStartDate, setHStartDate] = useState('');
+  const [hEndDate, setHEndDate] = useState('');
+  const [hStatusFilter, setHStatusFilter] = useState('Todos');
+  const [hContactFilter, setHContactFilter] = useState('');
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -200,6 +206,11 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   };
 
   const handleDeleteProduct = async (productId: string) => {
+    const password = prompt('Para excluir este produto, insira a senha do parceiro:');
+    if (password !== company.password) {
+      alert('Senha incorreta.');
+      return;
+    }
     if (!confirm('Tem certeza que deseja excluir este produto?')) return;
     try {
       const { error } = await supabase.from('products').delete().eq('id', productId);
@@ -251,7 +262,43 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     setIsModalOpen(true);
   };
 
+  const categories = ['Todos', 'Hambúrgueres', 'Comida', 'Bebidas', 'Acompanhamentos'];
   const filteredProducts = productFilter === 'Todos' ? products : products.filter(p => p.category === productFilter);
+
+  const filteredOrders = orders.filter(o => {
+    if (ticketSearch === '') return true;
+    const search = ticketSearch.toLowerCase();
+    const matchesTicket = o.ticketCode.toLowerCase().includes(search);
+    const matchesPhone = o.customerPhone.toLowerCase().includes(search);
+    const matchesStatus = o.status.toLowerCase().includes(search);
+    const matchesItems = o.items.some(item =>
+      item.name.toLowerCase().includes(search) ||
+      (item.observation && item.observation.toLowerCase().includes(search))
+    );
+    return matchesTicket || matchesPhone || matchesStatus || matchesItems;
+  });
+
+  const filteredHistory = historyOrders.filter(o => {
+    const matchesStatus = hStatusFilter === 'Todos' || o.status === hStatusFilter;
+    const matchesContact = hContactFilter === '' || o.customerPhone.includes(hContactFilter);
+
+    let matchesDate = true;
+    if (hStartDate || hEndDate) {
+      const oDate = new Date(o.timestamp);
+      if (hStartDate) {
+        const start = new Date(hStartDate);
+        if (oDate < start) matchesDate = false;
+      }
+      if (hEndDate) {
+        const end = new Date(hEndDate);
+        if (oDate > end) matchesDate = false;
+      }
+    }
+
+    return matchesStatus && matchesContact && matchesDate;
+  });
+
+  const totalRevenue = filteredHistory.reduce((acc, o) => acc + (o.total || 0), 0);
 
   return (
     <div className="flex h-screen bg-background overflow-hidden selection:bg-primary selection:text-white relative">
@@ -378,18 +425,23 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         <div className="relative z-10">
           {activeTab === 'FILA' ? (
             <div className="space-y-12 animate-fade-in">
-              {orders.filter(o => ticketSearch === '' || o.ticketCode.includes(ticketSearch)).length === 0 ? (
+              {filteredOrders.length === 0 ? (
                 <div className="bg-white rounded-none p-40 text-center border-2 border-dashed border-border/60 animate-scale-in">
                   <div className="size-32 bg-background rounded-full flex items-center justify-center mx-auto mb-10 text-border">
                     <span className="material-symbols-outlined text-6xl">restaurant</span>
                   </div>
-                  <h3 className="text-3xl font-black text-border uppercase tracking-[0.3em]">Cozinha em Descanso</h3>
-                  <p className="text-text-muted mt-4 font-medium text-lg">Novos pedidos aparecerão instantaneamente aqui.</p>
+                  <h3 className="text-3xl font-black text-border uppercase tracking-[0.3em]">Nenhum pedido encontrado</h3>
+                  <p className="text-text-muted mt-4 font-medium text-lg">Tente um termo de pesquisa diferente ou aguarde novos pedidos.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-10">
-                  {orders.filter(o => ticketSearch === '' || o.ticketCode.includes(ticketSearch)).map(order => (
+                  {filteredOrders.map(order => (
                     <div key={order.id} className="bg-surface rounded-none p-6 lg:p-8 border border-border shell-premium shadow-premium group overflow-hidden relative animate-scale-in">
+                      <div className="absolute top-0 right-0 p-6 z-10">
+                        <p className="text-2xl font-black text-primary tracking-tighter bg-white/80 backdrop-blur px-4 py-2 rounded-xl border border-primary/20 shadow-sm">
+                          Kz {order.total.toLocaleString()}
+                        </p>
+                      </div>
                       <div className="absolute top-0 left-0 w-3 h-full transition-all group-hover:w-4" style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#f97316' : order.status === OrderStatus.READY ? '#22c55e' : '#3b82f6' }}></div>
 
                       <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center w-full">
@@ -486,7 +538,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           ) : activeTab === 'PRODUTOS' ? (
             <div className="space-y-16 animate-fade-in">
               <div className="flex items-center gap-5 flex-wrap">
-                {['Todos', 'Hambúrgueres', 'Bebidas', 'Acompanhamentos'].map(cat => (
+                {categories.map(cat => (
                   <button
                     key={cat} onClick={() => setProductFilter(cat)}
                     className={`px-10 py-4 rounded-full font-black text-[11px] uppercase tracking-widest transition-all ${productFilter === cat ? 'bg-secondary text-white shadow-premium' : 'bg-surface text-text-muted border border-border hover:border-secondary'}`}
@@ -534,16 +586,84 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             <div className="space-y-12 animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                 <div className="bg-surface p-12 rounded-[3.5rem] border border-border shell-premium shadow-premium">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Histórico</p>
-                  <p className="text-6xl font-black text-secondary tracking-tighter">{historyOrders.length}</p>
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Pedidos no Filtro</p>
+                  <p className="text-6xl font-black text-secondary tracking-tighter">{filteredHistory.length}</p>
+                </div>
+                <div className="bg-surface p-12 rounded-[3.5rem] border border-border shell-premium shadow-premium">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Faturamento (Filtro)</p>
+                  <p className="text-5xl font-black text-primary tracking-tighter leading-tight">
+                    <span className="text-2xl">Kz</span> {totalRevenue.toLocaleString()}
+                  </p>
                 </div>
                 <div className="bg-surface p-12 rounded-[3.5rem] border border-border shell-premium shadow-premium">
                   <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Tempo Médio</p>
-                  <p className="text-6xl font-black text-primary tracking-tighter">
-                    {historyOrders.length > 0
-                      ? Math.round(historyOrders.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / historyOrders.length / 60)
+                  <p className="text-6xl font-black text-secondary tracking-tighter">
+                    {filteredHistory.length > 0
+                      ? Math.round(filteredHistory.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / filteredHistory.length / 60)
                       : 0} min
                   </p>
+                </div>
+              </div>
+
+              {/* Advanced History Filters */}
+              <div className="bg-surface p-12 rounded-[3.5rem] border border-border shadow-premium space-y-8">
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="material-symbols-outlined text-primary">filter_alt</span>
+                  <p className="text-[11px] font-black text-secondary uppercase tracking-[0.4em]">Filtros de Auditoria & Fecho do Dia</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                  <div className="space-y-3">
+                    <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">Data Inicial</label>
+                    <input
+                      type="datetime-local"
+                      value={hStartDate}
+                      onChange={e => setHStartDate(e.target.value)}
+                      className="w-full h-14 bg-background border border-border/50 rounded-xl px-4 font-bold text-xs text-secondary outline-none focus:border-primary transition-all"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">Data Final</label>
+                    <input
+                      type="datetime-local"
+                      value={hEndDate}
+                      onChange={e => setHEndDate(e.target.value)}
+                      className="w-full h-14 bg-background border border-border/50 rounded-xl px-4 font-bold text-xs text-secondary outline-none focus:border-primary transition-all"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">Estado</label>
+                    <select
+                      value={hStatusFilter}
+                      onChange={e => setHStatusFilter(e.target.value)}
+                      className="w-full h-14 bg-background border border-border/50 rounded-xl px-4 font-bold text-[10px] uppercase tracking-widest text-secondary outline-none appearance-none cursor-pointer"
+                    >
+                      <option>Todos</option>
+                      <option>{OrderStatus.RECEIVED}</option>
+                      <option>{OrderStatus.PREPARING}</option>
+                      <option>{OrderStatus.READY}</option>
+                      <option>{OrderStatus.DELIVERED}</option>
+                    </select>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">Contacto</label>
+                    <input
+                      type="text"
+                      placeholder="9xx..."
+                      value={hContactFilter}
+                      onChange={e => setHContactFilter(e.target.value)}
+                      className="w-full h-14 bg-background border border-border/50 rounded-xl px-4 font-bold text-xs text-secondary outline-none focus:border-primary transition-all"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-4 pt-4">
+                  <button
+                    onClick={() => {
+                      setHStartDate(''); setHEndDate(''); setHStatusFilter('Todos'); setHContactFilter('');
+                    }}
+                    className="px-8 py-3 bg-primary-soft text-primary rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
+                  >
+                    Resetar Filtros
+                  </button>
                 </div>
               </div>
 
@@ -554,12 +674,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       <th className="px-12 py-10">Ticket</th>
                       <th className="px-10 py-10">Contacto</th>
                       <th className="px-10 py-10">Estado</th>
-                      <th className="px-10 py-10">Tempo Total</th>
+                      <th className="px-10 py-10 text-right">Valor</th>
+                      <th className="px-10 py-10">Tempo Preparo</th>
                       <th className="px-12 py-10 text-right">Data/Hora</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/20">
-                    {historyOrders.map((hOrder) => (
+                    {filteredHistory.map((hOrder) => (
                       <tr key={hOrder.id} className="group hover:bg-background/40 transition-all duration-500">
                         <td className="px-12 py-10">
                           <div className="flex items-center gap-5">
@@ -575,7 +696,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                             {hOrder.status}
                           </span>
                         </td>
-                        <td className="px-10 py-10 font-black text-secondary text-[14px]">
+                        <td className="px-10 py-10 font-black text-secondary text-[14px] text-right">
+                          Kz {(hOrder.total || 0).toLocaleString()}
+                        </td>
+                        <td className="px-10 py-10 font-black text-text-muted text-[13px]">
                           {Math.floor((hOrder.timerAccumulatedSeconds || 0) / 60)}m {(hOrder.timerAccumulatedSeconds || 0) % 60}s
                         </td>
                         <td className="px-12 py-10 text-right">
@@ -624,7 +748,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   <div className="space-y-3">
                     <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Sessão do Menu</label>
                     <select value={pCategory} onChange={e => setPCategory(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all outline-none appearance-none cursor-pointer">
-                      <option>Hambúrgueres</option><option>Bebidas</option><option>Acompanhamentos</option>
+                      {categories.filter(c => c !== 'Todos').map(c => (
+                        <option key={c}>{c}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
