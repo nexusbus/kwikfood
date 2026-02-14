@@ -17,6 +17,7 @@ const getStatusColor = (status: OrderStatus) => {
     case OrderStatus.PREPARING: return 'bg-orange-100 text-orange-600';
     case OrderStatus.READY: return 'bg-green-100 text-green-600';
     case OrderStatus.DELIVERED: return 'bg-gray-100 text-gray-600';
+    case OrderStatus.CANCELLED: return 'bg-red-100 text-red-600';
     default: return 'bg-gray-100 text-gray-600';
   }
 };
@@ -77,7 +78,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           .from('orders')
           .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at')
           .eq('company_id', company.id)
-          .eq('status', OrderStatus.DELIVERED)
+          .in('status', [OrderStatus.DELIVERED, OrderStatus.CANCELLED])
           .order('created_at', { ascending: false })
           .limit(50);
 
@@ -151,13 +152,15 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           const elapsed = Math.floor((current - start) / 1000);
           updates.timer_accumulated_seconds = elapsed;
         }
+      } else if (status === OrderStatus.CANCELLED) {
+        updates.timer_last_started_at = null;
       }
 
       const { error } = await supabase.from('orders').update(updates).eq('id', orderId);
       if (error) throw error;
 
       // Trigger SMS notification
-      if (status === OrderStatus.PREPARING || status === OrderStatus.READY || status === OrderStatus.DELIVERED) {
+      if (status === OrderStatus.PREPARING || status === OrderStatus.READY || status === OrderStatus.DELIVERED || status === OrderStatus.CANCELLED) {
         let message = '';
         switch (status) {
           case OrderStatus.PREPARING:
@@ -168,6 +171,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             break;
           case OrderStatus.DELIVERED:
             message = `KwikFood: O seu pedido ${order.ticketCode} foi entregue. Bom apetite!`;
+            break;
+          case OrderStatus.CANCELLED:
+            message = `KwikFood: O seu pedido ${order.ticketCode} foi cancelado pelo estabelecimento.`;
             break;
         }
 
@@ -298,7 +304,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     return matchesStatus && matchesContact && matchesDate;
   });
 
-  const totalRevenue = filteredHistory.reduce((acc, o) => acc + (o.total || 0), 0);
+  const totalRevenue = filteredHistory.reduce((acc, o) => acc + (o.status === OrderStatus.DELIVERED ? (o.total || 0) : 0), 0);
 
   return (
     <div className="flex h-screen bg-background overflow-hidden selection:bg-primary selection:text-white relative">
@@ -527,6 +533,17 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           >
                             <span className="material-symbols-outlined text-2xl">done_all</span>
                             ENTREGAR
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm('Tem certeza que deseja cancelar este pedido?')) {
+                                updateOrderStatus(order.id, OrderStatus.CANCELLED);
+                              }
+                            }}
+                            className="flex-1 flex items-center justify-center gap-5 h-20 bg-red-50 text-red-600 rounded-none font-black text-[12px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all active:scale-95"
+                          >
+                            <span className="material-symbols-outlined text-2xl">cancel</span>
+                            CANCELAR
                           </button>
                         </div>
                       </div>
