@@ -20,6 +20,13 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
+  const lastStatusRef = React.useRef<OrderStatus>(initialOrder.status);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio('https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3');
+    audioRef.current.load();
+  }, []);
 
   const calculateElapsed = (accumulated: number, lastStarted: string | undefined, status: OrderStatus) => {
     if (status === OrderStatus.READY || status === OrderStatus.DELIVERED || !lastStarted) {
@@ -32,14 +39,16 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   };
 
   const playNotificationSound = () => {
-    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    if (!audioRef.current) return;
     let count = 0;
     const playNext = () => {
-      if (count < 3) {
-        audio.currentTime = 0;
-        audio.play().catch(e => console.error('Audio play failed:', e));
+      if (count < 3 && audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(e => {
+          console.warn('Audio play failed (browser restriction?):', e);
+        });
         count++;
-        setTimeout(playNext, 1500); // Toca a cada 1.5 segundos
+        setTimeout(playNext, 1200);
       }
     };
     playNext();
@@ -148,43 +157,40 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           const updatedOrder = payload.new as any;
           if (!updatedOrder) return;
 
-          setOrder(prev => {
-            const nextStatus = updatedOrder.status || prev.status;
-
-            if (nextStatus !== prev.status) {
-              if (
-                nextStatus === OrderStatus.PREPARING ||
-                nextStatus === OrderStatus.READY ||
-                nextStatus === OrderStatus.DELIVERED
-              ) {
-                playNotificationSound();
-              }
-
-              if (nextStatus === OrderStatus.READY) {
-                showNotification('Seu pedido está pronto! 🍔', { body: 'Pode levantar o seu pedido no balcão.' });
-              } else if (nextStatus === OrderStatus.RECEIVED) {
-                showNotification('Pedido Recebido! 📝', { body: 'O restaurante já recebeu o seu pedido.' });
-              } else if (nextStatus === OrderStatus.PREPARING) {
-                showNotification('Seu pedido entrou na cozinha! 🍳', { body: 'Estamos preparando tudo com carinho.' });
-              } else if (nextStatus === OrderStatus.DELIVERED) {
-                showNotification('Pedido entregue! Bom apetite! 🍱', { body: 'Obrigado por escolher o KwikFood.' });
-              }
+          const nextStatus = updatedOrder.status as OrderStatus;
+          if (nextStatus && nextStatus !== lastStatusRef.current) {
+            if (
+              nextStatus === OrderStatus.PREPARING ||
+              nextStatus === OrderStatus.READY ||
+              nextStatus === OrderStatus.DELIVERED
+            ) {
+              playNotificationSound();
             }
 
-            return {
-              ...prev,
-              status: nextStatus as OrderStatus,
-              ticketCode: updatedOrder.ticket_code ?? prev.ticketCode,
-              ticketNumber: updatedOrder.ticket_number ?? prev.ticketNumber,
-              estimatedMinutes: updatedOrder.estimated_minutes ?? prev.estimatedMinutes,
-              timerAccumulatedSeconds: updatedOrder.timer_accumulated_seconds ?? prev.timerAccumulatedSeconds,
-              timerLastStartedAt: updatedOrder.timer_last_started_at ?? prev.timerLastStartedAt,
-              items: updatedOrder.items ?? prev.items,
-              total: updatedOrder.total ?? prev.total
-            };
-          });
+            if (nextStatus === OrderStatus.READY) {
+              showNotification('Seu pedido está pronto! 🍔', { body: 'Pode levantar o seu pedido no balcão.' });
+            } else if (nextStatus === OrderStatus.RECEIVED) {
+              showNotification('Pedido Recebido! 📝', { body: 'O restaurante já recebeu o seu pedido.' });
+            } else if (nextStatus === OrderStatus.PREPARING) {
+              showNotification('Seu pedido entrou na cozinha! 🍳', { body: 'Estamos preparando tudo com carinho.' });
+            } else if (nextStatus === OrderStatus.DELIVERED) {
+              showNotification('Pedido entregue! Bom apetite! 🍱', { body: 'Obrigado por escolher o KwikFood.' });
+            }
+            lastStatusRef.current = nextStatus;
+          }
 
-          // Recalculate position when any order is updated
+          setOrder(prev => ({
+            ...prev,
+            status: nextStatus || prev.status,
+            ticketCode: updatedOrder.ticket_code ?? prev.ticketCode,
+            ticketNumber: updatedOrder.ticket_number ?? prev.ticketNumber,
+            estimatedMinutes: updatedOrder.estimated_minutes ?? prev.estimatedMinutes,
+            timerAccumulatedSeconds: updatedOrder.timer_accumulated_seconds ?? prev.timerAccumulatedSeconds,
+            timerLastStartedAt: updatedOrder.timer_last_started_at ?? prev.timerLastStartedAt,
+            items: updatedOrder.items ?? prev.items,
+            total: updatedOrder.total ?? prev.total
+          }));
+
           loadData();
         }
       )
