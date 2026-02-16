@@ -83,34 +83,44 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   };
 
   const handleRequestPermission = async () => {
+    alert('Tentando ativar notificações...');
+    console.log('Botão clicado');
+
+    if (!('Notification' in window)) {
+      alert('⚠️ O seu browser não suporta notificações.');
+      return;
+    }
+
     if (!window.isSecureContext) {
-      alert('🔒 SEGURANÇA: As notificações do browser só funcionam em sites SEGUROS (HTTPS). Por favor, garanta que está a aceder via https:// para poder ativar os alertas.');
+      alert('🔒 SEGURANÇA: As notificações só funcionam em sites SEGUROS (HTTPS).');
       return;
     }
 
-    if (Notification.permission === 'denied') {
-      alert('🚫 BLOQUEADO: As notificações foram negadas anteriormente neste browser. Para ativar, clique no ícone do CADEADO ao lado do URL (endereço do site) e mude para "Permitir".');
-      return;
-    }
-
-    const granted = await requestNotificationPermission();
-    setNotificationPermission(Notification.permission);
-
-    // Desbloquear áudio na primeira interação
-    if (audioRef.current) {
-      audioRef.current.play().then(() => {
-        audioRef.current?.pause();
-        audioRef.current!.currentTime = 0;
-      }).catch(() => { });
-    }
-
-    if (granted) {
-      showNotification('Notificações Ativadas! 🔔', { body: 'Você receberá atualizações do seu pedido aqui.' });
-    } else {
-      // If it's not denied but not granted, it might have been closed/ignored
-      if (Notification.permission === 'default') {
-        alert('ℹ️ AVISO: A janela de permissão foi fechada ou ignorada. Por favor, clique novamente em "Permitir Alertas" e aceite o pedido do browser.');
+    try {
+      if (Notification.permission === 'denied') {
+        alert('🚫 BLOQUEADO: As notificações foram negadas. Por favor, ative-as nas definições do site (ícone do cadeado).');
+        return;
       }
+
+      const granted = await requestNotificationPermission();
+      setNotificationPermission(Notification.permission);
+
+      if (audioRef.current) {
+        audioRef.current.play().then(() => {
+          audioRef.current?.pause();
+          audioRef.current!.currentTime = 0;
+        }).catch(e => console.warn('Audio unlock failed:', e));
+      }
+
+      if (granted) {
+        showNotification('Notificações Ativadas! 🔔', { body: 'Você receberá atualizações aqui.' });
+        alert('✅ Notificações ativadas com sucesso!');
+      } else {
+        alert('ℹ️ A permissão foi fechada ou ignorada. Tente clicar novamente.');
+      }
+    } catch (err: any) {
+      console.error('Erro ao pedir permissão:', err);
+      alert('Erro inesperado: ' + err.message);
     }
   };
 
@@ -349,7 +359,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
   return (
     <div className="bg-background min-h-screen pb-20 selection:bg-primary selection:text-white">
-      <div className="fixed bottom-8 left-8 z-[150] flex flex-col gap-3">
+      <div className="fixed bottom-8 left-8 z-[9999] flex flex-col gap-3">
         {notificationPermission !== 'granted' && (
           <button
             onClick={handleRequestPermission}
