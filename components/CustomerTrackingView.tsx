@@ -27,6 +27,27 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     // Som de alerta curto e nítido
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
     audioRef.current.load();
+
+    // DESBLOQUEIO AUTOMÁTICO: No primeiro toque do utilizador na página, o som é "ativado" por defeito
+    const unlockAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.play().then(() => {
+          audioRef.current?.pause();
+          audioRef.current!.currentTime = 0;
+          // Remover listeners após o primeiro desbloqueio bem-sucedido
+          window.removeEventListener('click', unlockAudio);
+          window.removeEventListener('touchstart', unlockAudio);
+        }).catch(() => { });
+      }
+    };
+
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
+
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
   }, []);
 
   const calculateElapsed = (accumulated: number, lastStarted: string | undefined, status: OrderStatus) => {
