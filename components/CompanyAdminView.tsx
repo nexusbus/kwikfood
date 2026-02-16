@@ -41,7 +41,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'PRODUTOS' | 'FILA' | 'HISTORICO'>('FILA');
+  const [activeTab, setActiveTab] = useState<'PRODUTOS' | 'FILA' | 'HISTORICO' | 'MARKETING'>('FILA');
   const [productFilter, setProductFilter] = useState('Todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
@@ -63,6 +63,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [hEndDate, setHEndDate] = useState('');
   const [hStatusFilter, setHStatusFilter] = useState('Todos');
   const [hContactFilter, setHContactFilter] = useState('');
+
+  // Marketing state
+  const [contacts, setContacts] = useState<string[]>([]);
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  const [messageBody, setMessageBody] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [showFullPhones, setShowFullPhones] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const loadData = async () => {
@@ -129,6 +136,23 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       supabase.removeChannel(oChannel);
     };
   }, [company.id]);
+
+  useEffect(() => {
+    if (activeTab === 'MARKETING') {
+      const loadContacts = async () => {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('customer_phone')
+          .eq('company_id', company.id);
+
+        if (data) {
+          const unique = Array.from(new Set(data.map(o => o.customer_phone)));
+          setContacts(unique);
+        }
+      };
+      loadContacts();
+    }
+  }, [activeTab, company.id]);
 
   const mainContentRef = React.useRef<HTMLElement>(null);
 
@@ -209,6 +233,39 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       }
     } catch (err) {
       alert('Erro ao atualizar pedido.');
+    }
+  };
+
+  const handleSendMarketing = async () => {
+    if (selectedContacts.length === 0) return alert('Selecione contactos.');
+    if (!messageBody.trim()) return alert('Escreva a mensagem.');
+
+    setIsSending(true);
+    try {
+      for (const phone of selectedContacts) {
+        await sendSMS({ recipient: phone, message: messageBody });
+      }
+      alert('SMS Enviados com Sucesso!');
+      setMessageBody('');
+      setSelectedContacts([]);
+    } catch (err) {
+      alert('Erro no envio em massa.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const maskPhone = (phone: string, id: string) => {
+    if (showFullPhones[id]) return phone;
+    return phone.slice(0, -3) + 'XXX';
+  };
+
+  const revealPhone = (id: string) => {
+    const pass = prompt('Palavra-passe do parceiro:');
+    if (pass === company.password) {
+      setShowFullPhones(prev => ({ ...prev, [id]: true }));
+    } else {
+      alert('Incorreta.');
     }
   };
 
@@ -374,6 +431,17 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             Audit & Histórico
           </button>
 
+          {company.marketingEnabled && (
+            <button
+              onClick={() => setActiveTab('MARKETING')}
+              className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'MARKETING' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
+            >
+              <span className="material-symbols-outlined text-2xl">campaign</span>
+              Marketing
+              {activeTab === 'MARKETING' && <div className="absolute right-6 size-2 bg-primary rounded-full animate-pulse"></div>}
+            </button>
+          )}
+
           <div className="mt-8">
             <button
               onClick={() => setShowQRModal(true)}
@@ -419,7 +487,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             </button>
             <div>
               <h2 className="text-2xl lg:text-4xl font-black tracking-tighter text-secondary leading-none">
-                {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : 'Audit & Histórico'}
+                {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : activeTab === 'MARKETING' ? 'Marketing' : 'Audit & Histórico'}
               </h2>
               <div className="flex items-center gap-2 mt-2">
                 <span className="size-2 bg-green-500 rounded-full animate-pulse-soft"></span>
@@ -626,6 +694,96 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 ))}
               </div>
             </div>
+          ) : activeTab === 'MARKETING' ? (
+            <div className="space-y-12 animate-fade-in">
+              <div className="bg-surface rounded-[3.5rem] p-12 border border-border shell-premium shadow-premium">
+                <div className="flex flex-col lg:flex-row gap-12">
+                  <div className="flex-1 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-black text-secondary uppercase tracking-widest">Base de Contactos ({contacts.length})</h3>
+                      <button
+                        onClick={() => setSelectedContacts(selectedContacts.length === contacts.length ? [] : [...contacts])}
+                        className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
+                      >
+                        {selectedContacts.length === contacts.length ? 'DESMARCAR TODOS' : 'SELECIONAR TODOS'}
+                      </button>
+                    </div>
+
+                    <div className="h-[450px] overflow-y-auto pr-4 custom-scrollbar bg-background rounded-[2rem] p-8 border border-border/50 shadow-inner">
+                      {contacts.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full opacity-30">
+                          <span className="material-symbols-outlined text-6xl mb-4">person_off</span>
+                          <p className="font-black uppercase tracking-widest text-[10px]">Nenhuma base de dados disponível</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-3">
+                          {contacts.map(phone => (
+                            <label key={phone} className="flex items-center gap-5 p-5 bg-white rounded-2xl border border-border/50 hover:border-primary/40 hover:shadow-md transition-all cursor-pointer group">
+                              <div className={`size-6 rounded-full border-2 flex items-center justify-center transition-all ${selectedContacts.includes(phone) ? 'bg-primary border-primary' : 'border-border group-hover:border-primary/40'}`}>
+                                {selectedContacts.includes(phone) && <span className="material-symbols-outlined text-white text-[14px] font-black">done</span>}
+                              </div>
+                              <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={selectedContacts.includes(phone)}
+                                onChange={() => {
+                                  setSelectedContacts(prev =>
+                                    prev.includes(phone) ? prev.filter(c => c !== phone) : [...prev, phone]
+                                  );
+                                }}
+                              />
+                              <span className={`text-lg font-black transition-colors ${selectedContacts.includes(phone) ? 'text-primary' : 'text-secondary'}`}>{phone}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex-1 space-y-8">
+                    <div className="space-y-3">
+                      <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Composição da Campanha</label>
+                      <textarea
+                        value={messageBody}
+                        onChange={e => setMessageBody(e.target.value)}
+                        placeholder="Escreva a mensagem para os seus clientes..."
+                        className="w-full h-64 bg-background border-2 border-border/40 rounded-[2rem] p-10 font-medium text-lg text-secondary focus:border-primary transition-all outline-none resize-none shadow-inner"
+                      />
+                      <div className="flex justify-between px-2">
+                        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{selectedContacts.length} destinatários selecionados</p>
+                        <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">{messageBody.length} caracteres</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-5">
+                      <button
+                        onClick={handleSendMarketing}
+                        disabled={isSending || selectedContacts.length === 0 || !messageBody.trim()}
+                        className="h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all disabled:opacity-30 relative overflow-hidden group"
+                      >
+                        <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
+                        <span className="flex items-center justify-center gap-4">
+                          <span className="material-symbols-outlined text-2xl">{isSending ? 'sync' : 'send'}</span>
+                          {isSending ? 'SINALIZANDO...' : 'DISPARAR SMS'}
+                        </span>
+                      </button>
+
+                      <div className="grid grid-cols-2 gap-5 opacity-40">
+                        <button disabled className="h-20 bg-background border-2 border-border/40 rounded-[2rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-4 cursor-not-allowed">
+                          <span className="material-symbols-outlined">chat</span>
+                          WHATSAPP
+                        </button>
+                        <button disabled className="h-20 bg-background border-2 border-border/40 rounded-[2rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-4 cursor-not-allowed">
+                          <span className="material-symbols-outlined">send</span>
+                          TELEGRAM
+                        </button>
+                      </div>
+                      <p className="text-[9px] text-center font-black text-text-muted uppercase tracking-[0.3em] mt-2">Canais alternativos em desenvolvimento</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="space-y-12 animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -734,7 +892,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                             <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1 hidden sm:block">Ref: {hOrder.id.slice(0, 8)}</p>
                           </div>
                         </td>
-                        <td className="px-10 py-10 text-[14px] font-black text-secondary">{hOrder.customerPhone}</td>
+                        <td className="px-10 py-10 text-[14px] font-black text-secondary">
+                          <div className="flex items-center gap-2">
+                            {maskPhone(hOrder.customerPhone, hOrder.id)}
+                            {!showFullPhones[hOrder.id] && (
+                              <button onClick={() => revealPhone(hOrder.id)} className="text-[10px] bg-primary-soft text-primary px-2 py-1 rounded-md hover:bg-primary hover:text-white transition-all">
+                                MOSTRAR
+                              </button>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-10 py-10">
                           <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(hOrder.status as OrderStatus)}`}>
                             {getStatusLabel(hOrder)}

@@ -9,7 +9,8 @@ export const fetchCompanies = async (): Promise<Company[]> => {
   if (error) throw error;
   return data.map(co => ({
     ...co,
-    logoUrl: co.logo_url
+    logoUrl: co.logo_url,
+    marketingEnabled: co.marketing_enabled
   })) as Company[];
 };
 

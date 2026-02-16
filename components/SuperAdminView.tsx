@@ -145,6 +145,19 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const toggleMarketing = async (company: Company) => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ marketing_enabled: !company.marketingEnabled })
+        .eq('id', company.id);
+      if (error) throw error;
+    } catch (err: any) {
+      console.error(err);
+      alert('Erro ao alternar Marketing: ' + err.message);
+    }
+  };
+
   const handleCancelEdit = async () => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
@@ -464,6 +477,13 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                           </td>
                           <td className="px-16 py-12 text-right">
                             <div className="flex justify-end gap-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-10 transition-all duration-700">
+                              <button
+                                onClick={() => toggleMarketing(co)}
+                                className={`size-16 border border-border/80 rounded-[1.5rem] flex items-center justify-center transition-all ${co.marketingEnabled ? 'bg-secondary text-white shadow-premium' : 'bg-white text-text-muted hover:text-primary hover:shadow-premium'}`}
+                                title={co.marketingEnabled ? 'Desativar Marketing' : 'Ativar Marketing'}
+                              >
+                                <span className="material-symbols-outlined text-3xl">campaign</span>
+                              </button>
                               <button onClick={() => setShowQRModal(co)} className="size-16 bg-white border border-border/80 rounded-[1.5rem] flex items-center justify-center text-text-muted hover:text-primary hover:shadow-premium transition-all">
                                 <span className="material-symbols-outlined text-3xl">qr_code_2</span>
                               </button>

@@ -33,6 +33,7 @@ export interface Company {
   email?: string;
   password?: string;
   logoUrl?: string; // Add logo URL
+  marketingEnabled?: boolean;
 }
 
 export interface CartItem extends Product {
