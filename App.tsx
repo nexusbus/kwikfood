@@ -37,10 +37,24 @@ const App: React.FC = () => {
     else localStorage.removeItem('kwikfood_order');
   }, [activeOrder]);
 
+  // Keep activeCompany synced with the updated companies list (Realtime)
+  useEffect(() => {
+    if (activeCompany) {
+      const updated = companies.find(c => c.id === activeCompany.id);
+      if (updated && JSON.stringify(updated) !== JSON.stringify(activeCompany)) {
+        setActiveCompany(updated);
+      }
+    }
+  }, [companies, activeCompany]);
+
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from('companies').select('*');
-      if (data) setCompanies(data as Company[]);
+      try {
+        const data = await fetchCompanies();
+        setCompanies(data);
+      } catch (err) {
+        console.error("Failed to load companies:", err);
+      }
     };
     load();
 
