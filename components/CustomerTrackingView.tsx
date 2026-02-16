@@ -24,7 +24,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    audioRef.current = new Audio('https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3');
+    // Som de alerta curto e nítido
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
     audioRef.current.load();
   }, []);
 
@@ -47,6 +48,12 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         audioRef.current.play().catch(e => {
           console.warn('Audio play failed (browser restriction?):', e);
         });
+
+        // Adicionar vibração se suportada pelo dispositivo
+        if ('vibrate' in navigator) {
+          navigator.vibrate([200, 100, 200]);
+        }
+
         count++;
         setTimeout(playNext, 1200);
       }
@@ -67,6 +74,14 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
     const granted = await requestNotificationPermission();
     setNotificationPermission(Notification.permission);
+
+    // Desbloquear áudio na primeira interação
+    if (audioRef.current) {
+      audioRef.current.play().then(() => {
+        audioRef.current?.pause();
+        audioRef.current!.currentTime = 0;
+      }).catch(() => { });
+    }
 
     if (granted) {
       showNotification('Notificações Ativadas! 🔔', { body: 'Você receberá atualizações do seu pedido aqui.' });
@@ -313,39 +328,33 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
   return (
     <div className="bg-background min-h-screen pb-20 selection:bg-primary selection:text-white">
-      {/* Notification Authorization Banner */}
-      {notificationPermission !== 'granted' && (
-        <div className="bg-secondary text-white p-4 sticky top-0 z-[200] animate-in slide-in-from-top duration-500 shadow-xl border-b border-white/10">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-3xl animate-bounce">notifications_active</span>
-              <p className="font-black text-[13px] uppercase tracking-widest text-center sm:text-left leading-tight">
-                ATIVE AS NOTIFICAÇÕES PARA RECEBER ALERTAS REAL-TIME DO SEU PEDIDO
-              </p>
+      <div className="fixed bottom-8 left-8 z-[150] flex flex-col gap-3">
+        {notificationPermission !== 'granted' && (
+          <button
+            onClick={handleRequestPermission}
+            className="bg-primary text-white p-4 rounded-2xl flex items-center gap-3 shadow-premium hover:shadow-2xl transition-all group active:scale-95 animate-bounce-soft"
+            title="Ativar Notificações"
+          >
+            <div className="size-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-2xl">notifications_active</span>
             </div>
-            <button
-              onClick={handleRequestPermission}
-              className="bg-white text-secondary px-8 py-3 rounded-full font-black text-[11px] uppercase tracking-tighter hover:bg-primary hover:text-white transition-all shadow-premium active:scale-95 whitespace-nowrap"
-            >
-              PERMITIR ALERTAS
-            </button>
-          </div>
-        </div>
-      )}
+            <span className="font-black text-[10px] uppercase tracking-widest pr-2 text-white text-center">Ativar Notificações</span>
+          </button>
+        )}
 
-      {/* Test Notification Widget (Floating) */}
-      {notificationPermission === 'granted' && (
-        <button
-          onClick={handleTestNotification}
-          className="fixed bottom-8 left-8 z-[150] bg-white/80 backdrop-blur-md border border-border p-4 rounded-2xl flex items-center gap-3 shadow-premium hover:shadow-2xl transition-all group active:scale-95"
-          title="Testar som e notificação"
-        >
-          <div className="size-10 bg-secondary/10 rounded-xl flex items-center justify-center group-hover:bg-secondary group-hover:text-white transition-colors">
-            <span className="material-symbols-outlined text-2xl">vibration</span>
-          </div>
-          <span className="font-black text-[10px] uppercase tracking-widest text-secondary pr-2">Testar Alerta</span>
-        </button>
-      )}
+        {notificationPermission === 'granted' && (
+          <button
+            onClick={handleTestNotification}
+            className="bg-white/80 backdrop-blur-md border border-border p-4 rounded-2xl flex items-center gap-3 shadow-premium hover:shadow-2xl transition-all group active:scale-95"
+            title="Testar som e notificação"
+          >
+            <div className="size-10 bg-secondary/10 rounded-xl flex items-center justify-center group-hover:bg-secondary group-hover:text-white transition-colors">
+              <span className="material-symbols-outlined text-2xl">vibration</span>
+            </div>
+            <span className="font-black text-[10px] uppercase tracking-widest text-secondary pr-2 text-center">Testar Alerta</span>
+          </button>
+        )}
+      </div>
 
       {/* Decorative Background */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-40">
