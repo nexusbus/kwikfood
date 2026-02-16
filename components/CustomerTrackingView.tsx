@@ -35,10 +35,11 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
     let count = 0;
     const playNext = () => {
-      if (count < 5) {
+      if (count < 3) {
+        audio.currentTime = 0;
         audio.play().catch(e => console.error('Audio play failed:', e));
         count++;
-        setTimeout(playNext, 2000); // Play every 2 seconds
+        setTimeout(playNext, 1500); // Toca a cada 1.5 segundos
       }
     };
     playNext();
@@ -151,7 +152,14 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             const nextStatus = updatedOrder.status || prev.status;
 
             if (nextStatus !== prev.status) {
-              playNotificationSound();
+              if (
+                nextStatus === OrderStatus.PREPARING ||
+                nextStatus === OrderStatus.READY ||
+                nextStatus === OrderStatus.DELIVERED
+              ) {
+                playNotificationSound();
+              }
+
               if (nextStatus === OrderStatus.READY) {
                 showNotification('Seu pedido está pronto! 🍔', { body: 'Pode levantar o seu pedido no balcão.' });
               } else if (nextStatus === OrderStatus.RECEIVED) {
