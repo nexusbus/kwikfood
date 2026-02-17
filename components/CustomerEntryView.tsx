@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { fetchCompanies, createOrder, STORE_RADIUS_METERS } from '../constants';
+import React, { useState, useEffect, useRef } from 'react';
+import { createOrder, STORE_RADIUS_METERS } from '../constants';
 import { Order, OrderStatus, Company } from '../types';
 import { supabase } from '../src/lib/supabase';
 import Logo from './Logo';
@@ -12,43 +12,61 @@ interface CustomerEntryViewProps {
 }
 
 const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoinQueue, onAdminAccess }) => {
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(['', '', '', '']);
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [paramsChecked, setParamsChecked] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
-    if (!paramsChecked) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlCode = urlParams.get('code');
-      if (urlCode) {
-        setCode(urlCode);
-      }
-      setParamsChecked(true);
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCode = urlParams.get('code');
+    if (urlCode && urlCode.length === 4) {
+      setCode(urlCode.split(''));
     }
-  }, [paramsChecked]);
+  }, []);
+
+  const handleCodeChange = (index: number, value: string) => {
+    if (value.length > 1) value = value[0];
+    const newCode = [...code];
+    newCode[index] = value.replace(/\D/g, '');
+    setCode(newCode);
+
+    // Auto-focus next
+    if (value && index < 3) {
+      inputRefs[index + 1].current?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !code[index] && index > 0) {
+      inputRefs[index - 1].current?.focus();
+    }
+  };
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371e3; // metres
+    const R = 6371e3;
     const φ1 = lat1 * Math.PI / 180;
     const φ2 = lat2 * Math.PI / 180;
     const Δφ = (lat2 - lat1) * Math.PI / 180;
     const Δλ = (lon2 - lon1) * Math.PI / 180;
-
     const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
       Math.cos(φ1) * Math.cos(φ2) *
       Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // in metres
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
   const handleJoin = async () => {
     setError(null);
+    const fullCode = code.join('');
 
-    // Validation
-    const company = companies.find(c => c.id.toString().padStart(4, '0') === code.trim().padStart(4, '0'));
+    if (fullCode.length < 4) {
+      setError('Por favor, insira o código completo de 4 dígitos.');
+      return;
+    }
+
+    const company = companies.find(c => c.id.toString().padStart(4, '0') === fullCode.padStart(4, '0'));
 
     if (!company) {
       setError('Código do estabelecimento inválido.');
@@ -60,9 +78,13 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
       return;
     }
 
+    if (!termsAccepted) {
+      setError('É necessário aceitar os Termos e Condições.');
+      return;
+    }
+
     setLoading(true);
 
-    // Check Geolocation
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -73,24 +95,22 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             company.lng
           );
 
-          if (dist > STORE_RADIUS_METERS && !code.startsWith('TEST')) {
-            setError(`Acesso negado. Você está a ${Math.round(dist)}m. Por favor, aproxime-se do local (máx ${STORE_RADIUS_METERS}m).`);
+          if (dist > STORE_RADIUS_METERS && !fullCode.startsWith('TEST')) {
+            setError(`Acesso negado. Está a ${Math.round(dist)}m do local. Aproxime-se para entrar na fila.`);
             setLoading(false);
             return;
           }
 
           try {
-            // LOGIN LOGIC: Check if there's an existing active order for this phone/company
             const { data: existingOrder } = await supabase
               .from('orders')
-              .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at')
+              .select('*')
               .eq('company_id', company.id)
               .eq('customer_phone', phone)
               .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
               .maybeSingle();
 
             if (existingOrder) {
-              // Found active order, just transition to tracking
               onJoinQueue({
                 id: existingOrder.id,
                 companyId: existingOrder.company_id,
@@ -109,7 +129,6 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               return;
             }
 
-            // Otherwise, create a new one
             const newOrderData = await createOrder({
               companyId: company.id,
               customerPhone: phone,
@@ -119,127 +138,166 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             });
             onJoinQueue(newOrderData);
           } catch (err: any) {
-            const errorMsg = err.message || err.details || 'Erro desconhecido';
-            setError(`Falha ao entrar: ${errorMsg}`);
-            console.error('Queue Entry Error Details:', err);
+            setError(`Erro ao entrar: ${err.message || 'Falha na ligação'}`);
           } finally {
             setLoading(false);
           }
         },
-        (err) => {
-          setError('Erro ao obter localização. Permita o acesso para confirmar sua presença no local.');
+        () => {
+          setError('Permita o acesso à localização para confirmar sua presença no local.');
           setLoading(false);
         },
         { enableHighAccuracy: true }
       );
     } else {
-      setError('Geolocalização não suportada no seu dispositivo.');
+      setError('Geolocalização não suportada.');
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden bg-background">
-      {/* Decorative Elements */}
-      <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] pointer-events-none animate-pulse-soft"></div>
-      <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px] pointer-events-none animate-pulse-soft" style={{ animationDelay: '1s' }}></div>
+    <div className="min-h-screen bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/20">
+      {/* Header */}
+      <header className="w-full max-w-5xl mx-auto px-6 py-6 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <Logo variant="icon" size={32} />
+          <span className="text-xl font-black tracking-tight text-[#111111]">Kwikfood</span>
+        </div>
+        <button
+          onClick={onAdminAccess}
+          className="px-6 py-2 border-2 border-[#E31B44]/10 rounded-2xl text-[11px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 transition-all shadow-sm active:scale-95"
+        >
+          ADMIN
+        </button>
+      </header>
 
-      <div className="relative z-10 w-full max-w-[480px] animate-fade-in">
-        <div className="bg-surface rounded-[2.5rem] sm:rounded-[3.5rem] shadow-premium overflow-hidden border border-white/40 glass">
-          <header className="px-8 py-8 sm:px-12 sm:py-12 flex justify-between items-center border-b border-border/50">
-            <Logo variant="full" size={48} className="sm:h-16" />
-            <button
-              onClick={onAdminAccess}
-              className="flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-secondary/5 hover:bg-secondary hover:text-white rounded-full text-[9px] sm:text-[10px] font-black text-secondary/40 uppercase tracking-widest transition-all"
-            >
-              <span className="material-symbols-outlined text-xs sm:text-sm">admin_panel_settings</span>
-              ADMIN
-            </button>
-          </header>
+      {/* Main Content */}
+      <main className="flex-1 w-full max-w-[440px] mx-auto px-6 py-8 flex flex-col items-center">
+        {/* Hourglass Icon */}
+        <div className="size-16 bg-red-50 rounded-full flex items-center justify-center mb-8">
+          <span className="material-symbols-outlined text-primary text-3xl">hourglass_empty</span>
+        </div>
 
-          <div className="p-8 sm:p-12 space-y-8 sm:space-y-12">
-            <div className="space-y-3 sm:space-y-4 text-center sm:text-left">
-              <h1 className="text-3xl sm:text-4xl font-black text-secondary tracking-tight leading-[1.1] text-mobile-balance">Diga adeus às <span className="text-primary">filas.</span></h1>
-              <p className="text-text-muted font-medium leading-relaxed text-base sm:text-lg">
-                Junte-se à fila digital em segundos. Seu tempo vale muito.
-              </p>
+        {/* Hero Text */}
+        <div className="text-center mb-12 space-y-4">
+          <h1 className="text-4xl font-black text-[#111111] leading-tight">
+            Sua comida,<br />
+            <span className="text-primary">sem esperas.</span>
+          </h1>
+          <p className="text-[#555555] font-medium text-base leading-relaxed">
+            Junte-se à fila digital e acompanhe o seu pedido em tempo real.
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <div className="w-full bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.06)] border border-[#F5F5F5] p-8 space-y-10">
+          {/* Local Code Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-symbols-outlined text-primary text-xl">pin</span>
+              <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Código do Local</label>
             </div>
-
-            <div className="space-y-8 sm:space-y-10">
-              <div className="space-y-3 sm:space-y-4 group">
-                <label className="block text-[10px] sm:text-[11px] font-black text-secondary uppercase tracking-[0.2em] ml-2 opacity-50">Código do Local</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={4}
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full h-16 sm:h-24 bg-background border-2 border-border/50 rounded-[1.25rem] sm:rounded-[2rem] text-3xl sm:text-4xl font-black tracking-[0.4em] text-center text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
-                    placeholder="0001"
-                  />
-                  <div className="absolute right-6 sm:right-10 top-1/2 -translate-y-1/2 text-border group-focus-within:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-3xl sm:text-4xl">pin_drop</span>
-                  </div>
-                </div>
-                <p className="text-[9px] sm:text-[10px] text-text-muted font-bold uppercase tracking-widest ml-2 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-xs sm:text-sm">info</span>
-                  Procure o código de 4 dígitos no balcão
-                </p>
-              </div>
-
-              <div className="space-y-3 sm:space-y-4">
-                <label className="block text-[10px] sm:text-[11px] font-black text-secondary uppercase tracking-[0.2em] ml-2 opacity-50">Seu Telemóvel</label>
-                <div className="flex gap-3 sm:gap-4">
-                  <div className="flex items-center px-4 sm:px-8 bg-secondary text-white rounded-[1.25rem] sm:rounded-[2rem] font-black text-base sm:text-xl shadow-lg">
-                    +244
-                  </div>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                    className="flex-1 h-16 sm:h-24 bg-background border-2 border-border/50 rounded-[1.25rem] sm:rounded-[2rem] px-6 sm:px-10 text-xl sm:text-2xl font-black text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
-                    placeholder="9XX XXX XXX"
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <div className="p-6 sm:p-8 bg-primary/5 border border-primary/10 rounded-[1.25rem] sm:rounded-[2rem] flex items-center gap-4 sm:gap-5 text-primary animate-shake">
-                  <span className="material-symbols-outlined text-2xl sm:text-3xl font-black">error</span>
-                  <div className="flex flex-col gap-0.5 sm:gap-1">
-                    <p className="font-black uppercase text-[10px] sm:text-[12px] tracking-wider leading-tight">Erro no Sistema</p>
-                    <p className="text-[9px] sm:text-[10px] font-bold opacity-70 break-all">{error}</p>
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={handleJoin}
-                disabled={loading}
-                className="group relative w-full h-16 sm:h-24 bg-primary hover:bg-primary-dark text-white rounded-[1.25rem] sm:rounded-[2.2rem] font-black text-base sm:text-lg shadow-premium active:scale-[0.96] transition-all flex items-center justify-center gap-4 sm:gap-5 disabled:opacity-50 overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12"></div>
-                {loading ? (
-                  <div className="size-8 sm:size-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <span className="tracking-widest">ENTRAR NA FILA</span>
-                    <span className="material-symbols-outlined text-2xl sm:text-3xl group-hover:translate-x-3 transition-transform duration-500">bolt</span>
-                  </>
-                )}
-              </button>
+            <div className="flex justify-between gap-3">
+              {code.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={inputRefs[i]}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleCodeChange(i, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(i, e)}
+                  className="w-full h-16 bg-[#F8F9FA] border-none rounded-2xl text-2xl font-black text-center text-[#111111] focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                  placeholder="•"
+                />
+              ))}
             </div>
           </div>
 
-          <footer className="px-8 py-8 sm:px-12 sm:py-10 bg-secondary/5 text-center">
-            <p className="text-[9px] sm:text-[10px] text-secondary/30 leading-relaxed font-black uppercase tracking-[0.3em]">
-              KwikFood Angola &copy; 2024<br />
-              <span className="text-primary/40">Premium Queue System</span>
-            </p>
-          </footer>
+          {/* Phone Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-symbols-outlined text-primary text-xl">smartphone</span>
+              <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Seu Telemóvel</label>
+            </div>
+            <div className="flex items-center bg-[#F8F9FA] rounded-2xl p-2 h-16">
+              <div className="flex items-center gap-3 px-4 border-r border-[#E0E0E0]">
+                <span className="text-lg">🇦🇴</span>
+                <span className="text-base font-black text-[#111111]">+244</span>
+              </div>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                className="flex-1 bg-transparent border-none px-5 text-base font-black text-[#111111] focus:ring-0 outline-none placeholder:text-[#BBBBBB]"
+                placeholder="9XX XXX XXX"
+              />
+            </div>
+          </div>
+
+          {/* Terms Checkbox */}
+          <label className="flex items-center gap-4 cursor-pointer group">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="sr-only"
+              />
+              <div className={`size-6 rounded-lg border-2 transition-all flex items-center justify-center ${termsAccepted ? 'bg-primary border-primary' : 'border-[#E0E0E0] group-hover:border-primary/50'}`}>
+                {termsAccepted && <span className="material-symbols-outlined text-white text-base font-black">check</span>}
+              </div>
+            </div>
+            <span className="text-xs font-bold text-[#555555]">
+              Li e aceito os <span className="text-primary">Termos e Condições</span>
+            </span>
+          </label>
+
+          {/* Action Button */}
+          <button
+            onClick={handleJoin}
+            disabled={loading}
+            className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+            {loading ? (
+              <div className="size-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+            ) : (
+              <>
+                ENTRAR NA FILA
+                <span className="material-symbols-outlined text-xl">chevron_right</span>
+              </>
+            )}
+          </button>
         </div>
-      </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="w-full mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 animate-shake">
+            <span className="material-symbols-outlined text-primary text-xl mt-0.5">error</span>
+            <p className="text-[11px] font-bold text-primary leading-relaxed uppercase">{error}</p>
+          </div>
+        )}
+
+        {/* SMS Info Box */}
+        <div className="w-full mt-8 p-6 bg-red-50/30 rounded-[2rem] flex items-start gap-4">
+          <div className="size-8 bg-primary rounded-full flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-white text-base">info</span>
+          </div>
+          <p className="text-[#555555] text-[12px] font-medium leading-relaxed">
+            Iremos enviar-lhe uma notificação via SMS assim que o seu pedido estiver quase pronto.
+          </p>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full py-12 text-center space-y-4">
+        <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">PREMIUM QUEUE SYSTEM</p>
+        <p className="text-[10px] text-[#555555] font-bold">
+          © {new Date().getFullYear()} <span className="text-primary">KwikFood Angola</span>.<br />
+          Todos os direitos reservados.
+        </p>
+      </footer>
     </div>
   );
 };
