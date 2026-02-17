@@ -173,9 +173,9 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
       {/* Main Content */}
       <main className="flex-1 w-full max-w-[440px] mx-auto px-6 py-8 flex flex-col items-center">
-        {/* Hourglass Icon */}
-        <div className="size-16 bg-red-50 rounded-full flex items-center justify-center mb-8">
-          <span className="material-symbols-outlined text-primary text-3xl">hourglass_empty</span>
+        {/* Logo Icon */}
+        <div className="mb-8">
+          <Logo variant="icon" size={64} />
         </div>
 
         {/* Hero Text */}
