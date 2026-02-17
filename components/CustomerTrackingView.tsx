@@ -460,12 +460,25 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
         {/* Footer Actions */}
         <div className="space-y-8 pt-6">
-          <button
-            onClick={handleCancelOrder}
-            className="w-full h-16 border-2 border-[#F5F5F5] text-[#BBBBBB] hover:border-red-500 hover:text-red-500 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all shadow-sm active:scale-95"
-          >
-            CANCELAR ENTRADA
-          </button>
+          {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
+            <button
+              onClick={handleCancelOrder}
+              disabled={submittingOrder}
+              className="w-full h-16 border-2 border-[#F5F5F5] text-[#BBBBBB] hover:border-red-500 hover:text-red-500 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all shadow-sm active:scale-95 disabled:opacity-50"
+            >
+              CANCELAR ENTRADA
+            </button>
+          )}
+
+          {order.status === OrderStatus.DELIVERED && (
+            <button
+              onClick={() => onNewOrder(company || undefined, order.customerPhone)}
+              className="w-full h-16 bg-primary text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">add_circle</span>
+              FAZER UM NOVO PEDIDO
+            </button>
+          )}
 
           <button
             onClick={() => onNewOrder()}
