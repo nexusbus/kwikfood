@@ -325,97 +325,101 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           </div>
         </div>
 
-        {/* Shopping Section */}
-        <div className="space-y-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-[#111111] tracking-tight">O que deseja comprar?</h2>
-            <button className="text-[#BBBBBB] hover:text-primary transition-colors">
-              <span className="material-symbols-outlined">filter_list</span>
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {products.map(p => (
-              <div key={p.id} className="bg-white p-4 rounded-[2rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.03)] border border-[#F8F9FA] flex items-center gap-4 group hover:border-primary/20 transition-all">
-                <div className="size-20 rounded-2xl overflow-hidden bg-[#F8F9FA] shrink-0">
-                  <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-black text-[#111111] leading-snug mb-1">{p.name}</h3>
-                  <p className="text-primary font-black text-base">Kz {p.price.toLocaleString()}</p>
-                </div>
-                <button
-                  onClick={() => addToCart(p)}
-                  className="size-12 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center"
-                >
-                  <span className="material-symbols-outlined text-2xl">add</span>
+        {/* Shopping Section - Hide if DELIVERED */}
+        {order.status !== OrderStatus.DELIVERED && (
+          <>
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-black text-[#111111] tracking-tight">O que deseja comprar?</h2>
+                <button className="text-[#BBBBBB] hover:text-primary transition-colors">
+                  <span className="material-symbols-outlined">filter_list</span>
                 </button>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Cart Section */}
-        {cart.length > 0 && (
-          <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] border border-[#F5F5F5] p-8 space-y-8 animate-slide-up">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="size-14 bg-secondary rounded-[1.25rem] flex items-center justify-center text-white">
-                    <span className="material-symbols-outlined text-2xl">shopping_bag</span>
-                  </div>
-                  <span className="absolute -top-2 -right-2 size-6 bg-primary text-white text-[10px] font-black rounded-lg flex items-center justify-center ring-4 ring-white">
-                    {cart.reduce((acc, item) => acc + item.quantity, 0)}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-[#111111] tracking-tight">O Meu Pedido</h3>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">Total: Kz {totalCart.toLocaleString()}</p>
-                </div>
-              </div>
-              <button
-                onClick={handleFinishOrder}
-                disabled={submittingOrder}
-                className="h-14 px-6 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-              >
-                {submittingOrder ? (
-                  <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-lg">send</span>
-                    CONFIRMAR
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {cart.map((item, idx) => (
-                <div key={`${item.id}-${idx}`} className="bg-[#FDFCFD] rounded-3xl border border-[#F5F5F5] p-5 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center bg-white rounded-[1rem] p-1 border border-[#F5F5F5]">
-                        <button onClick={() => removeFromCart(item.id)} className="size-8 rounded-lg text-[#BBBBBB] hover:text-primary transition-colors flex items-center justify-center"><span className="material-symbols-outlined text-lg">remove</span></button>
-                        <span className="w-8 text-center font-black text-[#111111] text-sm">{item.quantity}</span>
-                        <button onClick={() => addToCart(item)} className="size-8 rounded-lg text-[#BBBBBB] hover:text-primary transition-colors flex items-center justify-center"><span className="material-symbols-outlined text-lg">add</span></button>
-                      </div>
-                      <span className="font-black text-sm text-[#111111]">{item.name}</span>
+              <div className="space-y-4">
+                {products.map(p => (
+                  <div key={p.id} className="bg-white p-4 rounded-[2rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F8F9FA] flex items-center gap-4 group hover:border-primary/20 transition-all">
+                    <div className="size-20 rounded-2xl overflow-hidden bg-[#F8F9FA] shrink-0">
+                      <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
                     </div>
-                    <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-[#BBBBBB] hover:text-primary transition-colors">
-                      <span className="material-symbols-outlined text-xl">close</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-black text-[#111111] leading-snug mb-1">{p.name}</h3>
+                      <p className="text-primary font-black text-base">Kz {p.price.toLocaleString()}</p>
+                    </div>
+                    <button
+                      onClick={() => addToCart(p)}
+                      className="size-12 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center"
+                    >
+                      <span className="material-symbols-outlined text-2xl">add</span>
                     </button>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Restrições or observações?"
-                    value={item.observation}
-                    onChange={(e) => updateObservation(idx, e.target.value)}
-                    className="w-full bg-white border border-[#F5F5F5] rounded-xl px-4 py-3 text-xs font-bold focus:border-primary outline-none transition-all placeholder:text-[#BBBBBB]/60"
-                  />
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+
+            {/* Cart Section */}
+            {cart.length > 0 && (
+              <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] border border-[#F5F5F5] p-8 space-y-8 animate-slide-up">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="size-14 bg-secondary rounded-[1.25rem] flex items-center justify-center text-white">
+                        <span className="material-symbols-outlined text-2xl">shopping_bag</span>
+                      </div>
+                      <span className="absolute -top-2 -right-2 size-6 bg-primary text-white text-[10px] font-black rounded-lg flex items-center justify-center ring-4 ring-white">
+                        {cart.reduce((acc, item) => acc + item.quantity, 0)}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-[#111111] tracking-tight">O Meu Pedido</h3>
+                      <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">Total: Kz {totalCart.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleFinishOrder}
+                    disabled={submittingOrder}
+                    className="h-14 px-6 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    {submittingOrder ? (
+                      <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-lg">send</span>
+                        CONFIRMAR
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {cart.map((item, idx) => (
+                    <div key={`${item.id}-${idx}`} className="bg-[#FDFCFD] rounded-3xl border border-[#F5F5F5] p-5 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center bg-white rounded-[1rem] p-1 border border-[#F5F5F5]">
+                            <button onClick={() => removeFromCart(item.id)} className="size-8 rounded-lg text-[#BBBBBB] hover:text-primary transition-colors flex items-center justify-center"><span className="material-symbols-outlined text-lg">remove</span></button>
+                            <span className="w-8 text-center font-black text-[#111111] text-sm">{item.quantity}</span>
+                            <button onClick={() => addToCart(item)} className="size-8 rounded-lg text-[#BBBBBB] hover:text-primary transition-colors flex items-center justify-center"><span className="material-symbols-outlined text-lg">add</span></button>
+                          </div>
+                          <span className="font-black text-sm text-[#111111]">{item.name}</span>
+                        </div>
+                        <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-[#BBBBBB] hover:text-primary transition-colors">
+                          <span className="material-symbols-outlined text-xl">close</span>
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Restrições or observações?"
+                        value={item.observation}
+                        onChange={(e) => updateObservation(idx, e.target.value)}
+                        className="w-full bg-white border border-[#F5F5F5] rounded-xl px-4 py-3 text-xs font-bold focus:border-primary outline-none transition-all placeholder:text-[#BBBBBB]/60"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Existing Order Detail if items present */}
