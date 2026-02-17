@@ -257,8 +257,8 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
           {/* Action Button */}
           <button
             onClick={handleJoin}
-            disabled={loading}
-            className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            disabled={loading || code.some(d => !d) || phone.length < 9 || !termsAccepted}
+            className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-40 disabled:grayscale-[0.5] disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="size-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
