@@ -386,7 +386,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const totalRevenue = filteredHistory.reduce((acc, o) => acc + (o.status === OrderStatus.DELIVERED ? (o.total || 0) : 0), 0);
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden selection:bg-primary selection:text-white relative">
+    <div className="flex h-screen bg-[#F9F9F9] overflow-hidden selection:bg-primary selection:text-white relative font-sans">
       {/* Sidebar Backdrop - Click to Close */}
       {showSidebar && (
         <div
@@ -473,50 +473,71 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       <main
         ref={mainContentRef}
-        className="flex-1 overflow-y-auto p-8 lg:p-12 relative custom-scrollbar"
+        className="flex-1 overflow-y-auto p-6 lg:p-12 relative custom-scrollbar bg-[#F9F9F9]"
       >
-        <div className="fixed top-0 right-0 w-1/3 h-1/2 bg-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
+        <div className="fixed top-0 right-0 w-1/3 h-1/2 bg-red-500/5 rounded-full blur-[150px] pointer-events-none"></div>
 
         <header className="mb-10 flex flex-col lg:flex-row justify-between items-center gap-8 relative z-10 animate-fade-in">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setShowSidebar(!showSidebar)}
-              className="group flex items-center justify-center p-2 rounded-xl hover:bg-primary-soft transition-all active:scale-90"
+              className="group flex items-center justify-center p-2 rounded-xl hover:bg-red-50 transition-all active:scale-90"
             >
-              <Logo variant="icon" size={40} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
+              <Logo variant="icon" size={44} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
             </button>
             <div>
-              <h2 className="text-2xl lg:text-4xl font-black tracking-tighter text-secondary leading-none">
+              <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-[#111111]">
                 {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : activeTab === 'MARKETING' ? 'Marketing' : 'Audit & Histórico'}
               </h2>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="size-2 bg-green-500 rounded-full animate-pulse-soft"></span>
-                <p className="text-text-muted font-black uppercase text-[9px] tracking-[0.3em]">Monitor em Tempo Real</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="size-2 bg-green-500 rounded-full animate-pulse"></span>
+                <p className="text-[#BBBBBB] font-black uppercase text-[10px] tracking-widest">Monitor em Tempo Real</p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-center items-center gap-6">
+          <div className="flex flex-wrap justify-center items-center gap-4">
             {activeTab === 'FILA' && (
-              <div className="relative group">
-                <input
-                  type="text"
-                  placeholder="Localizar Senha..."
-                  value={ticketSearch}
-                  onChange={(e) => setTicketSearch(e.target.value.toUpperCase())}
-                  className="w-80 h-20 bg-white border-2 border-border/40 rounded-[1.5rem] px-16 font-black text-xl text-secondary shadow-lg group-focus-within:border-primary transition-all outline-none"
-                />
-                <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-text-muted/40">search</span>
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-3 lg:gap-4 shrink-0">
+                  <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
+                    <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                      Pedidos Atuais
+                    </p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-4xl font-black text-[#111111]">{orders.length}</p>
+                      <span className="text-[10px] font-black text-green-500 flex items-center gap-0.5">
+                        <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                        20%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
+                    <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5">Tempo Médio</p>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-4xl font-black text-[#111111]">12'</p>
+                      <p className="text-[11px] font-black text-[#BBBBBB] uppercase">min</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="relative group ml-0 lg:ml-2">
+                  <input
+                    type="text"
+                    placeholder="Buscar ticket ou telefone..."
+                    value={ticketSearch}
+                    onChange={(e) => setTicketSearch(e.target.value.toUpperCase())}
+                    className="w-80 h-16 bg-white border border-[#F5F5F5] rounded-[2rem] px-14 font-bold text-base text-[#111111] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] focus:border-primary transition-all outline-none placeholder:text-[#BBBBBB]/60"
+                  />
+                  <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-[#BBBBBB]">search</span>
+                </div>
+              </>
             )}
-            <div className="bg-surface px-8 py-5 rounded-[1.5rem] border border-border shadow-premium flex flex-col items-center min-w-[150px]">
-              <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mb-1">Pedidos Atuais</p>
-              <p className="text-4xl font-black text-secondary">{orders.length}</p>
-            </div>
+
             {activeTab === 'PRODUTOS' && (
               <button
                 onClick={() => openModal('add')}
-                className="h-20 px-12 bg-primary hover:bg-secondary text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.3em] shadow-premium transition-all flex items-center gap-4"
+                className="h-16 px-10 bg-primary hover:bg-[#111111] text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 transition-all flex items-center gap-3 active:scale-95"
               >
                 <span className="material-symbols-outlined text-2xl">add</span>
                 NOVO ITEM
@@ -526,6 +547,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         </header>
 
         <div className="relative z-10">
+          {activeTab === 'FILA' && (
+            <div className="flex items-center gap-3 mb-10 overflow-hidden">
+              <h3 className="text-[13px] font-black text-[#111111] uppercase tracking-[0.2em] whitespace-nowrap">Fila de Pedidos</h3>
+              <span className="px-3 py-1 bg-red-50 text-primary rounded-lg text-[9px] font-black uppercase tracking-widest">Novos</span>
+              <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
+            </div>
+          )}
           {activeTab === 'FILA' ? (
             <div className="space-y-12 animate-fade-in">
               {filteredOrders.length === 0 ? (
@@ -537,110 +565,107 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   <p className="text-text-muted mt-4 font-medium text-lg">Tente um termo de pesquisa diferente ou aguarde novos pedidos.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                   {filteredOrders.map(order => (
-                    <div key={order.id} className="bg-surface rounded-none p-6 lg:p-8 border border-border shell-premium shadow-premium group overflow-hidden relative animate-scale-in">
-                      <div className="absolute top-0 left-0 w-3 h-full transition-all group-hover:w-4" style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#f97316' : order.status === OrderStatus.READY ? '#22c55e' : '#3b82f6' }}></div>
+                    <div key={order.id} className="bg-white rounded-[2rem] p-6 lg:p-8 border border-[#F5F5F5] shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] group relative overflow-hidden animate-scale-in flex flex-col justify-between min-h-[400px]">
+                      {/* Status Border Accent */}
+                      <div className="absolute top-0 left-0 w-2 h-full transition-all group-hover:w-3"
+                        style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#FACC15' : order.status === OrderStatus.READY ? '#22C55E' : '#E11D48' }}>
+                      </div>
 
-                      <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center w-full">
-                        <div className="flex items-center gap-8 flex-shrink-0">
-                          <div className="relative transform group-hover:scale-105 transition-transform duration-700">
-                            <div className="size-20 bg-secondary rounded-none flex flex-col items-center justify-center border-2 border-white/10 shadow-premium">
-                              <p className="text-[8px] font-black text-primary uppercase tracking-[0.3em] mb-0.5">Senha</p>
-                              <h3 className="text-2xl font-black text-white tracking-tighter">{order.ticketCode}</h3>
-                            </div>
-                            <div className="absolute -top-4 -right-4 size-12 bg-primary text-white rounded-full flex items-center justify-center text-[11px] font-black border-4 border-white shadow-xl">
-                              #{order.id.slice(0, 3).toUpperCase()}
-                            </div>
+                      <div>
+                        {/* Card Header */}
+                        <div className="flex justify-between items-start mb-6">
+                          <div>
+                            <h3 className="text-3xl font-black text-[#E11D48] tracking-tight mb-1">#{order.ticketCode}</h3>
+                            <p className="text-base font-bold text-[#BBBBBB]">{order.customerPhone}</p>
                           </div>
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-4">
-                              <h4 className="text-2xl md:text-3xl font-black tracking-tighter text-secondary">{order.customerPhone}</h4>
-                              <span className="px-4 py-1.5 bg-primary-soft text-primary rounded-full text-[10px] font-black uppercase tracking-widest">CLIENTE VIP</span>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-4 text-[11px] font-black text-text-muted uppercase tracking-widest">
-                              <span className="flex items-center gap-2 pr-4 border-r border-border/50"><span className="material-symbols-outlined text-lg">schedule</span> {order.timestamp}</span>
-                              <span className={`px-4 py-1.5 rounded-full shadow-sm ${getStatusColor(order.status)} underline`}>{getStatusLabel(order)}</span>
-                            </div>
-                            <div className="pt-1">
-                              <p className="text-2xl font-black text-primary tracking-tighter">Kz {(order.total || 0).toLocaleString()}</p>
+                          <div className="text-right">
+                            <p className="text-xl font-black text-[#111111]">{(order.total || 0).toLocaleString()} Kz</p>
+                            <div className="flex items-center justify-end gap-1.5 mt-1 text-[#BBBBBB]">
+                              <span className="material-symbols-outlined text-[18px]">schedule</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest leading-none">HÁ 2 MIN</span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex-1 lg:border-x border-border/50 px-8 py-4 min-h-[140px] flex flex-col justify-center gap-6">
-                          <div className="flex flex-col gap-2">
-                            {order.items.map((item, i) => (
-                              <div key={i} className="flex flex-col gap-3 p-4 bg-white rounded-[1.2rem] border-2 border-border/50 shadow-sm group/item hover:border-primary/30 transition-all">
-                                <div className="flex items-start gap-5">
-                                  <div className="size-7 bg-secondary text-white rounded-md flex items-center justify-center text-[9px] font-black group-hover/item:bg-primary transition-colors flex-shrink-0 shadow-sm">
-                                    {item.quantity}
-                                  </div>
-                                  <div className="flex-1 pt-1">
-                                    <span className="font-black text-[10px] text-secondary uppercase tracking-widest leading-tight block">
-                                      {item.name}
-                                    </span>
-                                  </div>
-                                </div>
+                        {/* Status Badges */}
+                        <div className="flex gap-2 mb-6">
+                          {order.status === OrderStatus.PREPARING && (
+                            <span className="px-3 py-1 bg-yellow-50 text-yellow-600 rounded-lg text-[10px] font-black uppercase tracking-widest">EM PREPARO</span>
+                          )}
+                          {order.status === OrderStatus.READY && (
+                            <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black uppercase tracking-widest">PRONTO</span>
+                          )}
+                        </div>
 
-                                {item.observation && (
-                                  <div className="flex items-start gap-3 p-2 bg-orange-50 rounded-none border-l-4 border-orange-400 animate-pulse-soft">
-                                    <span className="material-symbols-outlined text-orange-600 text-xl font-black">warning</span>
-                                    <div className="flex-1">
-                                      <p className="text-[8px] font-black text-orange-600 uppercase tracking-widest mb-0.5">OBS / RESTRIÇÃO</p>
-                                      <span
-                                        className="font-black text-orange-800 uppercase leading-snug block transition-all duration-300"
-                                        style={{
-                                          fontSize: item.observation.length > 100 ? '7px' : item.observation.length > 50 ? '8px' : '10px'
-                                        }}
-                                      >
-                                        {item.observation}
-                                      </span>
-                                    </div>
-                                  </div>
-                                )}
+                        {/* Items List */}
+                        <div className="space-y-4 mb-8">
+                          {order.items.map((item, i) => (
+                            <div key={i} className="flex justify-between items-start group/item">
+                              <div className="flex gap-3">
+                                <span className="text-lg font-black text-[#111111] leading-tight">{item.quantity}x</span>
+                                <span className="text-lg font-bold text-[#111111] leading-tight">{item.name}</span>
                               </div>
-                            ))}
-                          </div>
+                              {item.observation && (
+                                <span className="text-[12px] font-medium text-[#BBBBBB] italic shrink-0 ml-4">{item.observation}</span>
+                              )}
+                            </div>
+                          ))}
                         </div>
+                      </div>
 
-                        <div className="flex flex-row lg:flex-col gap-4 min-w-[280px] w-full lg:w-auto">
-                          <button
-                            onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
-                            disabled={order.status !== OrderStatus.RECEIVED && order.status !== OrderStatus.PREPARING}
-                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-none font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.PREPARING ? 'bg-orange-600 text-white shadow-premium ring-8 ring-orange-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background'}`}
-                          >
-                            <span className="material-symbols-outlined text-2xl">{order.status === OrderStatus.PREPARING ? 'cooking' : 'outdoor_grill'}</span>
-                            {order.status === OrderStatus.PREPARING ? 'COZINHANDO' : 'PREPARAR'}
-                          </button>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
-                            disabled={order.status !== OrderStatus.PREPARING && order.status !== OrderStatus.READY}
-                            className={`flex-1 flex items-center justify-center gap-5 h-20 rounded-none font-black text-[12px] uppercase tracking-widest transition-all ${order.status === OrderStatus.READY ? 'bg-green-600 text-white shadow-premium ring-8 ring-green-600/10' : 'bg-background text-text-muted hover:bg-secondary hover:text-white disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-background'}`}
-                          >
-                            <span className="material-symbols-outlined text-2xl">notifications_active</span>
-                            {order.status === OrderStatus.READY ? 'PRONTO' : 'NOTIFICAR'}
-                          </button>
+                      {/* Action Buttons */}
+                      <div className="space-y-3">
+                        {order.status === OrderStatus.READY ? (
                           <button
                             onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                            disabled={order.status !== OrderStatus.READY}
-                            className="flex-1 flex items-center justify-center gap-5 h-20 bg-secondary text-white rounded-none font-black text-[12px] uppercase tracking-widest hover:bg-primary shadow-premium transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-secondary"
+                            className="w-full flex items-center justify-center gap-3 h-16 bg-[#22C55E] text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-green-500/20 hover:bg-[#1DA850] transition-all active:scale-95"
                           >
-                            <span className="material-symbols-outlined text-2xl">done_all</span>
-                            ENTREGAR
+                            <span className="material-symbols-outlined text-2xl">check_circle</span>
+                            ENTREGAR AGORA
                           </button>
-                          <button
-                            onClick={() => {
-                              if (confirm('Tem certeza que deseja cancelar este pedido?')) {
-                                updateOrderStatus(order.id, OrderStatus.CANCELLED);
-                              }
-                            }}
-                            className="flex-1 flex items-center justify-center gap-5 h-20 bg-red-50 text-red-600 rounded-none font-black text-[12px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all active:scale-95"
-                          >
-                            <span className="material-symbols-outlined text-2xl">cancel</span>
-                            CANCELAR
-                          </button>
-                        </div>
+                        ) : (
+                          <>
+                            <div className="grid grid-cols-2 gap-3">
+                              <button
+                                onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
+                                disabled={order.status === OrderStatus.PREPARING}
+                                className={`flex items-center justify-center gap-2 h-16 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all shadow-md group/btn ${order.status === OrderStatus.PREPARING ? 'bg-red-50 text-primary border border-primary/20 cursor-default' : 'bg-[#E11D48] text-white hover:bg-[#BE123C] active:scale-95'}`}
+                              >
+                                <span className="material-symbols-outlined text-xl">{order.status === OrderStatus.PREPARING ? 'cooking' : 'outdoor_grill'}</span>
+                                {order.status === OrderStatus.PREPARING ? 'PREPARANDO' : 'PREPARAR'}
+                              </button>
+                              <button
+                                onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
+                                className="flex items-center justify-center gap-2 h-16 bg-white border border-[#F5F5F5] text-[#111111] rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-sm hover:border-primary/20 hover:text-primary transition-all active:scale-95 group/btn"
+                              >
+                                <span className="material-symbols-outlined text-xl group-hover/btn:animate-pulse">notifications</span>
+                                NOTIFICAR
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <button
+                                onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
+                                className="flex items-center justify-center gap-2 h-16 bg-white border border-[#F5F5F5] text-[#111111] rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-sm hover:border-black/10 transition-all active:scale-95"
+                              >
+                                <span className="material-symbols-outlined text-xl">check_circle</span>
+                                ENTREGAR
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm('Tem certeza que deseja cancelar este pedido?')) {
+                                    updateOrderStatus(order.id, OrderStatus.CANCELLED);
+                                  }
+                                }}
+                                className="flex items-center justify-center gap-2 h-16 bg-white text-[#BBBBBB] hover:text-red-500 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95"
+                              >
+                                <span className="material-symbols-outlined text-xl">cancel</span>
+                                CANCELAR
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
