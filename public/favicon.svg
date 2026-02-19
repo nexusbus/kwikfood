@@ -1,0 +1,13 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Left vertical bar of K */}
+    <rect x="15" y="15" width="22" height="70" rx="4" fill="#E11D48" />
+
+    {/* Top Leg (Top Bun) */}
+    <path d="M42 42L75 15C78 15 85 18 85 22L55 42H42Z" fill="#E11D48" />
+
+    {/* Inner Burger Details (Stylized) */}
+    <rect x="42" y="46" width="25" height="8" rx="2" fill="#E11D48" />
+
+    {/* Bottom Leg (Bottom Bun) */}
+    <path d="M42 58H58L85 78C85 82 78 85 75 85L42 58Z" fill="#E11D48" />
+</svg>
