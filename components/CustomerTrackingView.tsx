@@ -24,6 +24,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'TPA' | 'TRANSFER' | null>(null);
   const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
   const [uploadingProof, setUploadingProof] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1);
   const lastStatusRef = useRef<OrderStatus>(initialOrder.status);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -188,6 +189,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   }, [order.status, order.timerAccumulatedSeconds, order.timerLastStartedAt]);
 
   const addToCart = (p: Product) => {
+    if (paymentMethod) return; // Bloquear se houver pagamento selecionado
     setCart(prev => {
       const existing = prev.find(item => item.id === p.id);
       if (existing) return prev.map(item => item.id === p.id ? { ...item, quantity: item.quantity + 1 } : item);
@@ -196,6 +198,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   };
 
   const removeFromCart = (pId: string) => {
+    if (paymentMethod) return; // Bloquear se houver pagamento selecionado
     setCart(prev => {
       const existing = prev.find(item => item.id === pId);
       if (existing && existing.quantity > 1) return prev.map(item => item.id === pId ? { ...item, quantity: item.quantity - 1 } : item);
@@ -413,7 +416,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                     </div>
                     <button
                       onClick={() => addToCart(p)}
-                      className="size-12 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center"
+                      disabled={checkoutStep === 2}
+                      className={`size-12 rounded-2xl shadow-lg transition-all flex items-center justify-center ${checkoutStep === 2 ? 'bg-[#EEEEEE] text-[#BBBBBB] cursor-not-allowed' : 'bg-primary text-white shadow-primary/20 hover:bg-primary/90 active:scale-95'}`}
                     >
                       <span className="material-symbols-outlined text-2xl">add</span>
                     </button>
@@ -451,23 +455,28 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                           <div className="flex items-center bg-white rounded-[1rem] p-1 border border-[#F5F5F5]">
                             <button
                               onClick={() => removeFromCart(item.id)}
-                              className="size-8 rounded-lg text-[#BBBBBB] hover:text-primary transition-colors flex items-center justify-center"
+                              disabled={paymentMethod !== null}
+                              className={`size-8 rounded-lg flex items-center justify-center transition-colors ${paymentMethod ? 'text-[#EEEEEE] cursor-not-allowed' : 'text-[#BBBBBB] hover:text-primary'}`}
                             >
                               <span className="material-symbols-outlined text-lg">remove</span>
                             </button>
                             <span className="w-8 text-center font-black text-[#111111] text-sm">{item.quantity}</span>
                             <button
                               onClick={() => addToCart(item)}
-                              disabled={paymentMethod === 'TRANSFER'}
-                              className={`size-8 rounded-lg flex items-center justify-center transition-all ${paymentMethod === 'TRANSFER' ? 'text-[#EEEEEE] cursor-not-allowed' : 'text-[#BBBBBB] hover:text-primary'}`}
-                              title={paymentMethod === 'TRANSFER' ? 'Aumento desativado para transferências' : ''}
+                              disabled={paymentMethod !== null}
+                              className={`size-8 rounded-lg flex items-center justify-center transition-all ${paymentMethod !== null ? 'text-[#EEEEEE] cursor-not-allowed' : 'text-[#BBBBBB] hover:text-primary'}`}
+                              title={paymentMethod !== null ? 'Aumento desativado após selecionar pagamento' : ''}
                             >
                               <span className="material-symbols-outlined text-lg">add</span>
                             </button>
                           </div>
                           <span className="font-black text-sm text-[#111111]">{item.name}</span>
                         </div>
-                        <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-[#BBBBBB] hover:text-primary transition-colors">
+                        <button
+                          onClick={() => setCart(cart.filter((_, i) => i !== idx))}
+                          disabled={paymentMethod !== null}
+                          className={`transition-colors ${paymentMethod ? 'text-[#EEEEEE] cursor-not-allowed' : 'text-[#BBBBBB] hover:text-primary'}`}
+                        >
                           <span className="material-symbols-outlined text-xl">close</span>
                         </button>
                       </div>
@@ -484,77 +493,94 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
                 <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
 
-                {/* Payment Method Section */}
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Método de Pagamento</p>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { id: 'CASH', label: 'CASH', icon: 'payments' },
-                        { id: 'TPA', label: 'TPA', icon: 'credit_card' },
-                        { id: 'TRANSFER', label: 'TRANSFER', icon: 'account_balance' }
-                      ].map((m) => (
-                        <button
-                          key={m.id}
-                          onClick={() => setPaymentMethod(m.id as any)}
-                          className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${paymentMethod === m.id ? 'border-primary bg-red-50 text-primary' : 'border-[#F5F5F5] hover:border-primary/20 text-[#BBBBBB]'}`}
-                        >
-                          <span className="material-symbols-outlined text-2xl">{m.icon}</span>
-                          <span className="text-[10px] font-black">{m.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {paymentMethod === 'TRANSFER' && (
-                    <div className="space-y-3 animate-fade-in">
-                      <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Comprovativo Transferência (PDF)</p>
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={handleUploadProof}
-                          className="hidden"
-                          id="proof-upload"
-                        />
-                        <label
-                          htmlFor="proof-upload"
-                          className={`w-full h-16 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 cursor-pointer transition-all ${paymentProofUrl ? 'border-green-500 bg-green-50 text-green-600' : 'border-[#E0E0E0] hover:border-primary/50 text-[#BBBBBB]'}`}
-                        >
-                          {uploadingProof ? (
-                            <div className="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                          ) : paymentProofUrl ? (
-                            <>
-                              <span className="material-symbols-outlined">check_circle</span>
-                              <span className="text-[11px] font-black uppercase tracking-widest">PDF CARREGADO</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="material-symbols-outlined">upload_file</span>
-                              <span className="text-[11px] font-black uppercase tracking-widest">CARREGAR PDF</span>
-                            </>
-                          )}
-                        </label>
+                {checkoutStep === 1 ? (
+                  <button
+                    onClick={() => {
+                      setCheckoutStep(2);
+                      const el = document.getElementById('checkout-target');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="w-full h-16 bg-secondary text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg hover:bg-secondary/95 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                    AVANÇAR PARA PAGAMENTO
+                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                  </button>
+                ) : (
+                  <>
+                    <div id="checkout-target" className="space-y-6 scroll-mt-24">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Método de Pagamento</p>
+                          <button onClick={() => setCheckoutStep(1)} className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Voltar e Editar</button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          {[
+                            { id: 'CASH', label: 'CASH', icon: 'payments' },
+                            { id: 'TPA', label: 'TPA', icon: 'credit_card' },
+                            { id: 'TRANSFER', label: 'TRANSFER', icon: 'account_balance' }
+                          ].map((m) => (
+                            <button
+                              key={m.id}
+                              onClick={() => setPaymentMethod(prev => prev === m.id ? null : m.id as any)}
+                              className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${paymentMethod === m.id ? 'border-primary bg-red-50 text-primary' : 'border-[#F5F5F5] hover:border-primary/20 text-[#BBBBBB]'}`}
+                            >
+                              <span className="material-symbols-outlined text-2xl">{m.icon}</span>
+                              <span className="text-[10px] font-black">{m.label}</span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
 
-                {/* Confirm Button */}
-                <button
-                  onClick={handleFinishOrder}
-                  disabled={submittingOrder || !paymentMethod || (paymentMethod === 'TRANSFER' && !paymentProofUrl)}
-                  className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submittingOrder ? (
-                    <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-lg">check_circle</span>
-                      CONFIRMAR PEDIDO
-                    </>
-                  )}
-                </button>
+                      {paymentMethod === 'TRANSFER' && (
+                        <div className="space-y-3 animate-fade-in">
+                          <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Comprovativo Transferência (PDF)</p>
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept=".pdf"
+                              onChange={handleUploadProof}
+                              className="hidden"
+                              id="proof-upload"
+                            />
+                            <label
+                              htmlFor="proof-upload"
+                              className={`w-full h-16 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 cursor-pointer transition-all ${paymentProofUrl ? 'border-green-500 bg-green-50 text-green-600' : 'border-[#E0E0E0] hover:border-primary/50 text-[#BBBBBB]'}`}
+                            >
+                              {uploadingProof ? (
+                                <div className="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                              ) : paymentProofUrl ? (
+                                <>
+                                  <span className="material-symbols-outlined">check_circle</span>
+                                  <span className="text-[11px] font-black uppercase tracking-widest">PDF CARREGADO</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="material-symbols-outlined">upload_file</span>
+                                  <span className="text-[11px] font-black uppercase tracking-widest">CARREGAR PDF</span>
+                                </>
+                              )}
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={handleFinishOrder}
+                      disabled={submittingOrder || !paymentMethod || (paymentMethod === 'TRANSFER' && !paymentProofUrl)}
+                      className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {submittingOrder ? (
+                        <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-lg">check_circle</span>
+                          CONFIRMAR PEDIDO
+                        </>
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </>
