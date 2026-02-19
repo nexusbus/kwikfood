@@ -220,16 +220,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         let message = '';
         switch (status) {
           case OrderStatus.PREPARING:
-            message = `KwikFood: Ótima notícia! O Chef já começou a preparar o seu pedido ${order.ticketCode}. Fique atento! 👨‍🍳🔥`;
+            message = `${company.name}: Ótima notícia! O Chef já começou a preparar o seu pedido ${order.ticketCode}. Fique atento! 👨‍🍳🔥`;
             break;
           case OrderStatus.READY:
-            message = `KwikFood: O seu pedido ${order.ticketCode} está pronto e a cheirar maravilhosamente! Pode vir levantar agora. 🍔✨`;
+            message = `${company.name}: O seu pedido ${order.ticketCode} está pronto e a cheirar maravilhosamente! Pode vir levantar agora. 🍔✨`;
             break;
           case OrderStatus.DELIVERED:
-            message = `KwikFood: Pedido ${order.ticketCode} entregue! Esperamos que desfrute de cada dentada. Bom apetite! 😋🙏`;
+            message = `${company.name}: Pedido ${order.ticketCode} entregue! Esperamos que desfrute de cada dentada. Bom apetite! 😋🙏`;
             break;
           case OrderStatus.CANCELLED:
-            message = `KwikFood: Lamentamos imenso, mas o seu pedido ${order.ticketCode} teve de ser cancelado. Por favor, contacte o estabelecimento. 😔`;
+            message = `${company.name}: Lamentamos imenso, mas o seu pedido ${order.ticketCode} teve de ser cancelado. Por favor, contacte o estabelecimento. 😔`;
             break;
         }
 
@@ -252,8 +252,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
     setIsSending(true);
     try {
+      const finalMessage = `${company.name}: ${messageBody}`;
       for (const phone of selectedContacts) {
-        await sendSMS({ recipient: phone, message: messageBody });
+        await sendSMS({ recipient: phone, message: finalMessage });
       }
       alert('SMS Enviados com Sucesso!');
       setMessageBody('');
