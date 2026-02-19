@@ -119,6 +119,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             estimatedMinutes: latestOrder.estimated_minutes,
             timerAccumulatedSeconds: latestOrder.timer_accumulated_seconds || 0,
             timerLastStartedAt: latestOrder.timer_last_started_at,
+            paymentMethod: latestOrder.payment_method,
+            paymentProofUrl: latestOrder.payment_proof_url,
             items: latestOrder.items,
             total: latestOrder.total,
             timestamp: latestOrder.created_at
