@@ -254,7 +254,15 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       }).eq('id', order.id);
       if (error) throw error;
       setCart([]);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      // Scroll to top more robustly
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
     } catch (err) {
       alert('Erro ao confirmar pedido.');
     } finally {
@@ -287,7 +295,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const totalCart = cart.reduce((acc, p) => acc + (p.price * p.quantity), 0);
 
   return (
-    <div className="min-h-screen bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/10">
+    <div className="min-h-screen bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/10 overflow-x-hidden">
       {/* Header */}
       <header className="w-full max-w-5xl mx-auto px-6 py-6 flex justify-between items-center bg-white sticky top-0 z-[100] border-b border-[#F5F5F5]">
         <div className="flex items-center gap-3">

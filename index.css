@@ -25,6 +25,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html,
 body {
   font-family: 'Inter', -apple-system, sans-serif;
   background-color: var(--background);
@@ -32,6 +33,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  width: 100%;
 }
 
 h1,
@@ -178,8 +180,8 @@ button {
 }
 
 input:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 15px 30px -10px rgba(225, 29, 72, 0.1);
+  outline: none;
+  box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.1);
 }
 
 .btn-premium {

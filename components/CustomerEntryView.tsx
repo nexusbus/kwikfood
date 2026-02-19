@@ -156,7 +156,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/20">
+    <div className="min-h-screen bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/20 overflow-x-hidden">
       {/* Header */}
       <header className="w-full max-w-5xl mx-auto px-6 py-6 flex justify-between items-center">
         <div className="flex items-center gap-3">
