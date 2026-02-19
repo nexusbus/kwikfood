@@ -254,6 +254,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       }).eq('id', order.id);
       if (error) throw error;
       setCart([]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       alert('Erro ao confirmar pedido.');
     } finally {
@@ -300,10 +301,23 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
       {/* Main Content */}
       <main className="flex-1 w-full max-w-[480px] mx-auto px-6 py-10 space-y-10">
-        {/* Welcome Section */}
-        <div className="text-center space-y-3">
-          <h1 className="text-4xl font-black text-[#111111] tracking-tight">Seja Bem-vindo!</h1>
-          <p className="text-[#555555] font-medium text-base">Sua jornada gastronômica começa aqui.</p>
+        <div className="text-center space-y-4">
+          {order.items && order.items.length > 0 ? (
+            <>
+              <h1 className="text-4xl font-black text-[#111111] tracking-tight animate-fade-in leading-tight">
+                Pedido Enviado! 🚀
+              </h1>
+              <p className="text-[#555555] font-medium text-[15px] animate-fade-in leading-relaxed">
+                A nossa cozinha já recebeu o seu pedido e estamos a tratar de tudo com <strong>prioridade máxima</strong>.
+                Enviaremos um SMS assim que começar o preparo, e pode acompanhar cada detalhe aqui!
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-4xl font-black text-[#111111] tracking-tight">Seja Bem-vindo!</h1>
+              <p className="text-[#555555] font-medium text-base">A sua jornada gastronômica começa aqui.</p>
+            </>
+          )}
         </div>
 
         {/* Status Dashboard */}
