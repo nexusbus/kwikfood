@@ -393,8 +393,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           </div>
         </div>
 
-        {/* Shopping Section - Hide if PREPARING, READY or DELIVERED */}
-        {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
+        {/* Shopping Section - Hide if NOT PENDING (e.g. RECEIVED, PREPARING, etc.) */}
+        {order.status === OrderStatus.PENDING && (
           <>
             <div className="space-y-8">
               <div className="flex items-center justify-between">
