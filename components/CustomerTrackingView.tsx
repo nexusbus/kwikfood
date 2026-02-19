@@ -402,7 +402,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             {/* Cart Section */}
             {cart.length > 0 && (
               <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] border border-[#F5F5F5] p-8 space-y-8 animate-slide-up">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-[#F5F5F5] pb-6">
                   <div className="flex items-center gap-4">
                     <div className="relative">
                       <div className="size-14 bg-secondary rounded-[1.25rem] flex items-center justify-center text-white">
@@ -417,22 +417,51 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">Total: Kz {totalCart.toLocaleString()}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={handleFinishOrder}
-                    disabled={submittingOrder || !paymentMethod || (paymentMethod === 'TRANSFER' && !paymentProofUrl)}
-                    className="h-14 px-6 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submittingOrder ? (
-                      <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined text-lg">send</span>
-                        CONFIRMAR
-                      </>
-                    )}
-                  </button>
                 </div>
 
+                {/* Items List */}
+                <div className="space-y-4">
+                  {cart.map((item, idx) => (
+                    <div key={`${item.id}-${idx}`} className="bg-[#FDFCFD] rounded-3xl border border-[#F5F5F5] p-5 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center bg-white rounded-[1rem] p-1 border border-[#F5F5F5]">
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="size-8 rounded-lg text-[#BBBBBB] hover:text-primary transition-colors flex items-center justify-center"
+                            >
+                              <span className="material-symbols-outlined text-lg">remove</span>
+                            </button>
+                            <span className="w-8 text-center font-black text-[#111111] text-sm">{item.quantity}</span>
+                            <button
+                              onClick={() => addToCart(item)}
+                              disabled={paymentMethod === 'TRANSFER'}
+                              className={`size-8 rounded-lg flex items-center justify-center transition-all ${paymentMethod === 'TRANSFER' ? 'text-[#EEEEEE] cursor-not-allowed' : 'text-[#BBBBBB] hover:text-primary'}`}
+                              title={paymentMethod === 'TRANSFER' ? 'Aumento desativado para transferências' : ''}
+                            >
+                              <span className="material-symbols-outlined text-lg">add</span>
+                            </button>
+                          </div>
+                          <span className="font-black text-sm text-[#111111]">{item.name}</span>
+                        </div>
+                        <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-[#BBBBBB] hover:text-primary transition-colors">
+                          <span className="material-symbols-outlined text-xl">close</span>
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Restrições or observações?"
+                        value={item.observation}
+                        onChange={(e) => updateObservation(idx, e.target.value)}
+                        className="w-full bg-white border border-[#F5F5F5] rounded-xl px-4 py-3 text-xs font-bold focus:border-primary outline-none transition-all placeholder:text-[#BBBBBB]/60"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
+
+                {/* Payment Method Section */}
                 <div className="space-y-6">
                   <div className="space-y-3">
                     <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Método de Pagamento</p>
@@ -486,36 +515,23 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       </div>
                     </div>
                   )}
-
-                  <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
                 </div>
 
-                <div className="space-y-4">
-                  {cart.map((item, idx) => (
-                    <div key={`${item.id}-${idx}`} className="bg-[#FDFCFD] rounded-3xl border border-[#F5F5F5] p-5 space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center bg-white rounded-[1rem] p-1 border border-[#F5F5F5]">
-                            <button onClick={() => removeFromCart(item.id)} className="size-8 rounded-lg text-[#BBBBBB] hover:text-primary transition-colors flex items-center justify-center"><span className="material-symbols-outlined text-lg">remove</span></button>
-                            <span className="w-8 text-center font-black text-[#111111] text-sm">{item.quantity}</span>
-                            <button onClick={() => addToCart(item)} className="size-8 rounded-lg text-[#BBBBBB] hover:text-primary transition-colors flex items-center justify-center"><span className="material-symbols-outlined text-lg">add</span></button>
-                          </div>
-                          <span className="font-black text-sm text-[#111111]">{item.name}</span>
-                        </div>
-                        <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-[#BBBBBB] hover:text-primary transition-colors">
-                          <span className="material-symbols-outlined text-xl">close</span>
-                        </button>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Restrições or observações?"
-                        value={item.observation}
-                        onChange={(e) => updateObservation(idx, e.target.value)}
-                        className="w-full bg-white border border-[#F5F5F5] rounded-xl px-4 py-3 text-xs font-bold focus:border-primary outline-none transition-all placeholder:text-[#BBBBBB]/60"
-                      />
-                    </div>
-                  ))}
-                </div>
+                {/* Confirm Button */}
+                <button
+                  onClick={handleFinishOrder}
+                  disabled={submittingOrder || !paymentMethod || (paymentMethod === 'TRANSFER' && !paymentProofUrl)}
+                  className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submittingOrder ? (
+                    <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-lg">check_circle</span>
+                      CONFIRMAR PEDIDO
+                    </>
+                  )}
+                </button>
               </div>
             )}
           </>
