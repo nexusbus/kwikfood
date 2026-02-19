@@ -21,6 +21,9 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'TPA' | 'TRANSFER' | null>(null);
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
   const lastStatusRef = useRef<OrderStatus>(initialOrder.status);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -204,12 +207,49 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     setCart(newCart);
   };
 
+  const handleUploadProof = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      alert('Por favor, carregue apenas ficheiros PDF.');
+      return;
+    }
+
+    setUploadingProof(true);
+    try {
+      const fileName = `${order.id}-${Date.now()}.pdf`;
+      const filePath = `proofs/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('order-proofs')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('order-proofs')
+        .getPublicUrl(filePath);
+
+      setPaymentProofUrl(data.publicUrl);
+    } catch (err: any) {
+      alert(`Erro ao carregar comprovativo: ${err.message}`);
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
   const handleFinishOrder = async () => {
     if (cart.length === 0) return;
     setSubmittingOrder(true);
     try {
       const total = cart.reduce((acc, p) => acc + (p.price * p.quantity), 0);
-      const { error } = await supabase.from('orders').update({ items: cart, total: total, status: OrderStatus.RECEIVED }).eq('id', order.id);
+      const { error } = await supabase.from('orders').update({
+        items: cart,
+        total: total,
+        status: OrderStatus.RECEIVED,
+        payment_method: paymentMethod,
+        payment_proof_url: paymentProofUrl
+      }).eq('id', order.id);
       if (error) throw error;
       setCart([]);
     } catch (err) {
@@ -377,8 +417,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                   </div>
                   <button
                     onClick={handleFinishOrder}
-                    disabled={submittingOrder}
-                    className="h-14 px-6 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    disabled={submittingOrder || !paymentMethod || (paymentMethod === 'TRANSFER' && !paymentProofUrl)}
+                    className="h-14 px-6 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submittingOrder ? (
                       <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -389,6 +429,63 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       </>
                     )}
                   </button>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Método de Pagamento</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { id: 'CASH', label: 'CASH', icon: 'payments' },
+                        { id: 'TPA', label: 'TPA', icon: 'credit_card' },
+                        { id: 'TRANSFER', label: 'TRANSFER', icon: 'account_balance' }
+                      ].map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => setPaymentMethod(m.id as any)}
+                          className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${paymentMethod === m.id ? 'border-primary bg-red-50 text-primary' : 'border-[#F5F5F5] hover:border-primary/20 text-[#BBBBBB]'}`}
+                        >
+                          <span className="material-symbols-outlined text-2xl">{m.icon}</span>
+                          <span className="text-[10px] font-black">{m.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {paymentMethod === 'TRANSFER' && (
+                    <div className="space-y-3 animate-fade-in">
+                      <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Comprovativo Transferência (PDF)</p>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          onChange={handleUploadProof}
+                          className="hidden"
+                          id="proof-upload"
+                        />
+                        <label
+                          htmlFor="proof-upload"
+                          className={`w-full h-16 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 cursor-pointer transition-all ${paymentProofUrl ? 'border-green-500 bg-green-50 text-green-600' : 'border-[#E0E0E0] hover:border-primary/50 text-[#BBBBBB]'}`}
+                        >
+                          {uploadingProof ? (
+                            <div className="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                          ) : paymentProofUrl ? (
+                            <>
+                              <span className="material-symbols-outlined">check_circle</span>
+                              <span className="text-[11px] font-black uppercase tracking-widest">PDF CARREGADO</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined">upload_file</span>
+                              <span className="text-[11px] font-black uppercase tracking-widest">CARREGAR PDF</span>
+                            </>
+                          )}
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
                 </div>
 
                 <div className="space-y-4">

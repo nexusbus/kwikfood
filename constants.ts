@@ -48,7 +48,9 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
           company_id: Number(order.companyId),
           customer_phone: order.customerPhone,
           status: order.status,
-          estimated_minutes: order.estimatedMinutes
+          estimated_minutes: order.estimatedMinutes,
+          payment_method: order.paymentMethod,
+          payment_proof_url: order.paymentProofUrl
         }
       });
 

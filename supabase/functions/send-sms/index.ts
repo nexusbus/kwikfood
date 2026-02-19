@@ -1,3 +1,4 @@
+/// <reference lib="deno.ns" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SMSHUB_BASE_URL = "https://app.smshubangola.com/api";

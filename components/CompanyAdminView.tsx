@@ -71,6 +71,12 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [isSending, setIsSending] = useState(false);
   const [showFullPhones, setShowFullPhones] = useState<Record<string, boolean>>({});
 
+  // Marketing Auth State
+  const [showMarketingAuthModal, setShowMarketingAuthModal] = useState(false);
+  const [marketingPasswordPrompt, setMarketingPasswordPrompt] = useState('');
+  const [isMarketingUnlocked, setIsMarketingUnlocked] = useState(false);
+  const [marketingAuthError, setMarketingAuthError] = useState(false);
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -79,7 +85,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         const { data: oData } = await supabase
           .from('orders')
-          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by')
+          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url')
           .eq('company_id', company.id)
           .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
           .order('created_at', { ascending: true });
@@ -99,7 +105,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         const { data: hData } = await supabase
           .from('orders')
-          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by')
+          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url')
           .eq('company_id', company.id)
           .in('status', [OrderStatus.DELIVERED, OrderStatus.CANCELLED])
           .order('created_at', { ascending: false })
@@ -433,7 +439,15 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
           {company.marketingEnabled && (
             <button
-              onClick={() => setActiveTab('MARKETING')}
+              onClick={() => {
+                if (isMarketingUnlocked) {
+                  setActiveTab('MARKETING');
+                } else {
+                  setShowMarketingAuthModal(true);
+                  setMarketingAuthError(false);
+                  setMarketingPasswordPrompt('');
+                }
+              }}
               className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'MARKETING' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
             >
               <span className="material-symbols-outlined text-2xl">campaign</span>
@@ -554,6 +568,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
             </div>
           )}
+
           {activeTab === 'FILA' ? (
             <div className="space-y-12 animate-fade-in">
               {filteredOrders.length === 0 ? (
@@ -568,13 +583,11 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                   {filteredOrders.map(order => (
                     <div key={order.id} className="bg-white rounded-[2rem] p-6 lg:p-8 border border-[#F5F5F5] shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] group relative overflow-hidden animate-scale-in flex flex-col justify-between min-h-[400px]">
-                      {/* Status Border Accent */}
                       <div className="absolute top-0 left-0 w-2 h-full transition-all group-hover:w-3"
                         style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#FACC15' : order.status === OrderStatus.READY ? '#22C55E' : '#E11D48' }}>
                       </div>
 
                       <div>
-                        {/* Card Header */}
                         <div className="flex justify-between items-start mb-6">
                           <div>
                             <h3 className="text-3xl font-black text-[#E11D48] tracking-tight mb-1">#{order.ticketCode}</h3>
@@ -589,33 +602,42 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           </div>
                         </div>
 
-                        {/* Status Badges */}
-                        <div className="flex gap-2 mb-6">
-                          {order.status === OrderStatus.PREPARING && (
-                            <span className="px-3 py-1 bg-yellow-50 text-yellow-600 rounded-lg text-[10px] font-black uppercase tracking-widest">EM PREPARO</span>
-                          )}
-                          {order.status === OrderStatus.READY && (
-                            <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black uppercase tracking-widest">PRONTO</span>
-                          )}
-                        </div>
-
-                        {/* Items List */}
-                        <div className="space-y-4 mb-8">
-                          {order.items.map((item, i) => (
-                            <div key={i} className="flex justify-between items-start group/item">
-                              <div className="flex gap-3">
-                                <span className="text-lg font-black text-[#111111] leading-tight">{item.quantity}x</span>
-                                <span className="text-lg font-bold text-[#111111] leading-tight">{item.name}</span>
-                              </div>
-                              {item.observation && (
-                                <span className="text-[12px] font-medium text-[#BBBBBB] italic shrink-0 ml-4">{item.observation}</span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                        {order.status === OrderStatus.READY && (
+                          <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black uppercase tracking-widest">PRONTO</span>
+                        )}
+                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${order.paymentMethod === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'}`}>
+                          PAGAMENTO: {order.paymentMethod || 'N/A'}
+                        </span>
                       </div>
 
-                      {/* Action Buttons */}
+                      {order.paymentMethod === 'TRANSFER' && order.paymentProofUrl && (
+                        <div className="mb-6">
+                          <a
+                            href={order.paymentProofUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center justify-center gap-2 h-12 bg-blue-50 text-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
+                            VER COMPROVATIVO
+                          </a>
+                        </div>
+                      )}
+
+                      <div className="space-y-4 mb-8">
+                        {order.items.map((item, i) => (
+                          <div key={i} className="flex justify-between items-start group/item">
+                            <div className="flex gap-3">
+                              <span className="text-lg font-black text-[#111111] leading-tight">{item.quantity}x</span>
+                              <span className="text-lg font-bold text-[#111111] leading-tight">{item.name}</span>
+                            </div>
+                            {item.observation && (
+                              <span className="text-[12px] font-medium text-[#BBBBBB] italic shrink-0 ml-4">{item.observation}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
                       <div className="space-y-3">
                         {order.status === OrderStatus.READY ? (
                           <button
@@ -832,7 +854,6 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 </div>
               </div>
 
-              {/* Advanced History Filters */}
               <div className="bg-surface p-12 rounded-[3.5rem] border border-border shadow-premium space-y-8">
                 <div className="flex items-center gap-4 mb-4">
                   <span className="material-symbols-outlined text-primary">filter_alt</span>
@@ -901,6 +922,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       <th className="px-12 py-10">Senha</th>
                       <th className="px-10 py-10">Contacto</th>
                       <th className="px-10 py-10">Estado</th>
+                      <th className="px-10 py-10">Pagamento</th>
                       <th className="px-10 py-10 text-right">Valor</th>
                       <th className="px-10 py-10">Tempo Preparo</th>
                       <th className="px-12 py-10 text-right">Data/Hora</th>
@@ -932,6 +954,14 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                             {getStatusLabel(hOrder)}
                           </span>
                         </td>
+                        <td className="px-10 py-10">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[10px] font-black text-secondary uppercase tracking-widest">{hOrder.paymentMethod || 'N/A'}</span>
+                            {hOrder.paymentProofUrl && (
+                              <a href={hOrder.paymentProofUrl} target="_blank" rel="noopener noreferrer" className="text-[9px] text-primary font-bold hover:underline">VER DOC</a>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-10 py-10 font-black text-secondary text-[14px] text-right">
                           Kz {(hOrder.total || 0).toLocaleString()}
                         </td>
@@ -951,85 +981,81 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         </div>
       </main>
 
-      {/* Premium Modal */}
-      {
-        isModalOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-            <div className="bg-surface rounded-[4.5rem] w-full max-w-2xl shadow-premium p-16 animate-in zoom-in-95 duration-300 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="bg-surface rounded-[4.5rem] w-full max-w-2xl shadow-premium p-16 animate-in zoom-in-95 duration-300 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
-              <header className="flex justify-between items-start mb-12">
-                <div>
-                  <h3 className="text-3xl lg:text-4xl font-black tracking-tighter text-secondary">
-                    {modalMode === 'add' ? 'Novo Produto' : 'Editar Produto'}
-                  </h3>
-                  <p className="text-text-muted font-medium text-lg mt-2">Personalize os detalhes no menu digital.</p>
-                </div>
-                <button onClick={() => setIsModalOpen(false)} className="size-14 bg-background rounded-full flex items-center justify-center text-text-muted hover:bg-primary hover:text-white transition-all">
-                  <span className="material-symbols-outlined text-3xl font-black">close</span>
-                </button>
-              </header>
+            <header className="flex justify-between items-start mb-12">
+              <div>
+                <h3 className="text-3xl lg:text-4xl font-black tracking-tighter text-secondary">
+                  {modalMode === 'add' ? 'Novo Produto' : 'Editar Produto'}
+                </h3>
+                <p className="text-text-muted font-medium text-lg mt-2">Personalize os detalhes no menu digital.</p>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} className="size-14 bg-background rounded-full flex items-center justify-center text-text-muted hover:bg-primary hover:text-white transition-all">
+                <span className="material-symbols-outlined text-3xl font-black">close</span>
+              </button>
+            </header>
 
-              <form onSubmit={handleSaveProduct} className="space-y-10">
+            <form onSubmit={handleSaveProduct} className="space-y-10">
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Identificação do Item</label>
+                <input type="text" value={pName} onChange={e => setPName(e.target.value)} placeholder="Ex: Grand Deluxe Master" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
+              </div>
+
+              <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Identificação do Item</label>
-                  <input type="text" value={pName} onChange={e => setPName(e.target.value)} placeholder="Ex: Grand Deluxe Master" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
+                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Investimento (Kz)</label>
+                  <input type="number" value={pPrice} onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
                 </div>
-
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Investimento (Kz)</label>
-                    <input type="number" value={pPrice} onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Sessão do Menu</label>
-                    <select value={pCategory} onChange={e => setPCategory(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all outline-none appearance-none cursor-pointer">
-                      {categories.filter(c => c !== 'Todos').map(c => (
-                        <option key={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Sessão do Menu</label>
+                  <select value={pCategory} onChange={e => setPCategory(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all outline-none appearance-none cursor-pointer">
+                    {categories.filter(c => c !== 'Todos').map(c => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
                 </div>
+              </div>
 
-                <div className="space-y-4">
-                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Impacto Visual</label>
-                  <div className="flex gap-8 items-center bg-background/50 p-8 rounded-[3rem] border-2 border-dashed border-border/60 group">
-                    <div className="relative size-40 bg-white rounded-[2rem] shadow-premium flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {pImageUrl ? (
-                        <img src={pImageUrl} alt="Preview" className="size-full object-cover" />
-                      ) : (
-                        <span className="material-symbols-outlined text-border text-6xl">image</span>
-                      )}
-                      {uploading && (
-                        <div className="absolute inset-0 bg-secondary/80 flex items-center justify-center">
-                          <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="p-image-upload" />
-                      <label htmlFor="p-image-upload" className="inline-flex px-10 py-5 bg-secondary text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl cursor-pointer hover:bg-primary transition-all shadow-premium">
-                        Escolher Imagem
-                      </label>
-                      <p className="text-[11px] text-text-muted mt-4 font-medium italic">Selecione uma foto apelativa para os clientes.</p>
-                    </div>
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Impacto Visual</label>
+                <div className="flex gap-8 items-center bg-background/50 p-8 rounded-[3rem] border-2 border-dashed border-border/60 group">
+                  <div className="relative size-40 bg-white rounded-[2rem] shadow-premium flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {pImageUrl ? (
+                      <img src={pImageUrl} alt="Preview" className="size-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-border text-6xl">image</span>
+                    )}
+                    {uploading && (
+                      <div className="absolute inset-0 bg-secondary/80 flex items-center justify-center">
+                        <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="p-image-upload" />
+                    <label htmlFor="p-image-upload" className="inline-flex px-10 py-5 bg-secondary text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl cursor-pointer hover:bg-primary transition-all shadow-premium">
+                      Escolher Imagem
+                    </label>
+                    <p className="text-[11px] text-text-muted mt-4 font-medium italic">Selecione uma foto apelativa para os clientes.</p>
                   </div>
                 </div>
+              </div>
 
-                <div className="pt-10 flex gap-6">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-20 font-black uppercase tracking-[0.4em] text-text-muted hover:text-primary transition-all text-[12px]">Descartar</button>
-                  <button type="submit" disabled={saving || uploading} className="flex-[2] h-20 bg-primary hover:bg-secondary text-white rounded-[1.8rem] font-black uppercase tracking-[0.4em] text-[13px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
-                    {saving ? 'PROCESSANDO...' : 'FINALIZAR & SALVAR'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="pt-10 flex gap-6">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-20 font-black uppercase tracking-[0.4em] text-text-muted hover:text-primary transition-all text-[12px]">Descartar</button>
+                <button type="submit" disabled={saving || uploading} className="flex-[2] h-20 bg-primary hover:bg-secondary text-white rounded-[1.8rem] font-black uppercase tracking-[0.4em] text-[13px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
+                  {saving ? 'PROCESSANDO...' : 'FINALIZAR & SALVAR'}
+                </button>
+              </div>
+            </form>
           </div>
-        )
-      }
+        </div>
+      )}
 
-      {/* QR Code Modal */}
       {showQRModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
           <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
@@ -1046,7 +1072,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             </div>
 
             <div className="flex flex-col items-center gap-10">
-              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group">
+              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group" style={{ filter: 'sharp-edges' }}>
                 <div className="relative">
                   <img
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
@@ -1082,7 +1108,68 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           </div>
         </div>
       )}
-    </div >
+
+      {showMarketingAuthModal && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="w-full max-w-md bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
+
+            <div className="text-center mb-10">
+              <div className="size-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                <span className="material-symbols-outlined text-4xl">lock</span>
+              </div>
+              <h3 className="text-2xl font-black tracking-tight text-secondary leading-none">Acesso Restrito</h3>
+              <p className="text-[#BBBBBB] text-[11px] font-black uppercase tracking-widest mt-4">Insira a sua password de parceiro</p>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (marketingPasswordPrompt === company.password) {
+                  setIsMarketingUnlocked(true);
+                  setActiveTab('MARKETING');
+                  setShowMarketingAuthModal(false);
+                  setMarketingAuthError(false);
+                } else {
+                  setMarketingAuthError(true);
+                }
+              }}
+              className="space-y-6"
+            >
+              <div className="space-y-2">
+                <input
+                  type="password"
+                  value={marketingPasswordPrompt}
+                  onChange={(e) => setMarketingPasswordPrompt(e.target.value)}
+                  placeholder="Password da Empresa"
+                  autoFocus
+                  className={`w-full h-16 bg-[#F9F9F9] border-2 rounded-2xl px-6 font-bold text-center text-[#111111] transition-all outline-none ${marketingAuthError ? 'border-red-500 animate-shake' : 'border-transparent focus:border-primary'}`}
+                />
+                {marketingAuthError && (
+                  <p className="text-[10px] text-red-500 font-black uppercase tracking-widest text-center mt-2">Password Incorrecta</p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3 pt-4">
+                <button
+                  type="submit"
+                  className="w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-secondary transition-all"
+                >
+                  AUTENTICAR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowMarketingAuthModal(false)}
+                  className="w-full py-4 text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em] hover:text-secondary transition-colors"
+                >
+                  CANCELAR
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

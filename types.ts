@@ -54,6 +54,8 @@ export interface Order {
   estimatedMinutes: number;
   timerAccumulatedSeconds: number;
   timerLastStartedAt?: string;
+  paymentMethod?: 'CASH' | 'TPA' | 'TRANSFER';
+  paymentProofUrl?: string;
   timestamp: string;
   cancelledBy?: 'admin' | 'customer';
 }

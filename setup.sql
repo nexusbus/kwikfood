@@ -43,6 +43,8 @@ CREATE TABLE IF NOT EXISTS orders (
     ticket_number INTEGER,
     timer_last_started_at TIMESTAMPTZ,
     timer_accumulated_seconds INTEGER DEFAULT 0,
+    payment_method TEXT,
+    payment_proof_url TEXT,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -130,10 +132,12 @@ BEGIN
 
   INSERT INTO public.orders (
     company_id, customer_phone, status, queue_position, 
-    estimated_minutes, ticket_code, ticket_number, timer_accumulated_seconds
+    estimated_minutes, ticket_code, ticket_number, timer_accumulated_seconds,
+    payment_method, payment_proof_url
   ) VALUES (
     v_co_id, v_phone, v_status, v_initial_pos, 
-    v_est_mins, v_ticket_code, v_next_number, 0
+    v_est_mins, v_ticket_code, v_next_number, 0,
+    (p_payload->>'payment_method')::TEXT, (p_payload->>'payment_proof_url')::TEXT
   ) RETURNING id, created_at INTO v_order_id, v_created_at;
 
   SELECT jsonb_build_object(
@@ -145,6 +149,8 @@ BEGIN
     'status', v_status,
     'queue_position', v_initial_pos,
     'estimated_minutes', v_est_mins,
+    'payment_method', p_payload->>'payment_method',
+    'payment_proof_url', p_payload->>'payment_proof_url',
     'created_at', v_created_at
   ) INTO v_result;
 
