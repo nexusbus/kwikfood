@@ -257,12 +257,13 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
-      // Scroll to top more robustly
-      requestAnimationFrame(() => {
-        window.scrollTo(0, 0);
+      // Scroll to top more robustly with a slight delay for mobile layout shifts
+      setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
-      });
+      }, 150);
     } catch (err) {
       alert('Erro ao confirmar pedido.');
     } finally {

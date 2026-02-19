@@ -220,16 +220,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         let message = '';
         switch (status) {
           case OrderStatus.PREPARING:
-            message = `KwikFood: O seu pedido ${order.ticketCode} está a ser preparado!`;
+            message = `KwikFood: Ótima notícia! O Chef já começou a preparar o seu pedido ${order.ticketCode}. Fique atento! 👨‍🍳🔥`;
             break;
           case OrderStatus.READY:
-            message = `KwikFood: O seu pedido ${order.ticketCode} está pronto! Pode vir levantar.`;
+            message = `KwikFood: O seu pedido ${order.ticketCode} está pronto e a cheirar maravilhosamente! Pode vir levantar agora. 🍔✨`;
             break;
           case OrderStatus.DELIVERED:
-            message = `KwikFood: O seu pedido ${order.ticketCode} foi entregue. Bom apetite!`;
+            message = `KwikFood: Pedido ${order.ticketCode} entregue! Esperamos que desfrute de cada dentada. Bom apetite! 😋🙏`;
             break;
           case OrderStatus.CANCELLED:
-            message = `KwikFood: O seu pedido ${order.ticketCode} foi cancelado pelo estabelecimento.`;
+            message = `KwikFood: Lamentamos imenso, mas o seu pedido ${order.ticketCode} teve de ser cancelado. Por favor, contacte o estabelecimento. 😔`;
             break;
         }
 

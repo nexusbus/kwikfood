@@ -181,11 +181,11 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
         {/* Hero Text */}
         <div className="text-center mb-12 space-y-4">
           <h1 className="text-4xl font-black text-[#111111] leading-tight">
-            Sua comida,<br />
-            <span className="text-primary">sem esperas.</span>
+            Sua comida favorita,<br />
+            <span className="text-primary text-gradient">sem filas, sem stress.</span>
           </h1>
           <p className="text-[#555555] font-medium text-base leading-relaxed">
-            Junte-se à fila digital e acompanhe o seu pedido em tempo real.
+            Junte-se à nossa fila digital premium e acompanhe o seu pedido em tempo real.
           </p>
         </div>
 
