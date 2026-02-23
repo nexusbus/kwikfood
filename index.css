@@ -206,15 +206,17 @@ input:focus {
 @media print {
   @page {
     size: A4;
-    margin: 20mm;
+    margin: 15mm;
   }
 
   body {
     background: white !important;
     padding: 0 !important;
+    font-size: 8pt !important;
+    color: #1a1a1a !important;
   }
 
-  /* Ocultar elementos que não devem aparecer no PDF */
+  /* Ocultar elementos de UI */
   header,
   aside,
   nav,
@@ -226,73 +228,89 @@ input:focus {
     display: none !important;
   }
 
-  /* Ajustar containers para impressão */
   main {
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
     background: white !important;
+    overflow: visible !important;
   }
 
-  .flex-1 {
-    display: block !important;
-  }
-
-  /* Formatação de Relatório */
-  .bg-white,
-  .bg-surface {
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin-bottom: 2rem !important;
-  }
-
+  /* Tabela Institucional de Alta Densidade */
   table {
     width: 100% !important;
     border-collapse: collapse !important;
+    margin-bottom: 20pt !important;
   }
 
-  th,
+  th {
+    background-color: #f1f5f9 !important;
+    border: 0.5pt solid #cbd5e1 !important;
+    padding: 4pt 6pt !important;
+    font-size: 7pt !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    color: #334155 !important;
+    text-align: left !important;
+  }
+
   td {
-    border-bottom: 1px solid #E2E8F0 !important;
-    padding: 10px !important;
-    color: black !important;
+    border: 0.5pt solid #e2e8f0 !important;
+    padding: 3pt 6pt !important;
+    font-size: 7pt !important;
+    color: #1e293b !important;
+    line-height: 1.1 !important;
   }
 
-  tr {
-    page-break-inside: avoid !important;
+  /* Grids Compactos */
+  .grid {
+    display: grid !important;
+    gap: 10pt !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    margin-bottom: 20pt !important;
   }
 
-  h2,
-  h3,
-  h4 {
-    color: black !important;
-    margin-top: 0 !important;
-  }
-
-  .text-primary,
-  .text-secondary {
-    color: black !important;
-  }
-
-  .bg-primary-soft,
-  .bg-blue-100,
-  .bg-yellow-100,
-  .bg-green-100,
-  .bg-gray-100,
-  .bg-red-100 {
-    background-color: transparent !important;
-    border: 1px solid #E2E8F0 !important;
+  .bg-white,
+  .bg-surface {
+    border: 0.5pt solid #e2e8f0 !important;
+    padding: 10pt !important;
+    border-radius: 4pt !important;
+    box-shadow: none !important;
   }
 
   .print-header {
     display: flex !important;
     justify-content: space-between !important;
-    align-items: center !important;
-    margin-bottom: 40px !important;
-    border-bottom: 3px solid #CE1126 !important;
-    padding-bottom: 20px !important;
+    align-items: flex-end !important;
+    border-bottom: 1.5pt solid #0f172a !important;
+    padding-bottom: 8pt !important;
+    margin-bottom: 20pt !important;
+  }
+
+  .print-header h1 {
+    font-size: 18pt !important;
+    margin: 0 !important;
+  }
+
+  .print-header p {
+    font-size: 9pt !important;
+    margin: 0 !important;
+  }
+
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    font-size: 6pt !important;
+    text-align: center;
+    color: #94a3b8 !important;
+    border-top: 0.5pt solid #e2e8f0;
+    padding-top: 4pt;
+  }
+
+  /* Garantir que textos em negrito apareçam */
+  .font-black,
+  .font-bold {
+    font-weight: 900 !important;
   }
 }

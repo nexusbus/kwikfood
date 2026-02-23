@@ -693,37 +693,37 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                   </thead>
                   <tbody className="divide-y divide-border/30">
                     {auditOrders.map((order) => (
-                      <tr key={order.id} className="group hover:bg-background/40 transition-all duration-500">
-                        <td className="px-16 py-12">
-                          <div className="flex items-center gap-6">
-                            <div className="size-14 bg-secondary text-white rounded-2xl flex items-center justify-center font-black text-lg shadow-sm group-hover:bg-primary transition-colors">
+                      <tr key={order.id} className="group hover:bg-background/40 transition-all border-b border-border/10">
+                        <td className="px-8 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className="size-10 bg-secondary text-white rounded-lg flex items-center justify-center font-black text-sm group-hover:bg-primary transition-colors">
                               #{order.ticket_code}
                             </div>
-                            <div>
-                              <p className="text-xl font-black text-secondary uppercase tracking-tight">{order.companies?.name}</p>
-                              <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1">Ref: {order.id.slice(0, 8)}</p>
+                            <div className="min-w-0">
+                              <p className="text-sm font-black text-secondary uppercase truncate">{order.companies?.name}</p>
+                              <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest">Ref: {order.id.slice(0, 8)}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-12 py-12">
-                          <p className="text-[15px] font-black text-secondary">{order.customer_phone}</p>
+                        <td className="px-6 py-4">
+                          <p className="text-[12px] font-black text-secondary">{order.customer_phone}</p>
                         </td>
-                        <td className="px-12 py-12">
-                          <p className="text-xl font-black text-secondary">
+                        <td className="px-6 py-4">
+                          <p className="text-[13px] font-black text-secondary">
                             {Math.floor((order.timer_accumulated_seconds || 0) / 60)}m {(order.timer_accumulated_seconds || 0) % 60}s
                           </p>
                         </td>
-                        <td className="px-12 py-12">
-                          <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${order.status === 'DELIVERED' ? 'bg-gray-100 text-gray-600' :
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest ${order.status === 'DELIVERED' ? 'bg-gray-100 text-gray-600' :
                             order.status === 'READY' ? 'bg-green-100 text-green-600' :
                               'bg-orange-100 text-orange-600'
                             }`}>
                             {order.status}
                           </span>
                         </td>
-                        <td className="px-16 py-12 text-right">
-                          <p className="text-[14px] font-black text-secondary">{new Date(order.created_at).toLocaleDateString()}</p>
-                          <p className="text-[11px] font-bold text-text-muted uppercase mt-1">{new Date(order.created_at).toLocaleTimeString()}</p>
+                        <td className="px-8 py-4 text-right">
+                          <p className="text-[11px] font-black text-secondary">{new Date(order.created_at).toLocaleDateString()}</p>
+                          <p className="text-[9px] font-bold text-text-muted uppercase">{new Date(order.created_at).toLocaleTimeString()}</p>
                         </td>
                       </tr>
                     ))}
@@ -788,12 +788,11 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     {companies.map(co => {
                       const count = smsStats[co.id.toString()] || 0;
                       return (
-                        <tr key={co.id} className="hover:bg-background/20 transition-colors">
-                          <td className="px-16 py-12 font-black text-secondary text-lg">{co.name}</td>
-                          <td className="px-12 py-12 font-black text-secondary text-xl">{count}</td>
-                          <td className="px-12 py-12 font-black text-primary text-xl text-center">{(count * 5).toLocaleString()} Kz</td>
-                          <td className="px-16 py-12 text-right font-black text-green-600 text-xl">
-                            {/* Estimation or pull from actual orders */}
+                        <tr key={co.id} className="hover:bg-background/20 transition-colors border-b border-border/10">
+                          <td className="px-16 py-6 font-black text-secondary text-base">{co.name}</td>
+                          <td className="px-12 py-6 font-black text-secondary text-base">{count}</td>
+                          <td className="px-12 py-6 font-black text-primary text-base text-center">{(count * 5).toLocaleString()} Kz</td>
+                          <td className="px-16 py-6 text-right font-black text-green-600 text-base">
                             --
                           </td>
                         </tr>

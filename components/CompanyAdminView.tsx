@@ -446,7 +446,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         />
       )}
       {/* Premium Sidebar - Collapsible */}
-      <aside className={`fixed inset-y-0 left-0 w-80 bg-white/95 backdrop-blur-xl border-r border-white/50 p-8 flex flex-col gap-10 z-[200] transition-transform duration-500 ease-in-out shadow-2xl ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 w-80 bg-white/95 backdrop-blur-xl border-r border-white/50 p-8 flex flex-col gap-10 z-[200] transition-transform duration-500 ease-in-out shadow-2xl overflow-y-auto custom-scrollbar ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col items-center text-center gap-6 py-4">
           {company.logoUrl && (
             <div className="size-28 bg-white rounded-[2.5rem] shadow-premium border-2 border-primary/5 overflow-hidden group/logo">
@@ -486,13 +486,6 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           >
             <span className="material-symbols-outlined text-2xl">inventory_2</span>
             Menu Digital
-          </button>
-          <button
-            onClick={() => setActiveTab('HISTORICO')}
-            className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'HISTORICO' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
-          >
-            <span className="material-symbols-outlined text-2xl">history</span>
-            Audit & Histórico
           </button>
 
           {company.marketingEnabled && (
@@ -1042,49 +1035,53 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] border-b border-border/50">
-                        <th className="px-12 py-10">Senha</th>
-                        <th className="px-10 py-10">Contacto</th>
-                        <th className="px-10 py-10">Estado</th>
-                        <th className="px-10 py-10">Pagamento</th>
-                        <th className="px-10 py-10 text-right">Valor</th>
-                        <th className="px-10 py-10">Preparo</th>
-                        <th className="px-12 py-10 text-right">Data/Hora</th>
+                      <tr className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] border-b border-border/50 bg-background/30">
+                        <th className="px-8 py-6">Senha</th>
+                        <th className="px-6 py-6">Contacto</th>
+                        <th className="px-6 py-6">Estado</th>
+                        <th className="px-6 py-6">Itens</th>
+                        <th className="px-6 py-6">Pagto</th>
+                        <th className="px-6 py-6 text-right">Valor</th>
+                        <th className="px-6 py-6">Preparo</th>
+                        <th className="px-8 py-6 text-right">Data/Hora</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/20">
                       {filteredHistory.map((hOrder) => (
-                        <tr key={hOrder.id} className="group hover:bg-background/40 transition-all duration-500">
-                          <td className="px-12 py-10">
-                            <div className="flex items-center gap-5">
-                              <div className="size-12 bg-secondary text-white rounded-xl flex items-center justify-center font-black text-base group-hover:bg-primary transition-colors">
-                                #{hOrder.ticketCode}
-                              </div>
+                        <tr key={hOrder.id} className="group hover:bg-background/40 transition-all border-b border-border/10">
+                          <td className="px-8 py-4">
+                            <div className="size-10 bg-secondary text-white rounded-lg flex items-center justify-center font-black text-sm group-hover:bg-primary transition-colors">
+                              #{hOrder.ticketCode}
                             </div>
                           </td>
-                          <td className="px-10 py-10 text-[14px] font-black text-secondary">
+                          <td className="px-6 py-4 text-[12px] font-black text-secondary">
                             {maskPhone(hOrder.customerPhone, hOrder.id)}
                             {!showFullPhones[hOrder.id] && (
-                              <button onClick={() => revealPhone(hOrder.id)} className="text-[10px] bg-primary-soft text-primary px-2 py-1 rounded-md hover:bg-primary hover:text-white transition-all ml-2 no-print">
-                                MOSTRAR
+                              <button onClick={() => revealPhone(hOrder.id)} className="text-[8px] bg-primary-soft text-primary px-1.5 py-0.5 rounded ml-1 no-print">
+                                VER
                               </button>
                             )}
                           </td>
-                          <td className="px-10 py-10">
-                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(hOrder.status as OrderStatus)}`}>
+                          <td className="px-6 py-4">
+                            <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider ${getStatusColor(hOrder.status as OrderStatus)}`}>
                               {getStatusLabel(hOrder)}
                             </span>
                           </td>
-                          <td className="px-10 py-10">
-                            <span className="text-[10px] font-black text-secondary uppercase tracking-widest">{hOrder.paymentMethod || 'N/A'}</span>
+                          <td className="px-6 py-4">
+                            <p className="text-[10px] font-bold text-text-muted truncate max-w-[150px]" title={hOrder.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}>
+                              {hOrder.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
+                            </p>
                           </td>
-                          <td className="px-10 py-10 font-black text-secondary text-[14px] text-right">
-                            Kz {(hOrder.total || 0).toLocaleString()}
+                          <td className="px-6 py-4">
+                            <span className="text-[9px] font-black text-secondary uppercase tracking-tight">{hOrder.paymentMethod || 'N/A'}</span>
                           </td>
-                          <td className="px-10 py-10 font-black text-text-muted text-[13px]">
+                          <td className="px-6 py-4 font-black text-secondary text-[12px] text-right">
+                            {(hOrder.total || 0).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 font-black text-text-muted text-[11px]">
                             {Math.floor((hOrder.timerAccumulatedSeconds || 0) / 60)}m
                           </td>
-                          <td className="px-12 py-10 text-right font-bold text-secondary text-[13px]">
+                          <td className="px-8 py-4 text-right font-medium text-secondary text-[11px]">
                             {hOrder.timestamp}
                           </td>
                         </tr>
@@ -1092,6 +1089,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     </tbody>
                   </table>
                 </div>
+              </div>
+              <div className="hidden print:block mt-12 text-center border-t border-border pt-8">
+                <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em]">Documento Oficial de Auditoria Interna - KwikFood</p>
+                <p className="text-[8px] text-text-muted mt-1">Este relatório contém informações confidenciais e proprietárias de {company.name}.</p>
               </div>
             </div>
           )}
