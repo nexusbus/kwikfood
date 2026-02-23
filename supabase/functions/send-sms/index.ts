@@ -4,6 +4,7 @@
 /// <reference lib="dom.iterable" />
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SMSHUB_BASE_URL = "https://app.smshubangola.com/api";
 
@@ -24,6 +25,9 @@ _Deno.serve(async (req: any) => {
     try {
         const body = await req.json().catch(() => ({}));
         const { recipient, message } = body as { recipient?: string; message?: string };
+        const companyId = body.company_id;
+
+        console.log(`[Edge Function] SMS Request for recipient: ${recipient}, Company: ${companyId}`);
 
         if (!recipient || !message) {
             return new Response(JSON.stringify({ error: "Recipient and message are required" }), {
@@ -36,13 +40,12 @@ _Deno.serve(async (req: any) => {
         const secretKey = _Deno.env.get("SMSHUB_SECRET_KEY");
 
         if (!authId || !secretKey) {
+            console.error("[Edge Function] Error: SMSHUB credentials missing");
             return new Response(JSON.stringify({ error: "SMS Hub credentials not configured" }), {
                 status: 500,
                 headers: { "Content-Type": "application/json" },
             });
         }
-
-        console.log(`[Edge Function] Authenticating for recipient: ${recipient}`);
 
         // 1. Authenticate to get token
         const authResponse = await fetch(`${SMSHUB_BASE_URL}/authentication`, {
@@ -64,14 +67,12 @@ _Deno.serve(async (req: any) => {
         const accessToken = (authData as any).data?.authToken || (authData as any).token || (authData as any).accessToken || authResponse.headers.get("accessToken");
 
         if (!accessToken) {
-            console.error("[Edge Function] No token received. Auth Data keys:", Object.keys(authData));
-            return new Response(JSON.stringify({ error: "Authentication successful but no token received", authData }), {
+            console.error("[Edge Function] No token received.");
+            return new Response(JSON.stringify({ error: "Authentication successful but no token received" }), {
                 status: 500,
                 headers: { "Content-Type": "application/json" },
             });
         }
-
-        console.log("[Edge Function] Token acquired. Sending SMS...");
 
         // 2. Send SMS
         const sendResponse = await fetch(`${SMSHUB_BASE_URL}/sendsms`, {
@@ -88,29 +89,33 @@ _Deno.serve(async (req: any) => {
         });
 
         const sendData = await sendResponse.json().catch(() => ({}));
-        console.log("[Edge Function] SMS Hub response status:", sendResponse.status);
+        console.log("[Edge Function] SMS Hub response status:", sendResponse.status, sendData);
 
         // 3. Log the SMS if successful
-        const companyId = body.company_id;
         if (sendResponse.ok && companyId) {
             try {
-                // @ts-ignore: Deno handles URL imports
-                const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
                 const supabaseUrl = _Deno.env.get("SUPABASE_URL") ?? "";
                 const supabaseServiceRoleKey = _Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
                 if (supabaseUrl && supabaseServiceRoleKey) {
                     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
-                    await supabaseAdmin.from("sms_logs").insert([{
+                    const { error: logError } = await supabaseAdmin.from("sms_logs").insert([{
                         company_id: companyId,
                         recipient: recipient,
                         message: message,
-                        cost: 5 // Default cost
+                        cost: 5
                     }]);
-                    console.log("[Edge Function] SMS logged successfully for company:", companyId);
+
+                    if (logError) {
+                        console.error("[Edge Function] Database Insert Error:", logError);
+                    } else {
+                        console.log("[Edge Function] SMS logged successfully for company:", companyId);
+                    }
+                } else {
+                    console.warn("[Edge Function] Warning: SUPABASE_SERVICE_ROLE_KEY missing, cannot log SMS.");
                 }
-            } catch (logError) {
-                console.error("[Edge Function] Failed to log SMS:", logError);
+            } catch (logErr) {
+                console.error("[Edge Function] Exception during logging:", logErr);
             }
         }
 

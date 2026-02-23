@@ -169,6 +169,11 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products', filter: `company_id=eq.${company.id}` }, () => loadData())
       .subscribe();
 
+    const sChannel = supabase
+      .channel(`sms-${company.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sms_logs', filter: `company_id=eq.${company.id}` }, () => loadData())
+      .subscribe();
+
     const oChannel = supabase
       .channel(`orders-${company.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `company_id=eq.${company.id}` }, () => loadData())
@@ -177,6 +182,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     return () => {
       supabase.removeChannel(pChannel);
       supabase.removeChannel(oChannel);
+      supabase.removeChannel(sChannel);
     };
   }, [company.id]);
 
@@ -298,6 +304,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       alert('SMS Enviados com Sucesso!');
       setMessageBody('');
       setSelectedContacts([]);
+      loadData(); // Force refresh stats
     } catch (err) {
       alert('Erro no envio em massa.');
     } finally {
