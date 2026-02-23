@@ -406,17 +406,30 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         />
       )}
       {/* Premium Sidebar - Collapsible */}
-      <aside className={`fixed inset-y-0 left-0 w-80 bg-white/95 backdrop-blur-xl border-r border-white/50 p-8 flex flex-col gap-12 z-[200] transition-transform duration-500 ease-in-out shadow-2xl ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
-        <button
-          onClick={() => setShowSidebar(false)}
-          className="flex items-center gap-5 relative group text-left w-full hover:opacity-80 transition-opacity"
-        >
-          <Logo variant="icon" size={48} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
-          <div className="overflow-hidden">
-            <h1 className="text-xl font-black tracking-tighter text-secondary leading-none truncate">{company.name}</h1>
-            <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mt-2">Portal Parceiro</p>
-          </div>
-        </button>
+      <aside className={`fixed inset-y-0 left-0 w-80 bg-white/95 backdrop-blur-xl border-r border-white/50 p-8 flex flex-col gap-10 z-[200] transition-transform duration-500 ease-in-out shadow-2xl ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex flex-col items-center text-center gap-6 py-4">
+          {company.logoUrl && (
+            <div className="size-28 bg-white rounded-[2.5rem] shadow-premium border-2 border-primary/5 overflow-hidden group/logo">
+              <img
+                src={company.logoUrl}
+                alt={company.name}
+                className="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-700"
+              />
+            </div>
+          )}
+
+          <button
+            onClick={() => setShowSidebar(false)}
+            className="flex flex-col items-center gap-3 relative group w-full hover:opacity-80 transition-opacity"
+          >
+            <div className="flex items-center gap-4">
+              <Logo variant="icon" size={32} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
+              <div className="h-4 w-[1px] bg-border/40"></div>
+              <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">Portal Parceiro</p>
+            </div>
+            <h1 className="text-2xl font-black tracking-tighter text-secondary leading-tight px-4">{company.name}</h1>
+          </button>
+        </div>
 
         <nav className="flex flex-col gap-4">
           <button
