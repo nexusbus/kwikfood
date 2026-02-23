@@ -27,6 +27,9 @@ export interface Company {
   id: number; // Numeric ID
   name: string;
   location: string;
+  city?: string;
+  province?: string;
+  type?: string;
   nif: string;
   lat: number;
   lng: number;
@@ -34,6 +37,7 @@ export interface Company {
   password?: string;
   logoUrl?: string; // Add logo URL
   marketingEnabled?: boolean;
+  isActive?: boolean;
 }
 
 export interface CartItem extends Product {

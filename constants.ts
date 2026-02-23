@@ -10,7 +10,11 @@ export const fetchCompanies = async (): Promise<Company[]> => {
   return data.map(co => ({
     ...co,
     logoUrl: co.logo_url,
-    marketingEnabled: co.marketing_enabled
+    marketingEnabled: co.marketing_enabled,
+    isActive: co.is_active,
+    city: co.city,
+    province: co.province,
+    type: co.type
   })) as Company[];
 };
 

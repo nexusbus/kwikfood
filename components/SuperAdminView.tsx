@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchCompanies, getNextCompanyId, STORE_RADIUS_METERS } from '../constants';
 import Logo from './Logo';
 import { supabase } from '../src/lib/supabase';
-import { Company } from '../types';
+import { Company, OrderStatus } from '../types';
 import { sendSMS } from '../src/services/smsService';
 
 const PROVINCES = [
@@ -21,6 +21,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [name, setName] = useState('');
   const [nif, setNif] = useState('');
   const [location, setLocation] = useState('Luanda');
+  const [city, setCity] = useState('');
+  const [type, setType] = useState('');
   const [id, setId] = useState('');
   const [lat, setLat] = useState<number | ''>('');
   const [lng, setLng] = useState<number | ''>('');
@@ -37,17 +39,47 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [adminConfirmPassword, setAdminConfirmPassword] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [activeView, setActiveView] = useState<'ESTABELECIMENTOS' | 'AUDITORIA'>('ESTABELECIMENTOS');
+  const [activeView, setActiveView] = useState<'ESTABELECIMENTOS' | 'AUDITORIA' | 'SMS'>('ESTABELECIMENTOS');
   const [auditOrders, setAuditOrders] = useState<any[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
 
+  // New States for Search and Dashboard
+  const [searchTerm, setSearchTerm] = useState('');
+  const [smsStats, setSmsStats] = useState<Record<string, number>>({});
+  const [totalClientCount, setTotalClientCount] = useState(0);
+  const [dailySmsCount, setDailySmsCount] = useState(0);
+  const [dailyRevenue, setDailyRevenue] = useState(0);
+
+  const loadData = async () => {
+    const cData = await fetchCompanies();
+    setCompanies(cData);
+    const nextId = await getNextCompanyId();
+    setId(nextId.toString().padStart(4, '0'));
+
+    // Load SMS Stats
+    const { data: smsData } = await supabase.from('sms_logs').select('company_id');
+    if (smsData) {
+      const stats: Record<string, number> = {};
+      smsData.forEach(log => {
+        const cid = log.company_id?.toString();
+        if (cid) stats[cid] = (stats[cid] || 0) + 1;
+      });
+      setSmsStats(stats);
+    }
+
+    // Load Daily Stats
+    const today = new Date().toISOString().split('T')[0];
+    const { data: todayOrders } = await supabase.from('orders').select('total, customer_phone').gte('created_at', today);
+    if (todayOrders) {
+      setTotalClientCount(new Set(todayOrders.map(o => o.customer_phone)).size);
+      setDailyRevenue(todayOrders.reduce((acc, o) => acc + (o.total || 0), 0));
+    }
+
+    const { count: todaySms } = await supabase.from('sms_logs').select('*', { count: 'exact', head: true }).gte('created_at', today);
+    setDailySmsCount(todaySms || 0);
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      const cData = await fetchCompanies();
-      setCompanies(cData);
-      const nextId = await getNextCompanyId();
-      setId(nextId.toString().padStart(4, '0'));
-    };
     loadData();
 
     const channel = supabase
@@ -98,12 +130,15 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         id: editingCompany ? editingCompany.id : id,
         name,
         location,
+        city,
+        type,
+        province: location,
         nif,
         lat,
         lng,
         email,
         password,
-        logo_url: logoUrl // Map to snake_case for DB
+        logo_url: logoUrl
       };
 
       if (editingCompany) {
@@ -121,6 +156,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       }
 
       setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
+      setCity(''); setType('');
       const nextId = await getNextCompanyId();
       setId(nextId.toString().padStart(4, '0'));
     } catch (err: any) {
@@ -135,7 +171,9 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setEditingCompany(company);
     setId(company.id.toString().padStart(4, '0'));
     setName(company.name);
-    setLocation(company.location);
+    setLocation(company.location || 'Luanda');
+    setCity(company.city || '');
+    setType(company.type || '');
     setNif(company.nif);
     setLat(company.lat);
     setLng(company.lng);
@@ -143,6 +181,19 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setPassword(company.password || '');
     setLogoUrl(company.logoUrl || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleStatus = async (company: Company) => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ is_active: !company.isActive })
+        .eq('id', company.id);
+      if (error) throw error;
+    } catch (err: any) {
+      console.error(err);
+      alert('Erro ao alternar status: ' + err.message);
+    }
   };
 
   const toggleMarketing = async (company: Company) => {
@@ -161,6 +212,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const handleCancelEdit = async () => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
+    setCity(''); setType('');
     const nextId = await getNextCompanyId();
     setId(nextId.toString().padStart(4, '0'));
   };
@@ -247,6 +299,12 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     );
   };
 
+  const filteredCompanies = companies.filter(c =>
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.id.toString().includes(searchTerm) ||
+    (c.city || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="bg-background min-h-screen selection:bg-primary selection:text-white relative overflow-x-hidden">
       {/* Decorative Background */}
@@ -276,6 +334,12 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
           >
             Auditoria
           </button>
+          <button
+            onClick={() => setActiveView('SMS')}
+            className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'SMS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
+          >
+            SMS & Financeiro
+          </button>
         </div>
 
         <div className="hidden lg:flex items-center gap-4 px-8 py-4 bg-secondary text-white rounded-full font-black text-[11px] uppercase tracking-widest shadow-premium">
@@ -286,6 +350,27 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
 
       <main className="max-w-7xl mx-auto px-12 py-16 space-y-20 relative z-10">
+
+        {/* Dashboard Cards (Common for Top) */}
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-8 animate-fade-in">
+          <div className="bg-surface p-10 rounded-[3rem] border border-white/60 shadow-premium">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">Estabelecimentos Ativos</p>
+            <p className="text-5xl font-black text-secondary tracking-tighter">{companies.filter(c => c.isActive).length}</p>
+          </div>
+          <div className="bg-surface p-10 rounded-[3rem] border border-white/60 shadow-premium">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">Clientes Hoje</p>
+            <p className="text-5xl font-black text-primary tracking-tighter">{totalClientCount}</p>
+          </div>
+          <div className="bg-surface p-10 rounded-[3rem] border border-white/60 shadow-premium">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">SMS Enviadas Hoje</p>
+            <p className="text-5xl font-black text-secondary tracking-tighter">{dailySmsCount}</p>
+          </div>
+          <div className="bg-surface p-10 rounded-[3rem] border border-white/60 shadow-premium">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">Receita do Dia</p>
+            <p className="text-5xl font-black text-primary tracking-tighter">{dailyRevenue.toLocaleString()} Kz</p>
+          </div>
+        </section>
+
         {activeView === 'ESTABELECIMENTOS' ? (
           <>
             {/* Registration Section */}
@@ -321,16 +406,27 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Designação Social</label>
                     <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Master Burger Central" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
                   </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Tipo de Estabelecimento</label>
+                    <input type="text" value={type} onChange={e => setType(e.target.value)} placeholder="Ex: Restaurante, Hamburgaria..." className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  </div>
+
                   <div className="space-y-4">
                     <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">NIF da Empresa</label>
                     <input type="text" value={nif} onChange={e => setNif(e.target.value)} placeholder="000000000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Local de Operação (Província)</label>
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Província</label>
                     <select value={location} onChange={e => setLocation(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all appearance-none cursor-pointer outline-none">
                       {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
                     </select>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Cidade</label>
+                    <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="Ex: Talatona, Benfica..." className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
                   </div>
 
                   <div className="space-y-4">
@@ -416,7 +512,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
             {/* List Section */}
             <section className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <div className="flex items-center justify-between mb-12">
+              <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-8">
                 <div>
                   <h2 className="text-5xl font-black tracking-tight text-secondary leading-none">Parceiros KwikFood</h2>
                   <div className="flex items-center gap-4 mt-4">
@@ -426,6 +522,17 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     <p className="text-text-muted font-black uppercase text-[11px] tracking-[0.3em]">Gestão Global de Rede</p>
                   </div>
                 </div>
+
+                <div className="relative w-full md:w-96 group">
+                  <input
+                    type="text"
+                    placeholder="PESQUISAR ESTABELECIMENTO..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full h-20 bg-surface border-2 border-border/40 rounded-[1.8rem] px-14 font-black text-[12px] text-secondary focus:border-primary transition-all outline-none tracking-widest"
+                  />
+                  <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors">search</span>
+                </div>
               </div>
 
               <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
@@ -434,13 +541,14 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     <thead>
                       <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
                         <th className="px-16 py-12">Estabelecimento</th>
-                        <th className="px-12 py-12 text-center">Referência</th>
-                        <th className="px-12 py-12">Acesso & Segurança</th>
+                        <th className="px-12 py-12">Localização</th>
+                        <th className="px-12 py-12 text-center">SMS Enviadas</th>
+                        <th className="px-12 py-12">Status</th>
                         <th className="px-16 py-12 text-right">Controlo</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
-                      {companies.map((co) => (
+                      {filteredCompanies.map((co) => (
                         <tr key={co.id} className="group hover:bg-background/40 transition-all duration-500 relative">
                           <td className="px-16 py-12">
                             <div className="flex items-center gap-8">
@@ -451,32 +559,36 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                               </div>
                               <div>
                                 <p className="text-2xl font-black text-secondary group-hover:translate-x-2 transition-transform duration-500">{co.name}</p>
-                                <div className="flex items-center gap-5 text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mt-2">
-                                  <span className="flex items-center gap-2 text-primary bg-primary-soft/50 px-3 py-1 rounded-full border border-primary/10">
-                                    <span className="material-symbols-outlined text-lg">location_on</span>
-                                    {co.location}
-                                  </span>
-                                  <span className="opacity-40 italic">NIF: {co.nif}</span>
-                                </div>
+                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mt-1">{co.type || 'Restaurante'}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-12 py-12 text-center">
-                            <span className="inline-block px-6 py-2.5 bg-secondary text-white rounded-full text-[12px] font-bold tracking-[0.4em] shadow-premium">
-                              {co.id.toString().padStart(4, '0')}
-                            </span>
+                          <td className="px-12 py-12">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[14px] font-black text-secondary">{co.city || co.location}</span>
+                              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{co.province || co.location}</span>
+                            </div>
+                          </td>
+                          <td className="px-12 py-12 text-center text-xl font-black text-secondary">
+                            {smsStats[co.id.toString()] || 0}
                           </td>
                           <td className="px-12 py-12">
-                            <div className="space-y-2">
-                              <p className="text-[14px] font-black text-secondary leading-none">{co.email}</p>
-                              <div className="flex items-center gap-3">
-                                <span className="size-2.5 bg-green-500 rounded-full animate-pulse-soft"></span>
-                                <span className="text-[10px] font-black uppercase text-green-600 tracking-[0.3em]">Autenticado</span>
-                              </div>
+                            <div className="flex items-center gap-3">
+                              <span className={`size-2.5 rounded-full ${co.isActive ? 'bg-green-500 animate-pulse-soft' : 'bg-red-500'}`}></span>
+                              <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${co.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                                {co.isActive ? 'ATIVO' : 'DESATIVADO'}
+                              </span>
                             </div>
                           </td>
                           <td className="px-16 py-12 text-right">
                             <div className="flex justify-end gap-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-10 transition-all duration-700">
+                              <button
+                                onClick={() => toggleStatus(co)}
+                                className={`size-16 border border-border/80 rounded-[1.5rem] flex items-center justify-center transition-all ${co.isActive ? 'bg-green-50 text-green-600' : 'bg-primary-soft text-primary'}`}
+                                title={co.isActive ? 'Desativar' : 'Ativar'}
+                              >
+                                <span className="material-symbols-outlined text-3xl">{co.isActive ? 'link' : 'link_off'}</span>
+                              </button>
                               <button
                                 onClick={() => toggleMarketing(co)}
                                 className={`size-16 border border-border/80 rounded-[1.5rem] flex items-center justify-center transition-all ${co.marketingEnabled ? 'bg-secondary text-white shadow-premium' : 'bg-white text-text-muted hover:text-primary hover:shadow-premium'}`}
@@ -503,27 +615,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
               </div>
             </section>
           </>
-        ) : (
+        ) : activeView === 'AUDITORIA' ? (
           <section className="space-y-12 animate-fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-16">
-              <div className="bg-surface p-12 rounded-[3.5rem] border border-white/60 shadow-premium">
-                <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Total de Tickets</p>
-                <p className="text-6xl font-black text-secondary tracking-tighter">{auditOrders.length}</p>
-              </div>
-              <div className="bg-surface p-12 rounded-[3.5rem] border border-white/60 shadow-premium">
-                <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Tempo Médio de Serviço</p>
-                <p className="text-6xl font-black text-primary tracking-tighter">
-                  {auditOrders.length > 0
-                    ? Math.round(auditOrders.reduce((acc, o) => acc + (o.timer_accumulated_seconds || 0), 0) / auditOrders.length / 60)
-                    : 0} min
-                </p>
-              </div>
-              <div className="bg-surface p-12 rounded-[3.5rem] border border-white/60 shadow-premium">
-                <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Establecimentos Ativos</p>
-                <p className="text-6xl font-black text-secondary tracking-tighter">{companies.length}</p>
-              </div>
-            </div>
-
             <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -552,7 +645,6 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                         </td>
                         <td className="px-12 py-12">
                           <p className="text-[15px] font-black text-secondary">{order.customer_phone}</p>
-                          <p className="text-[10px] text-primary font-bold uppercase tracking-widest mt-1">Verificado</p>
                         </td>
                         <td className="px-12 py-12">
                           <p className="text-xl font-black text-secondary">
@@ -585,6 +677,44 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
               </div>
             </div>
           </section>
+        ) : (
+          /* SMS & Financial View */
+          <section className="space-y-12 animate-fade-in">
+            <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
+              <div className="p-16 border-b border-border/50">
+                <h2 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório Financeiro de SMS</h2>
+                <p className="text-text-muted font-medium mt-2">Controle de envios e custos operacionais por parceiro.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
+                      <th className="px-16 py-12">Estabelecimento</th>
+                      <th className="px-12 py-12">SMS Enviadas</th>
+                      <th className="px-12 py-12 text-center">Custo Acumulado</th>
+                      <th className="px-16 py-12 text-right">Receita Estimada (DIA)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/30">
+                    {companies.map(co => {
+                      const count = smsStats[co.id.toString()] || 0;
+                      return (
+                        <tr key={co.id} className="hover:bg-background/20 transition-colors">
+                          <td className="px-16 py-12 font-black text-secondary text-lg">{co.name}</td>
+                          <td className="px-12 py-12 font-black text-secondary text-xl">{count}</td>
+                          <td className="px-12 py-12 font-black text-primary text-xl text-center">{(count * 5).toLocaleString()} Kz</td>
+                          <td className="px-16 py-12 text-right font-black text-green-600 text-xl">
+                            {/* Estimation or pull from actual orders */}
+                            --
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
         )}
       </main>
 
@@ -607,7 +737,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
               <form onSubmit={handleSecureDelete} className="space-y-8">
                 <div className="space-y-3">
-                  <label className="text-[11px) font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Email de Autorização</label>
+                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Email de Autorização</label>
                   <input
                     type="email"
                     required
@@ -619,7 +749,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[11px) font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Chave de Segurança</label>
+                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Chave de Segurança</label>
                   <input
                     type="password"
                     required
@@ -722,7 +852,5 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     </div >
   );
 };
-
-
 
 export default SuperAdminView;

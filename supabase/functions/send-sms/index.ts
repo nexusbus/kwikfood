@@ -1,9 +1,15 @@
-/// <reference lib="deno.ns" />
+/// <reference no-default-lib="true" />
+/// <reference lib="esnext" />
+/// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SMSHUB_BASE_URL = "https://app.smshubangola.com/api";
 
-Deno.serve(async (req) => {
+const _Deno = (globalThis as any).Deno;
+
+_Deno.serve(async (req: any) => {
     // Handle CORS preflight requests
     if (req.method === "OPTIONS") {
         return new Response("ok", {
@@ -16,7 +22,8 @@ Deno.serve(async (req) => {
     }
 
     try {
-        const { recipient, message } = await req.json();
+        const body = await req.json().catch(() => ({}));
+        const { recipient, message } = body as { recipient?: string; message?: string };
 
         if (!recipient || !message) {
             return new Response(JSON.stringify({ error: "Recipient and message are required" }), {
@@ -25,8 +32,8 @@ Deno.serve(async (req) => {
             });
         }
 
-        const authId = Deno.env.get("SMSHUB_AUTH_ID");
-        const secretKey = Deno.env.get("SMSHUB_SECRET_KEY");
+        const authId = _Deno.env.get("SMSHUB_AUTH_ID");
+        const secretKey = _Deno.env.get("SMSHUB_SECRET_KEY");
 
         if (!authId || !secretKey) {
             return new Response(JSON.stringify({ error: "SMS Hub credentials not configured" }), {
@@ -53,13 +60,11 @@ Deno.serve(async (req) => {
             });
         }
 
-        // According to snippet, it might be in headers or body. Let's try to get it.
-        // Usually it's in a JSON body.
         const authData = await authResponse.json().catch(() => ({}));
-        const accessToken = authData.token || authData.accessToken || authResponse.headers.get("accessToken");
+        const accessToken = (authData as any).data?.authToken || (authData as any).token || (authData as any).accessToken || authResponse.headers.get("accessToken");
 
         if (!accessToken) {
-            console.error("[Edge Function] No token received. Auth Data:", authData);
+            console.error("[Edge Function] No token received. Auth Data keys:", Object.keys(authData));
             return new Response(JSON.stringify({ error: "Authentication successful but no token received", authData }), {
                 status: 500,
                 headers: { "Content-Type": "application/json" },
@@ -78,11 +83,36 @@ Deno.serve(async (req) => {
             body: JSON.stringify({
                 contactNo: [recipient],
                 message: message,
+                from: "KWIKFOOD",
             }),
         });
 
         const sendData = await sendResponse.json().catch(() => ({}));
-        console.log("[Edge Function] SMS Hub response:", sendData);
+        console.log("[Edge Function] SMS Hub response status:", sendResponse.status);
+
+        // 3. Log the SMS if successful
+        const companyId = body.company_id;
+        if (sendResponse.ok && companyId) {
+            try {
+                // @ts-ignore: Deno handles URL imports
+                const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+                const supabaseUrl = _Deno.env.get("SUPABASE_URL") ?? "";
+                const supabaseServiceRoleKey = _Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+                if (supabaseUrl && supabaseServiceRoleKey) {
+                    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
+                    await supabaseAdmin.from("sms_logs").insert([{
+                        company_id: companyId,
+                        recipient: recipient,
+                        message: message,
+                        cost: 5 // Default cost
+                    }]);
+                    console.log("[Edge Function] SMS logged successfully for company:", companyId);
+                }
+            } catch (logError) {
+                console.error("[Edge Function] Failed to log SMS:", logError);
+            }
+        }
 
         return new Response(JSON.stringify(sendData), {
             status: sendResponse.status,
@@ -92,9 +122,9 @@ Deno.serve(async (req) => {
             },
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("[Edge Function] Critical error:", error);
-        return new Response(JSON.stringify({ error: error.message }), {
+        return new Response(JSON.stringify({ error: error?.message || "Internal Server Error" }), {
             status: 500,
             headers: {
                 "Content-Type": "application/json",

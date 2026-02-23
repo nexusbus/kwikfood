@@ -235,7 +235,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         if (message && order.customerPhone) {
           try {
-            await sendSMS({ recipient: order.customerPhone, message });
+            await sendSMS({ recipient: order.customerPhone, message, companyId: company.id });
           } catch (smsErr) {
             console.error('Failed to send SMS notification:', smsErr);
           }
@@ -254,7 +254,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     try {
       const finalMessage = `${company.name}: ${messageBody}`;
       for (const phone of selectedContacts) {
-        await sendSMS({ recipient: phone, message: finalMessage });
+        await sendSMS({ recipient: phone, message: finalMessage, companyId: company.id });
       }
       alert('SMS Enviados com Sucesso!');
       setMessageBody('');
