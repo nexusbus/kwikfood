@@ -1,21 +1,18 @@
-
--- ==========================================
--- KWIKFOOD: FIX & SYNC DATABASE
--- Execute este script no SQL Editor do Supabase
--- ==========================================
+-- 0. Garante que a extensão para UUID existe
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. Garante que todas as colunas novas existem na tabela companies
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS city TEXT;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS province TEXT;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS type TEXT;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS province TEXT;
+ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS type TEXT;
+ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 
 -- 2. Ativa todos os estabelecimentos existentes (corrige o valor 0 no dashboard)
-UPDATE companies SET is_active = true WHERE is_active IS NULL;
+UPDATE public.companies SET is_active = true WHERE is_active IS NULL;
 
 -- 3. Preenche valores padrão para cidade/tipo se estiverem vazios
-UPDATE companies SET city = 'Luanda' WHERE city IS NULL OR city = '';
-UPDATE companies SET type = 'Restaurante' WHERE type IS NULL OR type = '';
+UPDATE public.companies SET city = 'Luanda' WHERE (city IS NULL OR city = '') AND id > 0;
+UPDATE public.companies SET type = 'Restaurante' WHERE (type IS NULL OR type = '') AND id > 0;
 
 -- 4. Cria a tabela de logs de SMS (caso ainda não exista)
 CREATE TABLE IF NOT EXISTS public.sms_logs (

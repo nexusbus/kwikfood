@@ -78,7 +78,10 @@ const App: React.FC = () => {
       case 'COMPANY_ADMIN':
         return <CompanyAdminView
           company={activeCompany!}
-          onLogout={() => setCurrentView('CUSTOMER_ENTRY')}
+          onLogout={() => {
+            setActiveCompany(null);
+            setCurrentView('CUSTOMER_ENTRY');
+          }}
         />;
       case 'CUSTOMER_TRACKING':
         return <CustomerTrackingView

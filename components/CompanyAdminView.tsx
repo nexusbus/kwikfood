@@ -41,7 +41,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'PRODUTOS' | 'FILA' | 'HISTORICO' | 'MARKETING' | 'RELATORIOS'>('FILA');
+  const [activeTab, setActiveTab] = useState<'PRODUTOS' | 'FILA' | 'MARKETING' | 'RELATORIOS'>('FILA');
   const [productFilter, setProductFilter] = useState('Todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
@@ -519,7 +519,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'RELATORIOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
           >
             <span className="material-symbols-outlined text-2xl">analytics</span>
-            Relatórios
+            Auditoria & Relatórios
             {activeTab === 'RELATORIOS' && <div className="absolute right-6 size-2 bg-primary rounded-full animate-pulse"></div>}
           </button>
 
@@ -568,7 +568,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             </button>
             <div>
               <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-[#111111]">
-                {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : activeTab === 'MARKETING' ? 'Marketing' : 'Audit & Histórico'}
+                {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : activeTab === 'MARKETING' ? 'Marketing' : 'Auditoria & Relatórios'}
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="size-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -899,29 +899,81 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               </div>
             </div>
           ) : (
-            <div className="space-y-12 animate-fade-in">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <div className="bg-surface p-12 rounded-[3.5rem] border border-border shell-premium shadow-premium">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Pedidos no Filtro</p>
-                  <p className="text-6xl font-black text-secondary tracking-tighter">{filteredHistory.length}</p>
+            <div className="space-y-12 animate-fade-in pb-20">
+              {/* Header de Relatório com Exportação */}
+              <div className="flex justify-between items-center bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium no-print">
+                <div>
+                  <h3 className="text-3xl font-black text-secondary tracking-tighter">Auditoria & Relatórios</h3>
+                  <p className="text-text-muted font-medium mt-1">Visão geral do faturamento, custos e histórico de operações.</p>
                 </div>
-                <div className="bg-surface p-12 rounded-[3.5rem] border border-border shell-premium shadow-premium">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Faturamento (Filtro)</p>
-                  <p className="text-5xl font-black text-primary tracking-tighter leading-tight">
-                    <span className="text-2xl">Kz</span> {totalRevenue.toLocaleString()}
-                  </p>
-                </div>
-                <div className="bg-surface p-12 rounded-[3.5rem] border border-border shell-premium shadow-premium">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-3">Tempo Médio</p>
-                  <p className="text-6xl font-black text-secondary tracking-tighter">
-                    {filteredHistory.length > 0
-                      ? Math.round(filteredHistory.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / filteredHistory.length / 60)
-                      : 0} min
-                  </p>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleExportCSV}
+                    className="h-16 px-10 bg-white border border-border/40 text-secondary hover:bg-background rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-sm flex items-center gap-3 active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-2xl">table_rows</span> EXCEL (CSV)
+                  </button>
+                  <button
+                    onClick={handlePrint}
+                    className="h-16 px-10 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-premium flex items-center gap-3 active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-2xl">picture_as_pdf</span> GERAR PDF
+                  </button>
                 </div>
               </div>
 
-              <div className="bg-surface p-12 rounded-[3.5rem] border border-border shadow-premium space-y-8">
+              {/* Print Only Header */}
+              <div className="hidden print:flex justify-between items-center border-b-4 border-primary pb-8 mb-12">
+                <div>
+                  <h1 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório de Desempenho & Auditoria</h1>
+                  <p className="text-xl font-bold text-primary mt-2">{company.name}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-black text-secondary uppercase tracking-widest">Extraído em:</p>
+                  <p className="text-lg font-bold text-text-muted">{new Date().toLocaleString()}</p>
+                </div>
+              </div>
+
+              {/* KPIs Consolidados */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Faturamento Bruto</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-4xl font-black text-secondary tracking-tighter">{totalRevenue.toLocaleString()} Kz</p>
+                    <span className="text-[11px] font-black text-green-500 uppercase">Total</span>
+                  </div>
+                </div>
+                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Investimento SMS</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-4xl font-black text-primary tracking-tighter">{(smsCount * 5).toLocaleString()} Kz</p>
+                    <span className="text-[11px] font-black text-primary uppercase">{smsCount}</span>
+                  </div>
+                </div>
+                <div className="bg-white p-10 rounded-[3.5rem] border border-secondary shadow-premium group hover:border-primary/20 transition-all">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Faturamento Líquido</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-4xl font-black text-secondary tracking-tighter">
+                      {(totalRevenue - (smsCount * 5)).toLocaleString()} Kz
+                    </p>
+                    <span className="text-[11px] font-black text-secondary/30 uppercase">Líquido</span>
+                  </div>
+                </div>
+                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">Tempo Preparo</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-4xl font-black text-secondary tracking-tighter">
+                      {filteredHistory.length > 0
+                        ? Math.round(filteredHistory.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / filteredHistory.length / 60)
+                        : 0}m
+                    </p>
+                    <span className="text-[11px] font-black text-text-muted uppercase">Média</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filtros Avançados */}
+              <div className="bg-surface p-12 rounded-[3.5rem] border border-border shadow-premium space-y-8 no-print">
                 <div className="flex items-center gap-4 mb-4">
                   <span className="material-symbols-outlined text-primary">filter_alt</span>
                   <p className="text-[11px] font-black text-secondary uppercase tracking-[0.4em]">Filtros de Auditoria & Fecho do Dia</p>
@@ -982,160 +1034,59 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 </div>
               </div>
 
+              {/* Tabela de Auditoria Unificada */}
               <div className="bg-surface rounded-[4.5rem] shadow-premium border border-border overflow-hidden">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] border-b border-border/50">
-                      <th className="px-12 py-10">Senha</th>
-                      <th className="px-10 py-10">Contacto</th>
-                      <th className="px-10 py-10">Estado</th>
-                      <th className="px-10 py-10">Pagamento</th>
-                      <th className="px-10 py-10 text-right">Valor</th>
-                      <th className="px-10 py-10">Tempo Preparo</th>
-                      <th className="px-12 py-10 text-right">Data/Hora</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/20">
-                    {filteredHistory.map((hOrder) => (
-                      <tr key={hOrder.id} className="group hover:bg-background/40 transition-all duration-500">
-                        <td className="px-12 py-10">
-                          <div className="flex items-center gap-5">
-                            <div className="size-12 bg-secondary text-white rounded-xl flex items-center justify-center font-black text-base group-hover:bg-primary transition-colors">
-                              #{hOrder.ticketCode}
-                            </div>
-                            <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1 hidden sm:block">Ref: {hOrder.id.slice(0, 8)}</p>
-                          </div>
-                        </td>
-                        <td className="px-10 py-10 text-[14px] font-black text-secondary">
-                          <div className="flex items-center gap-2">
-                            {maskPhone(hOrder.customerPhone, hOrder.id)}
-                            {!showFullPhones[hOrder.id] && (
-                              <button onClick={() => revealPhone(hOrder.id)} className="text-[10px] bg-primary-soft text-primary px-2 py-1 rounded-md hover:bg-primary hover:text-white transition-all">
-                                MOSTRAR
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-10 py-10">
-                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(hOrder.status as OrderStatus)}`}>
-                            {getStatusLabel(hOrder)}
-                          </span>
-                        </td>
-                        <td className="px-10 py-10">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-black text-secondary uppercase tracking-widest">{hOrder.paymentMethod || 'N/A'}</span>
-                            {hOrder.paymentProofUrl && (
-                              <a href={hOrder.paymentProofUrl} target="_blank" rel="noopener noreferrer" className="text-[9px] text-primary font-bold hover:underline">VER DOC</a>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-10 py-10 font-black text-secondary text-[14px] text-right">
-                          Kz {(hOrder.total || 0).toLocaleString()}
-                        </td>
-                        <td className="px-10 py-10 font-black text-text-muted text-[13px]">
-                          {Math.floor((hOrder.timerAccumulatedSeconds || 0) / 60)}m {(hOrder.timerAccumulatedSeconds || 0) % 60}s
-                        </td>
-                        <td className="px-12 py-10 text-right">
-                          <p className="text-[13px] font-black text-secondary">{hOrder.timestamp}</p>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'RELATORIOS' && (
-            <div className="space-y-12 animate-fade-in pb-20">
-              <div className="flex justify-between items-center bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium">
-                <div>
-                  <h3 className="text-3xl font-black text-secondary tracking-tighter">Performance de Vendas</h3>
-                  <p className="text-text-muted font-medium mt-1">Visão geral do faturamento e operações.</p>
-                </div>
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleExportCSV}
-                    className="h-16 px-10 bg-white border border-border/40 text-secondary hover:bg-background rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-sm flex items-center gap-3 active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-2xl">table_rows</span>
-                    EXCEL (CSV)
-                  </button>
-                  <button
-                    onClick={handlePrint}
-                    className="h-16 px-10 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-premium flex items-center gap-3 active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
-                    GERAR PDF
-                  </button>
-                </div>
-              </div>
-
-              {/* Print Only Header */}
-              <div className="hidden print:flex justify-between items-center border-b-4 border-primary pb-8 mb-12">
-                <div>
-                  <h1 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório de Desempenho</h1>
-                  <p className="text-xl font-bold text-primary mt-2">{company.name}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-black text-secondary uppercase tracking-widest">Extraído em:</p>
-                  <p className="text-lg font-bold text-text-muted">{new Date().toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Faturamento Bruto</p>
-                  <div className="flex items-baseline gap-3">
-                    <p className="text-5xl font-black text-secondary tracking-tighter">{totalRevenue.toLocaleString()} Kz</p>
-                    <span className="text-[11px] font-black text-green-500 uppercase">Recebido</span>
-                  </div>
-                </div>
-                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Investimento SMS</p>
-                  <div className="flex items-baseline gap-3">
-                    <p className="text-5xl font-black text-primary tracking-tighter">{(smsCount * 5).toLocaleString()} Kz</p>
-                    <span className="text-[11px] font-black text-primary uppercase">{smsCount} Envios</span>
-                  </div>
-                </div>
-                <div className="bg-white p-10 rounded-[3.5rem] border border-secondary shadow-premium group hover:border-primary/20 transition-all">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Faturamento Líquido</p>
-                  <div className="flex items-baseline gap-3">
-                    <p className="text-5xl font-black text-secondary tracking-tighter">
-                      {(totalRevenue - (smsCount * 5)).toLocaleString()} Kz
-                    </p>
-                    <span className="text-[11px] font-black text-secondary/30 uppercase">Estimado</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-surface rounded-[4rem] shadow-premium border border-white/60 overflow-hidden">
-                <div className="p-12 border-b border-border/40 bg-white/50">
-                  <h4 className="text-2xl font-black text-secondary uppercase tracking-tighter">Histórico Detalhado para Auditoria</h4>
+                <div className="p-12 border-b border-border/40 bg-white/50 no-print">
+                  <h4 className="text-2xl font-black text-secondary uppercase tracking-tighter">Histórico Detalhado de Operações</h4>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/40">
-                        <th className="px-12 py-10">Data/Hora</th>
-                        <th className="px-10 py-10">Ticket</th>
-                        <th className="px-10 py-10">Status</th>
-                        <th className="px-10 py-10">Total</th>
+                      <tr className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] border-b border-border/50">
+                        <th className="px-12 py-10">Senha</th>
+                        <th className="px-10 py-10">Contacto</th>
+                        <th className="px-10 py-10">Estado</th>
                         <th className="px-10 py-10">Pagamento</th>
+                        <th className="px-10 py-10 text-right">Valor</th>
+                        <th className="px-10 py-10">Preparo</th>
+                        <th className="px-12 py-10 text-right">Data/Hora</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/20">
-                      {filteredHistory.map(o => (
-                        <tr key={o.id} className="hover:bg-background/20 transition-colors">
-                          <td className="px-12 py-8 font-bold text-secondary text-base">{o.timestamp}</td>
-                          <td className="px-10 py-8 font-black text-primary text-lg">#{o.ticketCode}</td>
-                          <td className="px-10 py-8">
-                            <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${getStatusColor(o.status)}`}>
-                              {getStatusLabel(o)}
+                      {filteredHistory.map((hOrder) => (
+                        <tr key={hOrder.id} className="group hover:bg-background/40 transition-all duration-500">
+                          <td className="px-12 py-10">
+                            <div className="flex items-center gap-5">
+                              <div className="size-12 bg-secondary text-white rounded-xl flex items-center justify-center font-black text-base group-hover:bg-primary transition-colors">
+                                #{hOrder.ticketCode}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-10 py-10 text-[14px] font-black text-secondary">
+                            {maskPhone(hOrder.customerPhone, hOrder.id)}
+                            {!showFullPhones[hOrder.id] && (
+                              <button onClick={() => revealPhone(hOrder.id)} className="text-[10px] bg-primary-soft text-primary px-2 py-1 rounded-md hover:bg-primary hover:text-white transition-all ml-2 no-print">
+                                MOSTRAR
+                              </button>
+                            )}
+                          </td>
+                          <td className="px-10 py-10">
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(hOrder.status as OrderStatus)}`}>
+                              {getStatusLabel(hOrder)}
                             </span>
                           </td>
-                          <td className="px-10 py-8 font-black text-secondary text-lg">{(o.total || 0).toLocaleString()} Kz</td>
-                          <td className="px-10 py-8 font-black text-text-muted uppercase text-[11px] tracking-widest">{o.paymentMethod || 'N/A'}</td>
+                          <td className="px-10 py-10">
+                            <span className="text-[10px] font-black text-secondary uppercase tracking-widest">{hOrder.paymentMethod || 'N/A'}</span>
+                          </td>
+                          <td className="px-10 py-10 font-black text-secondary text-[14px] text-right">
+                            Kz {(hOrder.total || 0).toLocaleString()}
+                          </td>
+                          <td className="px-10 py-10 font-black text-text-muted text-[13px]">
+                            {Math.floor((hOrder.timerAccumulatedSeconds || 0) / 60)}m
+                          </td>
+                          <td className="px-12 py-10 text-right font-bold text-secondary text-[13px]">
+                            {hOrder.timestamp}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
