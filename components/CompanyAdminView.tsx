@@ -77,6 +77,31 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [isMarketingUnlocked, setIsMarketingUnlocked] = useState(false);
   const [marketingAuthError, setMarketingAuthError] = useState(false);
   const [smsCount, setSmsCount] = useState(0);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const calculateElapsed = (order: Order) => {
+    const accumulated = order.timerAccumulatedSeconds || 0;
+    if (order.status === OrderStatus.READY || order.status === OrderStatus.DELIVERED || !order.timerLastStartedAt) {
+      return accumulated;
+    }
+    const start = new Date(order.timerLastStartedAt).getTime();
+    const current = now.getTime();
+    return accumulated + Math.floor((current - start) / 1000);
+  };
+
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -222,6 +247,12 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       const { error } = await supabase.from('orders').update(updates).eq('id', orderId);
       if (error) throw error;
+
+      // Update local state immediately for better Reactivity/Precision
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates, timerAccumulatedSeconds: updates.timer_accumulated_seconds ?? o.timerAccumulatedSeconds, timerLastStartedAt: updates.timer_last_started_at ?? o.timerLastStartedAt } : o));
+      if (status === OrderStatus.DELIVERED || status === OrderStatus.CANCELLED) {
+        setOrders(prev => prev.filter(o => o.id !== orderId));
+      }
 
       // Trigger SMS notification
       if (status === OrderStatus.PREPARING || status === OrderStatus.READY || status === OrderStatus.DELIVERED || status === OrderStatus.CANCELLED) {
@@ -657,7 +688,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                             <p className="text-xl font-black text-[#111111]">{(order.total || 0).toLocaleString()} Kz</p>
                             <div className="flex items-center justify-end gap-1.5 mt-1 text-[#BBBBBB]">
                               <span className="material-symbols-outlined text-[18px]">schedule</span>
-                              <span className="text-[10px] font-black uppercase tracking-widest leading-none">HÁ 2 MIN</span>
+                              <span className={`text-[10px] font-black uppercase tracking-widest leading-none ${order.status === OrderStatus.PREPARING ? 'text-primary animate-pulse' : ''}`}>
+                                {formatTime(calculateElapsed(order))}
+                              </span>
                             </div>
                           </div>
                         </div>
