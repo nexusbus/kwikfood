@@ -111,6 +111,41 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     }
   };
 
+  const handleExportAudit = () => {
+    const headers = ['Ticket', 'Local', 'Contacto', 'Duração', 'Status', 'Data/Hora'];
+    const rows = auditOrders.map(o => [
+      `#${o.ticket_code}`,
+      o.companies?.name || 'N/A',
+      o.customer_phone,
+      `${Math.floor((o.timer_accumulated_seconds || 0) / 60)}m`,
+      o.status,
+      new Date(o.created_at).toLocaleString()
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `auditoria_global_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const handleExportSMS = () => {
+    const headers = ['Estabelecimento', 'SMS Enviadas', 'Custo (Kz)'];
+    const rows = companies.map(co => [
+      co.name,
+      smsStats[co.id.toString()] || 0,
+      (smsStats[co.id.toString()] || 0) * 5
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `relatorio_sms_global_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
   useEffect(() => {
     if (activeView === 'AUDITORIA') {
       loadAuditData();
@@ -617,6 +652,33 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
           </>
         ) : activeView === 'AUDITORIA' ? (
           <section className="space-y-12 animate-fade-in">
+            <div className="flex justify-between items-center bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium no-print">
+              <div>
+                <h3 className="text-3xl font-black text-secondary tracking-tighter">Relatórios de Auditoria</h3>
+                <p className="text-text-muted font-medium mt-1">Logs globais de todas as transações e pedidos.</p>
+              </div>
+              <div className="flex gap-4">
+                <button onClick={handleExportAudit} className="h-16 px-10 bg-white border border-border/40 text-secondary rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all hover:bg-background flex items-center gap-3">
+                  <span className="material-symbols-outlined text-2xl">table_rows</span> CSV
+                </button>
+                <button onClick={() => window.print()} className="h-16 px-10 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-premium flex items-center gap-3">
+                  <span className="material-symbols-outlined text-2xl">picture_as_pdf</span> PDF
+                </button>
+              </div>
+            </div>
+
+            {/* Print Only Header */}
+            <div className="hidden print:flex justify-between items-center border-b-4 border-primary pb-8 mb-12">
+              <div>
+                <h1 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório de Auditoria Global</h1>
+                <p className="text-xl font-bold text-primary mt-2">KwikFood Management System</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-black text-secondary uppercase tracking-widest">Extraído em:</p>
+                <p className="text-lg font-bold text-text-muted">{new Date().toLocaleString()}</p>
+              </div>
+            </div>
+
             <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -680,8 +742,35 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         ) : (
           /* SMS & Financial View */
           <section className="space-y-12 animate-fade-in">
+            <div className="flex justify-between items-center bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium no-print">
+              <div>
+                <h3 className="text-3xl font-black text-secondary tracking-tighter">Financeiro & SMS</h3>
+                <p className="text-text-muted font-medium mt-1">Controle de custos operacionais e envios.</p>
+              </div>
+              <div className="flex gap-4">
+                <button onClick={handleExportSMS} className="h-16 px-10 bg-white border border-border/40 text-secondary rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all hover:bg-background flex items-center gap-3">
+                  <span className="material-symbols-outlined text-2xl">table_rows</span> CSV
+                </button>
+                <button onClick={() => window.print()} className="h-16 px-10 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-premium flex items-center gap-3">
+                  <span className="material-symbols-outlined text-2xl">picture_as_pdf</span> PDF
+                </button>
+              </div>
+            </div>
+
+            {/* Print Only Header */}
+            <div className="hidden print:flex justify-between items-center border-b-4 border-primary pb-8 mb-12">
+              <div>
+                <h1 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório Financeiro Global</h1>
+                <p className="text-xl font-bold text-primary mt-2">KwikFood Management System</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-black text-secondary uppercase tracking-widest">Extraído em:</p>
+                <p className="text-lg font-bold text-text-muted">{new Date().toLocaleString()}</p>
+              </div>
+            </div>
+
             <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
-              <div className="p-16 border-b border-border/50">
+              <div className="p-16 border-b border-border/50 no-print">
                 <h2 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório Financeiro de SMS</h2>
                 <p className="text-text-muted font-medium mt-2">Controle de envios e custos operacionais por parceiro.</p>
               </div>

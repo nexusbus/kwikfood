@@ -41,7 +41,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'PRODUTOS' | 'FILA' | 'HISTORICO' | 'MARKETING'>('FILA');
+  const [activeTab, setActiveTab] = useState<'PRODUTOS' | 'FILA' | 'HISTORICO' | 'MARKETING' | 'RELATORIOS'>('FILA');
   const [productFilter, setProductFilter] = useState('Todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
@@ -76,6 +76,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [marketingPasswordPrompt, setMarketingPasswordPrompt] = useState('');
   const [isMarketingUnlocked, setIsMarketingUnlocked] = useState(false);
   const [marketingAuthError, setMarketingAuthError] = useState(false);
+  const [smsCount, setSmsCount] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
@@ -125,6 +126,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           cancelledBy: o.cancelled_by,
           timestamp: new Date(o.created_at).toLocaleString()
         })));
+        const { count: sCount } = await supabase
+          .from('sms_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('company_id', company.id);
+
+        setSmsCount(sCount || 0);
+
       } catch (err) {
         console.error(err);
       }
@@ -396,6 +404,38 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
   const totalRevenue = filteredHistory.reduce((acc, o) => acc + (o.status === OrderStatus.DELIVERED ? (o.total || 0) : 0), 0);
 
+  const handleExportCSV = () => {
+    const headers = ['Data', 'Ticket', 'Status', 'Itens', 'Total (Kz)', 'Telefone', 'Pagamento'];
+    const rows = filteredHistory.map(o => [
+      o.timestamp,
+      `#${o.ticketCode}`,
+      o.status,
+      o.items.map(i => `${i.quantity}x ${i.name}`).join(' | '),
+      o.total || 0,
+      o.customerPhone,
+      o.paymentMethod || 'N/A'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `relatorio_${company.name.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="flex h-screen bg-[#F9F9F9] overflow-hidden selection:bg-primary selection:text-white relative font-sans">
       {/* Sidebar Backdrop - Click to Close */}
@@ -473,6 +513,15 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               {activeTab === 'MARKETING' && <div className="absolute right-6 size-2 bg-primary rounded-full animate-pulse"></div>}
             </button>
           )}
+
+          <button
+            onClick={() => setActiveTab('RELATORIOS')}
+            className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'RELATORIOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
+          >
+            <span className="material-symbols-outlined text-2xl">analytics</span>
+            Relatórios
+            {activeTab === 'RELATORIOS' && <div className="absolute right-6 size-2 bg-primary rounded-full animate-pulse"></div>}
+          </button>
 
           <div className="mt-8">
             <button
@@ -993,6 +1042,105 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'RELATORIOS' && (
+            <div className="space-y-12 animate-fade-in pb-20">
+              <div className="flex justify-between items-center bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium">
+                <div>
+                  <h3 className="text-3xl font-black text-secondary tracking-tighter">Performance de Vendas</h3>
+                  <p className="text-text-muted font-medium mt-1">Visão geral do faturamento e operações.</p>
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleExportCSV}
+                    className="h-16 px-10 bg-white border border-border/40 text-secondary hover:bg-background rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-sm flex items-center gap-3 active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-2xl">table_rows</span>
+                    EXCEL (CSV)
+                  </button>
+                  <button
+                    onClick={handlePrint}
+                    className="h-16 px-10 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-premium flex items-center gap-3 active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-2xl">picture_as_pdf</span>
+                    GERAR PDF
+                  </button>
+                </div>
+              </div>
+
+              {/* Print Only Header */}
+              <div className="hidden print:flex justify-between items-center border-b-4 border-primary pb-8 mb-12">
+                <div>
+                  <h1 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório de Desempenho</h1>
+                  <p className="text-xl font-bold text-primary mt-2">{company.name}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-black text-secondary uppercase tracking-widest">Extraído em:</p>
+                  <p className="text-lg font-bold text-text-muted">{new Date().toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Faturamento Bruto</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-5xl font-black text-secondary tracking-tighter">{totalRevenue.toLocaleString()} Kz</p>
+                    <span className="text-[11px] font-black text-green-500 uppercase">Recebido</span>
+                  </div>
+                </div>
+                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Investimento SMS</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-5xl font-black text-primary tracking-tighter">{(smsCount * 5).toLocaleString()} Kz</p>
+                    <span className="text-[11px] font-black text-primary uppercase">{smsCount} Envios</span>
+                  </div>
+                </div>
+                <div className="bg-white p-10 rounded-[3.5rem] border border-secondary shadow-premium group hover:border-primary/20 transition-all">
+                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Faturamento Líquido</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-5xl font-black text-secondary tracking-tighter">
+                      {(totalRevenue - (smsCount * 5)).toLocaleString()} Kz
+                    </p>
+                    <span className="text-[11px] font-black text-secondary/30 uppercase">Estimado</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-surface rounded-[4rem] shadow-premium border border-white/60 overflow-hidden">
+                <div className="p-12 border-b border-border/40 bg-white/50">
+                  <h4 className="text-2xl font-black text-secondary uppercase tracking-tighter">Histórico Detalhado para Auditoria</h4>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/40">
+                        <th className="px-12 py-10">Data/Hora</th>
+                        <th className="px-10 py-10">Ticket</th>
+                        <th className="px-10 py-10">Status</th>
+                        <th className="px-10 py-10">Total</th>
+                        <th className="px-10 py-10">Pagamento</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/20">
+                      {filteredHistory.map(o => (
+                        <tr key={o.id} className="hover:bg-background/20 transition-colors">
+                          <td className="px-12 py-8 font-bold text-secondary text-base">{o.timestamp}</td>
+                          <td className="px-10 py-8 font-black text-primary text-lg">#{o.ticketCode}</td>
+                          <td className="px-10 py-8">
+                            <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${getStatusColor(o.status)}`}>
+                              {getStatusLabel(o)}
+                            </span>
+                          </td>
+                          <td className="px-10 py-8 font-black text-secondary text-lg">{(o.total || 0).toLocaleString()} Kz</td>
+                          <td className="px-10 py-8 font-black text-text-muted uppercase text-[11px] tracking-widest">{o.paymentMethod || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

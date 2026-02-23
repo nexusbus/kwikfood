@@ -202,3 +202,97 @@ input:focus {
 .btn-premium:active {
   transform: scale(0.96);
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+
+  body {
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  /* Ocultar elementos que não devem aparecer no PDF */
+  header,
+  aside,
+  nav,
+  button,
+  .no-print,
+  .fixed,
+  .absolute:not(.print-visible),
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Ajustar containers para impressão */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  .flex-1 {
+    display: block !important;
+  }
+
+  /* Formatação de Relatório */
+  .bg-white,
+  .bg-surface {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 2rem !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th,
+  td {
+    border-bottom: 1px solid #E2E8F0 !important;
+    padding: 10px !important;
+    color: black !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+
+  h2,
+  h3,
+  h4 {
+    color: black !important;
+    margin-top: 0 !important;
+  }
+
+  .text-primary,
+  .text-secondary {
+    color: black !important;
+  }
+
+  .bg-primary-soft,
+  .bg-blue-100,
+  .bg-yellow-100,
+  .bg-green-100,
+  .bg-gray-100,
+  .bg-red-100 {
+    background-color: transparent !important;
+    border: 1px solid #E2E8F0 !important;
+  }
+
+  .print-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 40px !important;
+    border-bottom: 3px solid #CE1126 !important;
+    padding-bottom: 20px !important;
+  }
+}
