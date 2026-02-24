@@ -257,6 +257,20 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         payment_proof_url: paymentProofUrl
       }).eq('id', order.id);
       if (error) throw error;
+
+      // Telegram Notification
+      if (company?.telegramChatId && company?.telegramBotToken) {
+        const updatedOrder = {
+          ...order,
+          items: cart,
+          total: total,
+          status: OrderStatus.RECEIVED,
+          paymentMethod: paymentMethod
+        };
+        const message = formatOrderNotification(updatedOrder, 'NEW');
+        sendTelegramMessage(company.telegramBotToken, company.telegramChatId, message);
+      }
+
       setCart([]);
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
@@ -281,6 +295,14 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     try {
       const { error } = await supabase.from('orders').update({ status: OrderStatus.CANCELLED, cancelled_by: 'customer' }).eq('id', order.id);
       if (error) throw error;
+
+      // Telegram Notification for cancellation
+      if (company?.telegramChatId && company?.telegramBotToken) {
+        const cancelledOrder = { ...order, status: OrderStatus.CANCELLED };
+        const message = formatOrderNotification(cancelledOrder, 'STATUS_CHANGE');
+        sendTelegramMessage(company.telegramBotToken, company.telegramChatId, message);
+      }
+
       onNewOrder();
     } catch (err) {
       alert('Erro ao cancelar entrada.');
