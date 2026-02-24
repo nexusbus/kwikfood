@@ -26,7 +26,11 @@ export const sendTelegramMessage = async (botToken: string, chatId: string, mess
 };
 
 export const formatOrderNotification = (order: any, type: 'NEW' | 'STATUS_CHANGE') => {
-    const itemsText = order.items?.map((item: any) => `• ${item.quantity}x ${item.name}`).join('\n') || 'Nenhum item';
+    const itemsText = order.items?.map((item: any) => {
+        const obs = item.observation ? ` (Obs: ${item.observation})` : '';
+        return `• ${item.quantity}x ${item.name}${obs}`;
+    }).join('\n') || 'Nenhum item';
+
     const statusEmoji: Record<string, string> = {
         'RECEIVED': '📥',
         'PREPARING': '👨‍🍳',
@@ -35,18 +39,23 @@ export const formatOrderNotification = (order: any, type: 'NEW' | 'STATUS_CHANGE
         'CANCELLED': '❌'
     };
 
+    const statusText: Record<string, string> = {
+        'RECEIVED': 'RECEBIDO',
+        'PREPARING': 'em PREPARAÇÃO',
+        'READY': 'PRONTO para levantamento',
+        'DELIVERED': 'ENTREGUE',
+        'CANCELLED': 'CANCELADO'
+    };
+
     const ticketLine = `<b>#${order.ticketCode}</b> - ${order.customerName || 'Cliente'} ${statusEmoji[order.status] || ''}\n`;
     const phoneLine = `📱 Contacto: ${order.customerPhone}\n`;
+    const statusLine = `🧾 Estado: <b>${statusText[order.status] || order.status}</b>\n`;
+
+    const detailsBlock = `\n🛒 <b>ITENS DO PEDIDO:</b>\n${itemsText}\n\n💰 Total: ${order.total?.toLocaleString()} Kz`;
 
     if (type === 'NEW') {
-        return `${ticketLine}${phoneLine}\n🛒 <b>ITENS DO PEDIDO:</b>\n${itemsText}\n\n💰 Total: ${order.total?.toLocaleString()} Kz`;
+        return `🆕 <b>NOVO PEDIDO</b>\n${ticketLine}${phoneLine}${detailsBlock}`;
     } else {
-        const statusText: Record<string, string> = {
-            'PREPARING': 'está sendo PREPARADO',
-            'READY': 'está PRONTO para levantamento',
-            'DELIVERED': 'foi ENTREGUE',
-            'CANCELLED': 'foi CANCELADO'
-        };
-        return `${ticketLine}O pedido ${statusText[order.status] || order.status}.`;
+        return `🔔 <b>ACTUALIZAÇÃO</b>\n${ticketLine}${phoneLine}${statusLine}${detailsBlock}`;
     }
 };
