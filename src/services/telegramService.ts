@@ -2,16 +2,19 @@
 export const sendTelegramMessage = async (botToken: string, chatId: string, message: string) => {
     if (!botToken || !chatId) {
         console.warn('Telegram Bot Token ou Chat ID não configurado para este estabelecimento.');
-        return;
+        return { success: false, error: 'Credenciais não configuradas' };
     }
 
-    console.log(`Tentando enviar Telegram para ${chatId}...`);
+    const cleanChatId = chatId.trim();
+    const cleanToken = botToken.trim();
+
+    console.log(`Tentando enviar Telegram para ${cleanChatId}...`);
     try {
-        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        const response = await fetch(`https://api.telegram.org/bot${cleanToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                chat_id: chatId,
+                chat_id: cleanChatId,
                 text: message,
                 parse_mode: 'HTML'
             })
@@ -20,11 +23,14 @@ export const sendTelegramMessage = async (botToken: string, chatId: string, mess
         const resData = await response.json();
         if (!response.ok) {
             console.error('Telegram API Error:', resData);
+            return { success: false, error: resData.description || 'Erro na API do Telegram' };
         } else {
             console.log('Telegram Message Sent Successfully:', resData);
+            return { success: true, data: resData };
         }
-    } catch (err) {
+    } catch (err: any) {
         console.error('Telegram Fetch Error:', err);
+        return { success: false, error: err.message || 'Erro de rede ao conectar com Telegram' };
     }
 };
 

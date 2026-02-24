@@ -101,7 +101,16 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       setLoadingProducts(true);
       try {
         const { data: co } = await supabase.from('companies').select('*').eq('id', order.companyId).single();
-        if (co) setCompany(co as Company);
+        if (co) {
+          setCompany({
+            ...co,
+            logoUrl: co.logo_url,
+            marketingEnabled: co.marketing_enabled,
+            isActive: co.is_active,
+            telegramChatId: co.telegram_chat_id,
+            telegramBotToken: co.telegram_bot_token
+          } as Company);
+        }
 
         const { data: prods } = await supabase.from('products').select('*').eq('company_id', order.companyId);
         if (prods) setProducts(prods.map(p => ({ ...p, imageUrl: p.image_url })));

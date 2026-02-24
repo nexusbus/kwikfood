@@ -622,6 +622,22 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           <div className="flex flex-wrap justify-center items-center gap-4">
             {activeTab === 'FILA' && (
               <>
+                <button
+                  onClick={async () => {
+                    const res = await sendTelegramMessage(
+                      company.telegramBotToken || '',
+                      company.telegramChatId || '',
+                      `🧪 <b>TESTE DE CONECTIVIDADE</b>\nO seu terminal administrativo está correctamente ligado ao Telegram! 🚀`
+                    );
+                    if (res?.success) alert('Mensagem de teste enviada com sucesso! Verifique o seu grupo no Telegram.');
+                    else alert(`FALHA NO TELEGRAM: ${res?.error || 'Erro desconhecido'}`);
+                  }}
+                  className="h-16 px-6 bg-white border border-[#F5F5F5] text-secondary rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:border-primary/20 hover:text-primary transition-all flex items-center gap-2 active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-xl">send_and_archive</span>
+                  TESTAR TELEGRAM
+                </button>
+
                 <div className="grid grid-cols-2 gap-3 lg:gap-4 shrink-0">
                   <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
                     <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5 flex items-center gap-2">
