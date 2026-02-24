@@ -38,6 +38,8 @@ export interface Company {
   logoUrl?: string; // Add logo URL
   marketingEnabled?: boolean;
   isActive?: boolean;
+  telegramChatId?: string;
+  telegramBotToken?: string;
 }
 
 export interface CartItem extends Product {
@@ -61,6 +63,7 @@ export interface Order {
   paymentMethod?: 'CASH' | 'TPA' | 'TRANSFER';
   paymentProofUrl?: string;
   timestamp: string;
+  customerName?: string;
   cancelledBy?: 'admin' | 'customer';
 }
 export interface SuperAdmin {

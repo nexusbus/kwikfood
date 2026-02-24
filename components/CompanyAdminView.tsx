@@ -4,6 +4,7 @@ import { Company, Product, ProductStatus, Order, OrderStatus } from '../types';
 import { fetchProducts } from '../constants';
 import { supabase } from '../src/lib/supabase';
 import { sendSMS } from '../src/services/smsService';
+import { sendTelegramMessage, formatOrderNotification } from '../src/services/telegramService';
 import Logo from './Logo';
 
 interface CompanyAdminViewProps {
@@ -103,65 +104,68 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     return `${s}s`;
   };
 
+  const loadData = async () => {
+    try {
+      const { data: pData } = await supabase.from('products').select('*').eq('company_id', company.id);
+      if (pData) setProducts(pData.map(p => ({ ...p, imageUrl: p.image_url })));
+
+      const { data: oData } = await supabase
+        .from('orders')
+        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url')
+        .eq('company_id', company.id)
+        .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
+        .order('created_at', { ascending: true });
+
+      if (oData) setOrders(oData.map(o => ({
+        ...o,
+        companyId: o.company_id,
+        ticketCode: o.ticket_code,
+        customerPhone: o.customer_phone,
+        queuePosition: o.queue_position,
+        estimatedMinutes: o.estimated_minutes,
+        paymentMethod: o.payment_method,
+        paymentProofUrl: o.payment_proof_url,
+        customerName: o.customer_name,
+        timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
+        timerLastStartedAt: o.timer_last_started_at,
+        cancelledBy: o.cancelled_by,
+        timestamp: new Date(o.created_at).toLocaleString()
+      })));
+
+      const { data: hData } = await supabase
+        .from('orders')
+        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url')
+        .eq('company_id', company.id)
+        .in('status', [OrderStatus.DELIVERED, OrderStatus.CANCELLED])
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (hData) setHistoryOrders(hData.map(o => ({
+        ...o,
+        companyId: o.company_id,
+        ticketCode: o.ticket_code,
+        customerPhone: o.customer_phone,
+        paymentMethod: o.payment_method,
+        paymentProofUrl: o.payment_proof_url,
+        customerName: o.customer_name,
+        timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
+        timerLastStartedAt: o.timer_last_started_at,
+        cancelledBy: o.cancelled_by,
+        timestamp: new Date(o.created_at).toLocaleString()
+      })));
+      const { count: sCount } = await supabase
+        .from('sms_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('company_id', company.id);
+
+      setSmsCount(sCount || 0);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const { data: pData } = await supabase.from('products').select('*').eq('company_id', company.id);
-        if (pData) setProducts(pData.map(p => ({ ...p, imageUrl: p.image_url })));
-
-        const { data: oData } = await supabase
-          .from('orders')
-          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url')
-          .eq('company_id', company.id)
-          .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
-          .order('created_at', { ascending: true });
-
-        if (oData) setOrders(oData.map(o => ({
-          ...o,
-          companyId: o.company_id,
-          ticketCode: o.ticket_code,
-          customerPhone: o.customer_phone,
-          queuePosition: o.queue_position,
-          estimatedMinutes: o.estimated_minutes,
-          paymentMethod: o.payment_method,
-          paymentProofUrl: o.payment_proof_url,
-          timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
-          timerLastStartedAt: o.timer_last_started_at,
-          cancelledBy: o.cancelled_by,
-          timestamp: new Date(o.created_at).toLocaleString()
-        })));
-
-        const { data: hData } = await supabase
-          .from('orders')
-          .select('id, company_id, customer_phone, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url')
-          .eq('company_id', company.id)
-          .in('status', [OrderStatus.DELIVERED, OrderStatus.CANCELLED])
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (hData) setHistoryOrders(hData.map(o => ({
-          ...o,
-          companyId: o.company_id,
-          ticketCode: o.ticket_code,
-          customerPhone: o.customer_phone,
-          paymentMethod: o.payment_method,
-          paymentProofUrl: o.payment_proof_url,
-          timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
-          timerLastStartedAt: o.timer_last_started_at,
-          cancelledBy: o.cancelled_by,
-          timestamp: new Date(o.created_at).toLocaleString()
-        })));
-        const { count: sCount } = await supabase
-          .from('sms_logs')
-          .select('*', { count: 'exact', head: true })
-          .eq('company_id', company.id);
-
-        setSmsCount(sCount || 0);
-
-      } catch (err) {
-        console.error(err);
-      }
-    };
     loadData();
 
     const pChannel = supabase
@@ -256,6 +260,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       // Update local state immediately for better Reactivity/Precision
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates, timerAccumulatedSeconds: updates.timer_accumulated_seconds ?? o.timerAccumulatedSeconds, timerLastStartedAt: updates.timer_last_started_at ?? o.timerLastStartedAt } : o));
+
+      // Telegram Notification
+      if (company.telegramChatId && company.telegramBotToken) {
+        const updatedOrder = { ...order, status, ...updates };
+        const message = formatOrderNotification(updatedOrder, 'STATUS_CHANGE');
+        sendTelegramMessage(company.telegramBotToken, company.telegramChatId, message);
+      }
       if (status === OrderStatus.DELIVERED || status === OrderStatus.CANCELLED) {
         setOrders(prev => prev.filter(o => o.id !== orderId));
       }
@@ -689,7 +700,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         <div className="flex justify-between items-start mb-6">
                           <div>
                             <h3 className="text-3xl font-black text-[#E11D48] tracking-tight mb-1">#{order.ticketCode}</h3>
-                            <p className="text-base font-bold text-[#BBBBBB]">{order.customerPhone}</p>
+                            <div className="flex flex-col">
+                              {order.customerName && <p className="text-sm font-black text-[#111111] uppercase tracking-wider">{order.customerName}</p>}
+                              <p className="text-base font-bold text-[#BBBBBB]">{order.customerPhone}</p>
+                            </div>
                           </div>
                           <div className="text-right">
                             <p className="text-xl font-black text-[#111111]">{(order.total || 0).toLocaleString()} Kz</p>

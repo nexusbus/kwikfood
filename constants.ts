@@ -14,7 +14,9 @@ export const fetchCompanies = async (): Promise<Company[]> => {
     isActive: co.is_active,
     city: co.city,
     province: co.province,
-    type: co.type
+    type: co.type,
+    telegramChatId: co.telegram_chat_id,
+    telegramBotToken: co.telegram_bot_token
   })) as Company[];
 };
 
@@ -51,6 +53,7 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
         p_payload: {
           company_id: Number(order.companyId),
           customer_phone: order.customerPhone,
+          customer_name: order.customerName,
           status: order.status,
           estimated_minutes: order.estimatedMinutes,
           payment_method: order.paymentMethod,
@@ -71,6 +74,7 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
       ticketNumber: data.ticket_number,
       companyId: data.company_id,
       customerPhone: data.customer_phone,
+      customerName: data.customer_name,
       queuePosition: data.queue_position,
       estimatedMinutes: data.estimated_minutes,
       timerAccumulatedSeconds: 0,

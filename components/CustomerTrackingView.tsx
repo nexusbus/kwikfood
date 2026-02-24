@@ -4,6 +4,7 @@ import { Company, Order, OrderStatus, Product, CartItem } from '../types';
 import { supabase } from '../src/lib/supabase';
 import { requestNotificationPermission, showNotification } from '../src/lib/notifications';
 import Logo from './Logo';
+import { sendTelegramMessage, formatOrderNotification } from '../src/services/telegramService';
 
 interface CustomerTrackingViewProps {
   order: Order;
@@ -307,7 +308,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           <span className="text-xl font-black tracking-tight text-[#111111]">KwikFood</span>
         </div>
         <div className="bg-red-50 text-primary px-5 py-2 rounded-2xl font-black text-[13px] tracking-widest shadow-sm">
-          #{order.ticketCode?.padStart(3, '0')}
+          #{order.ticketCode}
         </div>
       </header>
 

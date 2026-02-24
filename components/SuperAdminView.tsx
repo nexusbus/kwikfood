@@ -32,6 +32,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [geoLoading, setGeoLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
   const [logoLoading, setLogoLoading] = useState(false);
+  const [telegramChatId, setTelegramChatId] = useState('');
+  const [telegramBotToken, setTelegramBotToken] = useState('');
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
   const [showQRModal, setShowQRModal] = useState<Company | null>(null);
@@ -112,10 +114,11 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   };
 
   const handleExportAudit = () => {
-    const headers = ['Ticket', 'Local', 'Contacto', 'Duração', 'Status', 'Data/Hora'];
+    const headers = ['Ticket', 'Local', 'Cliente', 'Contacto', 'Duração', 'Status', 'Data/Hora'];
     const rows = auditOrders.map(o => [
       `#${o.ticket_code}`,
       o.companies?.name || 'N/A',
+      o.customer_name || 'N/A',
       o.customer_phone,
       `${Math.floor((o.timer_accumulated_seconds || 0) / 60)}m`,
       o.status,
@@ -173,7 +176,9 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         lng,
         email,
         password,
-        logo_url: logoUrl
+        logo_url: logoUrl,
+        telegram_chat_id: telegramChatId,
+        telegram_bot_token: telegramBotToken
       };
 
       if (editingCompany) {
@@ -191,7 +196,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       }
 
       setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
-      setCity(''); setType('');
+      setCity(''); setType(''); setTelegramChatId(''); setTelegramBotToken('');
       const nextId = await getNextCompanyId();
       setId(nextId.toString().padStart(4, '0'));
     } catch (err: any) {
@@ -215,6 +220,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setEmail(company.email || '');
     setPassword(company.password || '');
     setLogoUrl(company.logoUrl || '');
+    setTelegramChatId(company.telegramChatId || '');
+    setTelegramBotToken(company.telegramBotToken || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -247,7 +254,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const handleCancelEdit = async () => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
-    setCity(''); setType('');
+    setCity(''); setType(''); setTelegramChatId(''); setTelegramBotToken('');
     const nextId = await getNextCompanyId();
     setId(nextId.toString().padStart(4, '0'));
   };
@@ -472,6 +479,16 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                   <div className="space-y-4">
                     <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Senha Administrativa</label>
                     <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Telegram Chat ID</label>
+                    <input type="text" value={telegramChatId} onChange={e => setTelegramChatId(e.target.value)} placeholder="Ex: -100123456789" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" />
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Telegram Bot Token</label>
+                    <input type="text" value={telegramBotToken} onChange={e => setTelegramBotToken(e.target.value)} placeholder="Ex: 123456:ABC-DEF..." className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" />
                   </div>
 
                   <div className="md:col-span-2 space-y-4">
@@ -701,6 +718,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-black text-secondary uppercase truncate">{order.companies?.name}</p>
+                              {order.customer_name && <p className="text-[10px] font-black text-primary uppercase tracking-wider">{order.customer_name}</p>}
                               <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest">Ref: {order.id.slice(0, 8)}</p>
                             </div>
                           </div>

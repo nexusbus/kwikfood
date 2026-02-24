@@ -16,8 +16,10 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  const [termsAccepted, setTermsAccepted] = useState(true);
+  const [customerName, setCustomerName] = useState('');
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const codeRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -35,13 +37,13 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
     // Auto-focus next
     if (value && index < 3) {
-      inputRefs[index + 1].current?.focus();
+      codeRefs[index + 1].current?.focus();
     }
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs[index - 1].current?.focus();
+      codeRefs[index - 1].current?.focus();
     }
   };
 
@@ -56,6 +58,38 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
       Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
+
+  useEffect(() => {
+    const checkCustomer = async () => {
+      if (phone.length === 0) {
+        setCustomerName('');
+        setIsNewCustomer(false);
+        return;
+      }
+
+      if (phone.length === 9) {
+        const { data, error } = await supabase
+          .from('customers')
+          .select('name')
+          .eq('phone', phone)
+          .maybeSingle();
+
+        if (data) {
+          setCustomerName(data.name);
+          setIsNewCustomer(false);
+        } else {
+          setCustomerName('');
+          setIsNewCustomer(true);
+        }
+      } else {
+        // Enquanto digita ou apaga, não mostramos o campo de nome
+        // e limpamos qualquer nome previamente carregado para privacidade
+        setCustomerName('');
+        setIsNewCustomer(false);
+      }
+    };
+    checkCustomer();
+  }, [phone]);
 
   const handleJoin = async () => {
     setError(null);
@@ -123,6 +157,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
                 timestamp: existingOrder.created_at,
                 items: existingOrder.items || [],
                 total: existingOrder.total || 0,
+                customerName: existingOrder.customer_name,
                 timerAccumulatedSeconds: existingOrder.timer_accumulated_seconds || 0,
                 timerLastStartedAt: existingOrder.timer_last_started_at
               });
@@ -132,10 +167,20 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             const newOrderData = await createOrder({
               companyId: company.id,
               customerPhone: phone,
+              customerName: customerName,
               status: OrderStatus.PENDING,
               queuePosition: 1,
               estimatedMinutes: 5,
             });
+
+            // Save customer name if new
+            if (isNewCustomer && customerName.trim()) {
+              await supabase.from('customers').upsert({
+                phone: phone,
+                name: customerName.trim()
+              });
+            }
+
             onJoinQueue(newOrderData);
           } catch (err: any) {
             setError(`Erro ao entrar: ${err.message || 'Falha na ligação'}`);
@@ -201,19 +246,37 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               {code.map((digit, i) => (
                 <input
                   key={i}
-                  ref={inputRefs[i]}
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handleCodeChange(i, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(i, e)}
+                  ref={codeRefs[i]}
                   className="w-full h-16 bg-[#F8F9FA] border-none rounded-2xl text-2xl font-black text-center text-[#111111] focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                   placeholder="•"
                 />
               ))}
             </div>
           </div>
+
+          {/* Customer Name Section (Conditional) */}
+          {isNewCustomer && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-outlined text-primary text-xl">person</span>
+                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Pedido em nome de...</label>
+              </div>
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full h-16 bg-[#F8F9FA] border-none rounded-2xl px-6 text-base font-black text-[#111111] focus:ring-2 focus:ring-primary/20 transition-all outline-none placeholder:text-[#BBBBBB]"
+                placeholder="Introduza o seu nome"
+                required
+              />
+            </div>
+          )}
 
           {/* Phone Section */}
           <div className="space-y-4">
