@@ -5,6 +5,7 @@ export const sendTelegramMessage = async (botToken: string, chatId: string, mess
         return;
     }
 
+    console.log(`Tentando enviar Telegram para ${chatId}...`);
     try {
         const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',
@@ -16,18 +17,30 @@ export const sendTelegramMessage = async (botToken: string, chatId: string, mess
             })
         });
 
+        const resData = await response.json();
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Telegram API Error:', errorData);
+            console.error('Telegram API Error:', resData);
+        } else {
+            console.log('Telegram Message Sent Successfully:', resData);
         }
     } catch (err) {
         console.error('Telegram Fetch Error:', err);
     }
 };
 
+const escapeHtml = (text: string) => {
+    if (!text) return '';
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+};
+
 export const formatOrderNotification = (order: any, type: 'NEW' | 'STATUS_CHANGE') => {
     const itemsText = order.items?.map((item: any) => {
-        const obs = item.observation ? ` (Obs: ${item.observation})` : '';
+        const obs = item.observation ? ` (Obs: ${escapeHtml(item.observation)})` : '';
         return `• ${item.quantity}x ${item.name}${obs}`;
     }).join('\n') || 'Nenhum item';
 
@@ -47,11 +60,15 @@ export const formatOrderNotification = (order: any, type: 'NEW' | 'STATUS_CHANGE
         'CANCELLED': 'CANCELADO'
     };
 
-    const ticketLine = `<b>#${order.ticketCode}</b> - ${order.customerName || 'Cliente'} ${statusEmoji[order.status] || ''}\n`;
-    const phoneLine = `📱 Contacto: ${order.customerPhone}\n`;
-    const statusLine = `🧾 Estado: <b>${statusText[order.status] || order.status}</b>\n`;
+    const safeName = escapeHtml(order.customerName || 'Cliente');
+    const safePhone = order.customerPhone || 'N/A';
+    const safeTotal = order.total ? order.total.toLocaleString() : '0';
 
-    const detailsBlock = `\n🛒 <b>ITENS DO PEDIDO:</b>\n${itemsText}\n\n💰 Total: ${order.total?.toLocaleString()} Kz`;
+    const ticketLine = `<b>#${order.ticketCode || '---'}</b> - ${safeName} ${statusEmoji[order.status] || ''}\n`;
+    const phoneLine = `📱 Contacto: ${safePhone}\n`;
+    const statusLine = `🧾 Estado: <b>${statusText[order.status] || order.status || '---'}</b>\n`;
+
+    const detailsBlock = `\n🛒 <b>ITENS DO PEDIDO:</b>\n${itemsText}\n\n💰 Total: ${safeTotal} Kz`;
 
     if (type === 'NEW') {
         return `🆕 <b>NOVO PEDIDO</b>\n${ticketLine}${phoneLine}${detailsBlock}`;
