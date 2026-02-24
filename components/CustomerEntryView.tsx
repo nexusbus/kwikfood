@@ -260,24 +260,6 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             </div>
           </div>
 
-          {/* Customer Name Section (Conditional) */}
-          {isNewCustomer && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="material-symbols-outlined text-primary text-xl">person</span>
-                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Pedido em nome de...</label>
-              </div>
-              <input
-                type="text"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full h-16 bg-[#F8F9FA] border-none rounded-2xl px-6 text-base font-black text-[#111111] focus:ring-2 focus:ring-primary/20 transition-all outline-none placeholder:text-[#BBBBBB]"
-                placeholder="Introduza o seu nome"
-                required
-              />
-            </div>
-          )}
-
           {/* Phone Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
@@ -298,6 +280,24 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               />
             </div>
           </div>
+
+          {/* Customer Name Section (Conditional) */}
+          {isNewCustomer && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-outlined text-primary text-xl">person</span>
+                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Pedido em nome de...</label>
+              </div>
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full h-16 bg-[#F8F9FA] border-none rounded-2xl px-6 text-base font-black text-[#111111] focus:ring-2 focus:ring-primary/20 transition-all outline-none placeholder:text-[#BBBBBB]"
+                placeholder="Introduza o seu nome"
+                required
+              />
+            </div>
+          )}
 
           {/* Terms Checkbox */}
           <label className="flex items-center gap-4 cursor-pointer group">
