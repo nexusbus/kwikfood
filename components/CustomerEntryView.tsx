@@ -19,6 +19,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [matchedCompany, setMatchedCompany] = useState<Company | null>(null);
   const codeRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
@@ -28,6 +29,16 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
       setCode(urlCode.split(''));
     }
   }, []);
+
+  useEffect(() => {
+    const fullCode = code.join('');
+    if (fullCode.length > 0) {
+      const company = companies.find(c => c.id.toString().padStart(4, '0') === fullCode.padStart(4, '0'));
+      setMatchedCompany(company || null);
+    } else {
+      setMatchedCompany(null);
+    }
+  }, [code, companies]);
 
   const handleCodeChange = (index: number, value: string) => {
     if (value.length > 1) value = value[0];
@@ -233,6 +244,32 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             Junte-se à nossa fila digital premium e acompanhe o seu pedido em tempo real.
           </p>
         </div>
+
+        {/* Dynamic Company Logo & Name */}
+        {matchedCompany && (
+          <div className="mb-10 flex flex-col items-center animate-fade-in text-center">
+            {matchedCompany.logoUrl ? (
+              <div className="size-24 rounded-3xl overflow-hidden shadow-xl shadow-primary/10 border-4 border-white mb-4 bg-white">
+                <img
+                  src={matchedCompany.logoUrl}
+                  alt={matchedCompany.name}
+                  className="size-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="size-24 rounded-3xl bg-primary/5 flex items-center justify-center mb-4 border-4 border-white shadow-xl shadow-primary/5">
+                <span className="material-symbols-outlined text-4xl text-primary">store</span>
+              </div>
+            )}
+            <h2 className="text-2xl font-black text-[#111111] tracking-tight truncate max-w-full px-4">
+              {matchedCompany.name}
+            </h2>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="size-1.5 bg-green-500 rounded-full animate-pulse"></span>
+              <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em]">Estabelecimento Conectado</span>
+            </div>
+          </div>
+        )}
 
         {/* Form Card */}
         <div className="w-full bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.06)] border border-[#F5F5F5] p-8 space-y-10">
