@@ -5,7 +5,7 @@ import Logo from './Logo';
 import { supabase } from '../src/lib/supabase';
 import { Company, OrderStatus } from '../types';
 import { sendSMS } from '../src/services/smsService';
-import { sendTelegramMessage, checkBotStatus } from '../src/services/telegramService';
+import { sendTelegramMessage, checkBotStatus, getBotUpdates } from '../src/services/telegramService';
 const PROVINCES = [
   'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango', 'Cuanza Norte',
   'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla', 'Luanda', 'Lunda Norte',
@@ -826,10 +826,29 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                         <p className="text-[11px] font-black text-primary uppercase tracking-widest mb-2 flex items-center gap-2">
                           <span className="material-symbols-outlined text-sm">info</span> IMPORTANTE
                         </p>
-                        <p className="text-[10px] font-bold text-text-muted leading-relaxed">
+                        <p className="text-[10px] font-bold text-text-muted leading-relaxed mb-4">
                           O Telegram <b>NÃO</b> aceita números de telefone. Use o ID numérico ou o @username.<br />
-                          Para grupos, use bots como <b>@GetChatID_Bot</b> para obter o ID correto.
+                          Para grupos, use o botão abaixo para detectar o ID automaticamente.
                         </p>
+                        <button
+                          onClick={async () => {
+                            setTestLoading(true);
+                            const res = await getBotUpdates(testToken);
+                            setTestLoading(false);
+                            if (res.success && res.chats && res.chats.length > 0) {
+                              const chatInfo = res.chats.map((c: any) => `${c.title} (ID: ${c.id})`).join('\n');
+                              alert(`📍 GRUPOS DETECTADOS:\n\n${chatInfo}\n\nCopie o ID desejado (incluindo o sinal -) para o campo ao lado.`);
+                            } else if (res.success) {
+                              alert("Nenhum grupo detectado.\n\nPROCEDIMENTO: Escreva uma mensagem qualquer no seu grupo do Telegram (ex: 'Olá Bot') e clique aqui novamente para o sistema capturar o ID.");
+                            } else {
+                              alert(`Erro ao detectar: ${res.error}`);
+                            }
+                          }}
+                          className="w-full py-4 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-xl font-black text-[9px] uppercase tracking-widest transition-all transition-all flex items-center justify-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-sm">radar</span>
+                          Detectar Grupos Ativos
+                        </button>
                       </div>
                     </div>
                   </div>

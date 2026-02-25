@@ -49,6 +49,37 @@ export const checkBotStatus = async (botToken: string) => {
     }
 };
 
+export const getBotUpdates = async (botToken: string) => {
+    if (!botToken) return { success: false, error: 'Token não fornecido' };
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${botToken.trim()}/getUpdates?limit=10&offset=-1`);
+        const resData = await response.json();
+        if (response.ok) {
+            // Extrair chats únicos das atualizações
+            const chats = resData.result.map((update: any) => {
+                const message = update.message || update.channel_post || update.my_chat_member;
+                if (message) {
+                    const chat = message.chat;
+                    return {
+                        id: chat.id,
+                        title: chat.title || chat.first_name || 'Desconhecido',
+                        type: chat.type
+                    };
+                }
+                return null;
+            }).filter((c: any) => c !== null);
+
+            // Remover duplicados por ID
+            const uniqueChats = Array.from(new Map(chats.map((c: any) => [c.id, c])).values());
+            return { success: true, chats: uniqueChats };
+        } else {
+            return { success: false, error: resData.description || 'Erro ao obter atualizações' };
+        }
+    } catch (err: any) {
+        return { success: false, error: err.message };
+    }
+};
+
 const escapeHtml = (text: string) => {
     if (!text) return '';
     return text
