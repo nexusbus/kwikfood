@@ -805,14 +805,20 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                         type="text"
                         value={testChatId}
                         onChange={e => setTestChatId(e.target.value)}
-                        placeholder="Ex: -100123456789"
+                        placeholder="Ex: 562819203 (Individual) ou -100... (Grupo)"
                         className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none"
                       />
                     </div>
                     <div className="space-y-4 text-left pt-10">
-                      <p className="text-[10px] font-bold text-text-muted leading-relaxed">
-                        <span className="text-primary">DICA:</span> O Chat ID pode ser de um grupo ou individual. Para grupos, geralmente começam com "-100". Certifique-se que o bot é administrador do grupo.
-                      </p>
+                      <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10">
+                        <p className="text-[11px] font-black text-primary uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-sm">info</span> IMPORTANTE
+                        </p>
+                        <p className="text-[10px] font-bold text-text-muted leading-relaxed">
+                          O Telegram <b>NÃO</b> aceita números de telefone. Use o ID numérico ou o @username.<br />
+                          Para grupos, use bots como <b>@GetChatID_Bot</b> para obter o ID correto.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
