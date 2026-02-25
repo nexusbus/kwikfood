@@ -5,7 +5,7 @@ import Logo from './Logo';
 import { supabase } from '../src/lib/supabase';
 import { Company, OrderStatus } from '../types';
 import { sendSMS } from '../src/services/smsService';
-
+import { sendTelegramMessage } from '../src/services/telegramService';
 const PROVINCES = [
   'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango', 'Cuanza Norte',
   'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla', 'Luanda', 'Lunda Norte',
@@ -41,9 +41,16 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [adminConfirmPassword, setAdminConfirmPassword] = useState('');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [activeView, setActiveView] = useState<'ESTABELECIMENTOS' | 'AUDITORIA' | 'SMS'>('ESTABELECIMENTOS');
+  const [activeView, setActiveView] = useState<'ESTABELECIMENTOS' | 'AUDITORIA' | 'SMS' | 'DIAGNOSTICO'>('ESTABELECIMENTOS');
   const [auditOrders, setAuditOrders] = useState<any[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
+
+  // Telegram Test Console States
+  const [testToken, setTestToken] = useState('8656847836:AAH0TkUpHdO_8ECYaSDBG5yGnppBc0hgoVM');
+  const [testChatId, setTestChatId] = useState('');
+  const [testMessage, setTestMessage] = useState('Olá! Este é um teste de conectividade do KwikFood SuperAdmin. 🚀');
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [testLoading, setTestLoading] = useState(false);
 
   // New States for Search and Dashboard
   const [searchTerm, setSearchTerm] = useState('');
@@ -381,6 +388,12 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'SMS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
           >
             SMS & Financeiro
+          </button>
+          <button
+            onClick={() => setActiveView('DIAGNOSTICO')}
+            className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'DIAGNOSTICO' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
+          >
+            Diagnóstico
           </button>
         </div>
 
@@ -754,6 +767,105 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </section>
+        ) : activeView === 'DIAGNOSTICO' ? (
+          <section className="space-y-12 animate-fade-in">
+            <div className="bg-surface rounded-[4.5rem] shadow-premium p-16 border border-white/60 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
+
+              <div className="max-w-4xl mx-auto space-y-12">
+                <div className="flex items-center gap-8">
+                  <div className="size-20 bg-secondary text-white rounded-[2.2rem] flex items-center justify-center shadow-premium transform -rotate-3">
+                    <span className="material-symbols-outlined text-5xl">terminal</span>
+                  </div>
+                  <div>
+                    <h2 className="text-5xl font-black tracking-tight text-secondary leading-none">Consola de Diagnóstico</h2>
+                    <p className="text-text-muted font-medium text-lg mt-3">Teste a conectividade do Telegram manualmente.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-10">
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Bot Token (BotFather)</label>
+                    <input
+                      type="text"
+                      value={testToken}
+                      onChange={e => setTestToken(e.target.value)}
+                      placeholder="Ex: 123456:ABC-DEF..."
+                      className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="space-y-4">
+                      <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Chat ID / Telefone (Destino)</label>
+                      <input
+                        type="text"
+                        value={testChatId}
+                        onChange={e => setTestChatId(e.target.value)}
+                        placeholder="Ex: -100123456789"
+                        className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none"
+                      />
+                    </div>
+                    <div className="space-y-4 text-left pt-10">
+                      <p className="text-[10px] font-bold text-text-muted leading-relaxed">
+                        <span className="text-primary">DICA:</span> O Chat ID pode ser de um grupo ou individual. Para grupos, geralmente começam com "-100". Certifique-se que o bot é administrador do grupo.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Mensagem de Teste</label>
+                    <textarea
+                      value={testMessage}
+                      onChange={e => setTestMessage(e.target.value)}
+                      rows={3}
+                      className="w-full bg-background border-2 border-border/40 rounded-[1.8rem] p-8 font-medium text-lg text-secondary focus:border-primary transition-all outline-none resize-none"
+                    />
+                  </div>
+
+                  {testResult && (
+                    <div className={`p-8 rounded-[2rem] border animate-fade-in ${testResult.success ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                      <div className="flex items-start gap-4">
+                        <span className="material-symbols-outlined text-2xl">
+                          {testResult.success ? 'check_circle' : 'error'}
+                        </span>
+                        <div>
+                          <p className="font-black uppercase text-[11px] tracking-widest mb-1">
+                            {testResult.success ? 'SUCESSO NO ENVIO' : 'ERRO DETECTADO'}
+                          </p>
+                          <p className="text-sm font-medium leading-relaxed">{testResult.message}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={async () => {
+                      setTestLoading(true);
+                      setTestResult(null);
+                      try {
+                        const result = await sendTelegramMessage(testToken, testChatId, testMessage);
+                        if (result?.success) {
+                          setTestResult({ success: true, message: 'Mensagem entregue com sucesso! Verifique o Telegram.' });
+                        } else {
+                          setTestResult({ success: false, message: result?.error || 'Falha desconhecida no envio.' });
+                        }
+                      } catch (err: any) {
+                        setTestResult({ success: false, message: err.message || 'Erro crítico ao tentar conectar.' });
+                      } finally {
+                        setTestLoading(false);
+                      }
+                    }}
+                    disabled={testLoading || !testToken || !testChatId}
+                    className="w-full h-24 bg-secondary hover:bg-primary text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-[14px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
+                    {testLoading ? 'A PROCESSAR...' : 'DISPARAR TESTE MANUAL'}
+                  </button>
+                </div>
               </div>
             </div>
           </section>
