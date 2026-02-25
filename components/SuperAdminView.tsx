@@ -5,7 +5,7 @@ import Logo from './Logo';
 import { supabase } from '../src/lib/supabase';
 import { Company, OrderStatus } from '../types';
 import { sendSMS } from '../src/services/smsService';
-import { sendTelegramMessage } from '../src/services/telegramService';
+import { sendTelegramMessage, checkBotStatus } from '../src/services/telegramService';
 const PROVINCES = [
   'Bengo', 'Benguela', 'Bié', 'Cabinda', 'Cuando Cubango', 'Cuanza Norte',
   'Cuanza Sul', 'Cunene', 'Huambo', 'Huíla', 'Luanda', 'Lunda Norte',
@@ -789,13 +789,25 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                 <div className="grid grid-cols-1 gap-10">
                   <div className="space-y-4">
                     <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Bot Token (BotFather)</label>
-                    <input
-                      type="text"
-                      value={testToken}
-                      onChange={e => setTestToken(e.target.value)}
-                      placeholder="Ex: 123456:ABC-DEF..."
-                      className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none"
-                    />
+                    <div className="flex gap-4">
+                      <input
+                        type="text"
+                        value={testToken}
+                        onChange={e => setTestToken(e.target.value)}
+                        placeholder="Ex: 123456:ABC-DEF..."
+                        className="flex-1 h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none"
+                      />
+                      <button
+                        onClick={async () => {
+                          const res = await checkBotStatus(testToken);
+                          if (res.success) alert(`✅ TOKEN VÁLIDO!\nBot: ${res.botName} (@${res.username})`);
+                          else alert(`❌ TOKEN INVÁLIDO: ${res.error}`);
+                        }}
+                        className="h-20 px-8 bg-white border-2 border-primary/20 text-primary rounded-[1.8rem] font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all active:scale-95"
+                      >
+                        Verificar
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -857,7 +869,11 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                         if (result?.success) {
                           setTestResult({ success: true, message: 'Mensagem entregue com sucesso! Verifique o Telegram.' });
                         } else {
-                          setTestResult({ success: false, message: result?.error || 'Falha desconhecida no envio.' });
+                          let customError = result?.error || 'Falha desconhecida no envio.';
+                          if (customError.includes('chat not found')) {
+                            customError = 'CHAT NÃO ENCONTRADO: Certifique-se que o Bot é ADMINISTRADOR do grupo e que o ID começa com -100 (se for supergrupo).';
+                          }
+                          setTestResult({ success: false, message: customError });
                         }
                       } catch (err: any) {
                         setTestResult({ success: false, message: err.message || 'Erro crítico ao tentar conectar.' });

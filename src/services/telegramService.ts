@@ -34,6 +34,21 @@ export const sendTelegramMessage = async (botToken: string, chatId: string, mess
     }
 };
 
+export const checkBotStatus = async (botToken: string) => {
+    if (!botToken) return { success: false, error: 'Token não fornecido' };
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${botToken.trim()}/getMe`);
+        const resData = await response.json();
+        if (response.ok) {
+            return { success: true, botName: resData.result.first_name, username: resData.result.username };
+        } else {
+            return { success: false, error: resData.description || 'Token Inválido' };
+        }
+    } catch (err: any) {
+        return { success: false, error: err.message };
+    }
+};
+
 const escapeHtml = (text: string) => {
     if (!text) return '';
     return text
