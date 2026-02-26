@@ -59,8 +59,8 @@ BEGIN
     WHERE company_id = v_co_id 
       AND created_at::DATE = CURRENT_DATE;
 
-    -- 2. Gerar código de ticket (ex: A001)
-    v_ticket_code := 'A' || LPAD(v_next_number::TEXT, 3, '0');
+    -- 2. Gerar código de ticket (ex: 2602_001)
+    v_ticket_code := to_char(v_created_at, 'DDMM') || '_' || LPAD(v_next_number::TEXT, 3, '0');
 
     -- 3. Calcular posição inicial (número de pedidos ativos)
     SELECT COUNT(*) + 1 
@@ -90,6 +90,7 @@ BEGIN
         v_co_id,
         v_phone,
         (p_payload->>'customer_name')::TEXT,
+        v_ticket_code,
         v_next_number,
         v_status,
         v_initial_pos,
