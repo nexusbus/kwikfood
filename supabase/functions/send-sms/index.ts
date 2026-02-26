@@ -1,16 +1,8 @@
-/// <reference no-default-lib="true" />
-/// <reference lib="esnext" />
-/// <reference lib="dom" />
-/// <reference lib="dom.iterable" />
-
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
 
 const SMSHUB_BASE_URL = "https://app.smshubangola.com/api";
 
-const _Deno = (globalThis as any).Deno;
-
-_Deno.serve(async (req: any) => {
+Deno.serve(async (req: Request) => {
     // Handle CORS preflight requests
     if (req.method === "OPTIONS") {
         return new Response("ok", {
@@ -36,8 +28,8 @@ _Deno.serve(async (req: any) => {
             });
         }
 
-        const authId = _Deno.env.get("SMSHUB_AUTH_ID");
-        const secretKey = _Deno.env.get("SMSHUB_SECRET_KEY");
+        const authId = Deno.env.get("SMSHUB_AUTH_ID");
+        const secretKey = Deno.env.get("SMSHUB_SECRET_KEY");
 
         if (!authId || !secretKey) {
             console.error("[Edge Function] Error: SMSHUB credentials missing");
@@ -94,8 +86,8 @@ _Deno.serve(async (req: any) => {
         // 3. Log the SMS if successful
         if (sendResponse.ok && companyId) {
             try {
-                const supabaseUrl = _Deno.env.get("SUPABASE_URL") ?? "";
-                const supabaseServiceRoleKey = _Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+                const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+                const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
                 if (supabaseUrl && supabaseServiceRoleKey) {
                     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);

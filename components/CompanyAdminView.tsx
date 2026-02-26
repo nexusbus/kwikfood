@@ -117,7 +117,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         .from('orders')
         .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url, order_type')
         .eq('company_id', company.id)
-        .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
+        .in('status', [OrderStatus.PENDING, OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
         .order('created_at', { ascending: true });
 
       if (oData) setOrders(oData.map(o => ({

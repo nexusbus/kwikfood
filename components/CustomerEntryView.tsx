@@ -313,47 +313,6 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
         {/* Form Card */}
         <div className="w-full bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.06)] border border-[#F5F5F5] p-8 space-y-10">
-          {/* Order Type Selection */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-primary text-xl">restaurant_menu</span>
-              <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Como vai querer o seu pedido?</label>
-            </div>
-            <div className="grid grid-cols-1 gap-3">
-              <button
-                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.EAT_IN ? null : OrderType.EAT_IN)}
-                className={`flex items-center justify-between px-6 py-4 rounded-2xl border-2 transition-all group ${selectedOrderType === OrderType.EAT_IN ? 'bg-primary border-primary text-white' : 'bg-[#F8F9FA] border-transparent text-[#111111] hover:border-primary/20'}`}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="material-symbols-outlined text-2xl">restaurant</span>
-                  <span className="text-sm font-black uppercase tracking-wider">Vou comer aqui</span>
-                </div>
-                {selectedOrderType === OrderType.EAT_IN && <span className="material-symbols-outlined text-xl">check_circle</span>}
-              </button>
-
-              <button
-                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.TAKE_AWAY ? null : OrderType.TAKE_AWAY)}
-                className={`flex items-center justify-between px-6 py-4 rounded-2xl border-2 transition-all group ${selectedOrderType === OrderType.TAKE_AWAY ? 'bg-primary border-primary text-white' : 'bg-[#F8F9FA] border-transparent text-[#111111] hover:border-primary/20'}`}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="material-symbols-outlined text-2xl">local_mall</span>
-                  <span className="text-sm font-black uppercase tracking-wider">Vou levar</span>
-                </div>
-                {selectedOrderType === OrderType.TAKE_AWAY && <span className="material-symbols-outlined text-xl">check_circle</span>}
-              </button>
-
-              <button
-                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.DELIVERY ? null : OrderType.DELIVERY)}
-                className={`flex items-center justify-between px-6 py-4 rounded-2xl border-2 transition-all group ${selectedOrderType === OrderType.DELIVERY ? 'bg-primary border-primary text-white' : 'bg-[#F8F9FA] border-transparent text-[#111111] hover:border-primary/20'}`}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="material-symbols-outlined text-2xl">delivery_dining</span>
-                  <span className="text-sm font-black uppercase tracking-wider">Entrega-me</span>
-                </div>
-                {selectedOrderType === OrderType.DELIVERY && <span className="material-symbols-outlined text-xl">check_circle</span>}
-              </button>
-            </div>
-          </div>
           {/* Local Code Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
@@ -417,8 +376,44 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             </div>
           )}
 
+          {/* Order Type Selection - Moved immediately after user data */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-symbols-outlined text-primary text-xl">restaurant_menu</span>
+              <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Como vai querer o seu pedido?</label>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.EAT_IN ? null : OrderType.EAT_IN)}
+                className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border transition-all group ${selectedOrderType === OrderType.EAT_IN ? 'bg-white border-primary shadow-lg shadow-primary/10' : 'bg-white border-[#E31B44] text-[#111111] hover:bg-primary/5'}`}
+              >
+                <span className="material-symbols-outlined text-4xl mb-2 text-[#E11D48] font-light">restaurant</span>
+                <span className="text-[9px] font-black uppercase tracking-widest leading-tight text-center text-[#111111]">Vou comer<br />aqui</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.TAKE_AWAY ? null : OrderType.TAKE_AWAY)}
+                className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border transition-all group ${selectedOrderType === OrderType.TAKE_AWAY ? 'bg-white border-primary shadow-lg shadow-primary/10' : 'bg-white border-[#E31B44] text-[#111111] hover:bg-primary/5'}`}
+              >
+                <span className="material-symbols-outlined text-4xl mb-2 text-[#E11D48] font-light">local_mall</span>
+                <span className="text-[9px] font-black uppercase tracking-widest leading-tight text-center text-[#111111]">Vou<br />levar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.DELIVERY ? null : OrderType.DELIVERY)}
+                className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border transition-all group ${selectedOrderType === OrderType.DELIVERY ? 'bg-white border-primary shadow-lg shadow-primary/10' : 'bg-white border-[#E31B44] text-[#111111] hover:bg-primary/5'}`}
+              >
+                <span className="material-symbols-outlined text-4xl mb-2 text-[#E11D48] font-light">delivery_dining</span>
+                <span className="text-[9px] font-black uppercase tracking-widest leading-tight text-center text-[#111111]">Entrega-me</span>
+              </button>
+            </div>
+          </div>
+
           {/* Terms Checkbox */}
-          <label className="flex items-center gap-4 cursor-pointer group">
+          <label className="flex items-center gap-4 cursor-pointer group pt-4">
             <div className="relative">
               <input
                 type="checkbox"
