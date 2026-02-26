@@ -90,7 +90,6 @@ BEGIN
         v_co_id,
         v_phone,
         (p_payload->>'customer_name')::TEXT,
-        v_ticket_code,
         v_next_number,
         v_status,
         v_initial_pos,
