@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createOrder, STORE_RADIUS_METERS } from '../constants';
-import { Order, OrderStatus, Company } from '../types';
+import { Order, OrderStatus, Company, OrderType } from '../types';
 import { supabase } from '../src/lib/supabase';
 import Logo from './Logo';
 
@@ -20,6 +20,8 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   const [customerName, setCustomerName] = useState('');
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [matchedCompany, setMatchedCompany] = useState<Company | null>(null);
+  const [selectedOrderType, setSelectedOrderType] = useState<OrderType | null>(null);
+  const [isCheckingActiveOrder, setIsCheckingActiveOrder] = useState(false);
   const codeRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
@@ -102,6 +104,43 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
     checkCustomer();
   }, [phone]);
 
+  useEffect(() => {
+    const checkActiveOrder = async () => {
+      if (phone.length === 9 && matchedCompany) {
+        setIsCheckingActiveOrder(true);
+        const { data: existingOrder } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('company_id', matchedCompany.id)
+          .eq('customer_phone', phone)
+          .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
+          .maybeSingle();
+
+        if (existingOrder) {
+          onJoinQueue({
+            id: existingOrder.id,
+            companyId: existingOrder.company_id,
+            customerPhone: existingOrder.customer_phone,
+            status: existingOrder.status as OrderStatus,
+            queuePosition: existingOrder.queue_position,
+            estimatedMinutes: existingOrder.estimated_minutes,
+            ticketCode: existingOrder.ticket_code,
+            ticketNumber: existingOrder.ticket_number,
+            timestamp: existingOrder.created_at,
+            items: existingOrder.items || [],
+            total: existingOrder.total || 0,
+            customerName: existingOrder.customer_name,
+            timerAccumulatedSeconds: existingOrder.timer_accumulated_seconds || 0,
+            timerLastStartedAt: existingOrder.timer_last_started_at,
+            orderType: existingOrder.order_type as OrderType
+          });
+        }
+        setIsCheckingActiveOrder(false);
+      }
+    };
+    checkActiveOrder();
+  }, [phone, matchedCompany]);
+
   const handleJoin = async () => {
     setError(null);
     const fullCode = code.join('');
@@ -140,7 +179,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             company.lng
           );
 
-          if (dist > STORE_RADIUS_METERS && !fullCode.startsWith('TEST')) {
+          if (selectedOrderType !== OrderType.DELIVERY && dist > STORE_RADIUS_METERS && !fullCode.startsWith('TEST')) {
             setError(`Acesso negado. Está a ${Math.round(dist)}m do local. Aproxime-se para entrar na fila.`);
             setLoading(false);
             return;
@@ -182,6 +221,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               status: OrderStatus.PENDING,
               queuePosition: 1,
               estimatedMinutes: 5,
+              orderType: selectedOrderType as OrderType
             });
 
             // Save customer name if new
@@ -273,6 +313,47 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
         {/* Form Card */}
         <div className="w-full bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.06)] border border-[#F5F5F5] p-8 space-y-10">
+          {/* Order Type Selection */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-symbols-outlined text-primary text-xl">restaurant_menu</span>
+              <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Como vai querer o seu pedido?</label>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.EAT_IN ? null : OrderType.EAT_IN)}
+                className={`flex items-center justify-between px-6 py-4 rounded-2xl border-2 transition-all group ${selectedOrderType === OrderType.EAT_IN ? 'bg-primary border-primary text-white' : 'bg-[#F8F9FA] border-transparent text-[#111111] hover:border-primary/20'}`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined text-2xl">restaurant</span>
+                  <span className="text-sm font-black uppercase tracking-wider">Vou comer aqui</span>
+                </div>
+                {selectedOrderType === OrderType.EAT_IN && <span className="material-symbols-outlined text-xl">check_circle</span>}
+              </button>
+
+              <button
+                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.TAKE_AWAY ? null : OrderType.TAKE_AWAY)}
+                className={`flex items-center justify-between px-6 py-4 rounded-2xl border-2 transition-all group ${selectedOrderType === OrderType.TAKE_AWAY ? 'bg-primary border-primary text-white' : 'bg-[#F8F9FA] border-transparent text-[#111111] hover:border-primary/20'}`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined text-2xl">local_mall</span>
+                  <span className="text-sm font-black uppercase tracking-wider">Vou levar</span>
+                </div>
+                {selectedOrderType === OrderType.TAKE_AWAY && <span className="material-symbols-outlined text-xl">check_circle</span>}
+              </button>
+
+              <button
+                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.DELIVERY ? null : OrderType.DELIVERY)}
+                className={`flex items-center justify-between px-6 py-4 rounded-2xl border-2 transition-all group ${selectedOrderType === OrderType.DELIVERY ? 'bg-primary border-primary text-white' : 'bg-[#F8F9FA] border-transparent text-[#111111] hover:border-primary/20'}`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined text-2xl">delivery_dining</span>
+                  <span className="text-sm font-black uppercase tracking-wider">Entrega-me</span>
+                </div>
+                {selectedOrderType === OrderType.DELIVERY && <span className="material-symbols-outlined text-xl">check_circle</span>}
+              </button>
+            </div>
+          </div>
           {/* Local Code Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
@@ -355,20 +436,30 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
           </label>
 
           {/* Action Button */}
-          <button
-            onClick={handleJoin}
-            disabled={loading || code.some(d => !d) || phone.length < 9 || !termsAccepted}
-            className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-40 disabled:grayscale-[0.5] disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <div className="size-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : (
-              <>
-                ENTRAR NA FILA
-                <span className="material-symbols-outlined text-xl">chevron_right</span>
-              </>
-            )}
-          </button>
+          {matchedCompany && matchedCompany.isAcceptingOrders === false ? (
+            <div className="w-full p-6 bg-red-50 border border-red-100 rounded-2xl text-center">
+              <p className="text-primary font-black uppercase text-xs tracking-widest">
+                Estamos temporariamente indisponíveis para pedidos pelo Kwikfood.
+              </p>
+            </div>
+          ) : (
+            selectedOrderType && (
+              <button
+                onClick={handleJoin}
+                disabled={loading || code.some(d => !d) || phone.length < 9 || !termsAccepted || isCheckingActiveOrder}
+                className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-40 disabled:grayscale-[0.5] disabled:cursor-not-allowed"
+              >
+                {loading || isCheckingActiveOrder ? (
+                  <div className="size-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    ENTRAR NA FILA
+                    <span className="material-symbols-outlined text-xl">chevron_right</span>
+                  </>
+                )}
+              </button>
+            )
+          )}
         </div>
 
         {/* Error Message */}

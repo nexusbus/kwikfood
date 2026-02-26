@@ -8,6 +8,12 @@ export enum OrderStatus {
   CANCELLED = 'CANCELLED'
 }
 
+export enum OrderType {
+  EAT_IN = 'EAT_IN',
+  TAKE_AWAY = 'TAKE_AWAY',
+  DELIVERY = 'DELIVERY'
+}
+
 export enum ProductStatus {
   ACTIVE = 'ACTIVE',
   LOW_STOCK = 'LOW_STOCK',
@@ -40,6 +46,7 @@ export interface Company {
   isActive?: boolean;
   telegramChatId?: string;
   telegramBotToken?: string;
+  isAcceptingOrders?: boolean;
 }
 
 export interface CartItem extends Product {
@@ -65,6 +72,7 @@ export interface Order {
   timestamp: string;
   customerName?: string;
   cancelledBy?: 'admin' | 'customer';
+  orderType?: OrderType;
 }
 export interface SuperAdmin {
   id: string;

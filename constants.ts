@@ -16,7 +16,8 @@ export const fetchCompanies = async (): Promise<Company[]> => {
     province: co.province,
     type: co.type,
     telegramChatId: co.telegram_chat_id,
-    telegramBotToken: co.telegram_bot_token
+    telegramBotToken: co.telegram_bot_token,
+    isAcceptingOrders: co.is_accepting_orders
   })) as Company[];
 };
 
@@ -57,7 +58,8 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
           status: order.status,
           estimated_minutes: order.estimatedMinutes,
           payment_method: order.paymentMethod,
-          payment_proof_url: order.paymentProofUrl
+          payment_proof_url: order.paymentProofUrl,
+          order_type: order.orderType
         }
       });
 
@@ -77,6 +79,7 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
       customerName: data.customer_name,
       queuePosition: data.queue_position,
       estimatedMinutes: data.estimated_minutes,
+      orderType: data.order_type,
       timerAccumulatedSeconds: 0,
       timerLastStartedAt: null,
       timestamp: data.created_at

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Company, Product, ProductStatus, Order, OrderStatus } from '../types';
+import { Company, Product, ProductStatus, Order, OrderStatus, OrderType } from '../types';
 import { fetchProducts } from '../constants';
 import { supabase } from '../src/lib/supabase';
 import { sendSMS } from '../src/services/smsService';
@@ -79,6 +79,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [marketingAuthError, setMarketingAuthError] = useState(false);
   const [smsCount, setSmsCount] = useState(0);
   const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
@@ -111,7 +115,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       const { data: oData } = await supabase
         .from('orders')
-        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url')
+        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url, order_type')
         .eq('company_id', company.id)
         .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
         .order('created_at', { ascending: true });
@@ -129,12 +133,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
         timerLastStartedAt: o.timer_last_started_at,
         cancelledBy: o.cancelled_by,
+        orderType: o.order_type as OrderType,
         timestamp: new Date(o.created_at).toLocaleString()
       })));
 
       const { data: hData } = await supabase
         .from('orders')
-        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url')
+        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url, order_type')
         .eq('company_id', company.id)
         .in('status', [OrderStatus.DELIVERED, OrderStatus.CANCELLED])
         .order('created_at', { ascending: false })
@@ -151,6 +156,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         timerAccumulatedSeconds: o.timer_accumulated_seconds || 0,
         timerLastStartedAt: o.timer_last_started_at,
         cancelledBy: o.cancelled_by,
+        orderType: o.order_type as OrderType,
         timestamp: new Date(o.created_at).toLocaleString()
       })));
       const { count: sCount } = await supabase
@@ -274,19 +280,40 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       // Trigger SMS notification
       if (status === OrderStatus.PREPARING || status === OrderStatus.READY || status === OrderStatus.DELIVERED || status === OrderStatus.CANCELLED) {
         let message = '';
-        switch (status) {
-          case OrderStatus.PREPARING:
-            message = `${company.name}: Ótima notícia! O Chef já começou a preparar o seu pedido ${order.ticketCode}. Fique atento! 👨‍🍳🔥`;
-            break;
-          case OrderStatus.READY:
-            message = `${company.name}: O seu pedido ${order.ticketCode} está pronto e a cheirar maravilhosamente! Pode vir levantar agora. 🍔✨`;
-            break;
-          case OrderStatus.DELIVERED:
-            message = `${company.name}: Pedido ${order.ticketCode} entregue! Esperamos que desfrute de cada dentada. Bom apetite! 😋🙏`;
-            break;
-          case OrderStatus.CANCELLED:
-            message = `${company.name}: Lamentamos imenso, mas o seu pedido ${order.ticketCode} teve de ser cancelado. Por favor, contacte o estabelecimento. 😔`;
-            break;
+        const ticket = order.ticketCode;
+        const name = company.name;
+
+        if (order.orderType === OrderType.DELIVERY) {
+          switch (status) {
+            case OrderStatus.PREPARING:
+              message = `${name}: O seu pedido ${ticket} está a ser preparado!`;
+              break;
+            case OrderStatus.READY:
+              message = `${name}: O seu pedido ${ticket} está a caminho, Aguarde!`;
+              break;
+            case OrderStatus.DELIVERED:
+              message = `${name}: O seu pedido ${ticket} foi entregue. Bom apetite!`;
+              break;
+            case OrderStatus.CANCELLED:
+              message = `${name}: Lamentamos imenso, mas o seu pedido ${ticket} teve de ser cancelado. Por favor, contacte o estabelecimento. 😔`;
+              break;
+          }
+        } else {
+          // Vou comer aqui e Vou levar
+          switch (status) {
+            case OrderStatus.PREPARING:
+              message = `${name}: O seu pedido ${ticket} está a ser preparado!`;
+              break;
+            case OrderStatus.READY:
+              message = `${name}: O seu pedido ${ticket} está pronto! Pode vir levantar.`;
+              break;
+            case OrderStatus.DELIVERED:
+              message = `${name}: O seu pedido ${ticket} foi entregue. Bom apetite!`;
+              break;
+            case OrderStatus.CANCELLED:
+              message = `${name}: Lamentamos imenso, mas o seu pedido ${ticket} teve de ser cancelado. Por favor, contacte o estabelecimento. 😔`;
+              break;
+          }
         }
 
         if (message && order.customerPhone) {
@@ -612,14 +639,31 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-[#111111]">
                 {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : activeTab === 'MARKETING' ? 'Marketing' : 'Auditoria & Relatórios'}
               </h2>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="size-2 bg-green-500 rounded-full animate-pulse"></span>
-                <p className="text-[#BBBBBB] font-black uppercase text-[10px] tracking-widest">Monitor em Tempo Real</p>
-              </div>
             </div>
           </div>
 
           <div className="flex flex-wrap justify-center items-center gap-4">
+            <button
+              onClick={async () => {
+                const newState = !company.isAcceptingOrders;
+                const { error } = await supabase
+                  .from('companies')
+                  .update({ is_accepting_orders: newState })
+                  .eq('id', company.id);
+                if (error) alert('Erro ao atualizar estado de pedidos.');
+                else {
+                  company.isAcceptingOrders = newState;
+                  setNow(new Date()); // trigger re-render if needed
+                }
+              }}
+              className={`h-16 px-8 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg active:scale-95 ${company.isAcceptingOrders === false ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-green-500 text-white shadow-green-500/20'}`}
+            >
+              <span className="material-symbols-outlined text-2xl">
+                {company.isAcceptingOrders === false ? 'block' : 'check_circle'}
+              </span>
+              {company.isAcceptingOrders === false ? 'PEDIDOS DESATIVADOS' : 'PEDIDOS ATIVADOS'}
+            </button>
+
             {activeTab === 'FILA' && (
               <>
                 <button
@@ -1242,121 +1286,125 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             </form>
           </div>
         </div>
-      )}
+      )
+      }
 
-      {showQRModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+      {
+        showQRModal && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+            <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
-            <div className="text-center mb-12">
-              <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
-                <span className="material-symbols-outlined text-5xl">qr_code_2</span>
+              <div className="text-center mb-12">
+                <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
+                  <span className="material-symbols-outlined text-5xl">qr_code_2</span>
+                </div>
+                <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{company.name}</h3>
+                <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
+                  Código do Local: <span className="text-primary font-black">{company.id.toString().padStart(4, '0')}</span>
+                </p>
               </div>
-              <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{company.name}</h3>
-              <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
-                Código do Local: <span className="text-primary font-black">{company.id.toString().padStart(4, '0')}</span>
-              </p>
-            </div>
 
-            <div className="flex flex-col items-center gap-10">
-              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group" style={{ filter: 'sharp-edges' }}>
-                <div className="relative">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
-                    alt="QR Code"
-                    className="size-64"
-                  />
-                  {company.logoUrl && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
-                        <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+              <div className="flex flex-col items-center gap-10">
+                <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group" style={{ filter: 'sharp-edges' }}>
+                  <div className="relative">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
+                      alt="QR Code"
+                      className="size-64"
+                    />
+                    {company.logoUrl && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
+                          <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                </div>
+
+                <div className="w-full space-y-4">
+                  <button
+                    onClick={() => window.print()}
+                    className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
+                  >
+                    <span className="material-symbols-outlined">print</span>
+                    IMPRIMIR PARA BALCÃO
+                  </button>
+                  <button
+                    onClick={() => setShowQRModal(false)}
+                    className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
+                  >
+                    FECHAR
+                  </button>
                 </div>
               </div>
-
-              <div className="w-full space-y-4">
-                <button
-                  onClick={() => window.print()}
-                  className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
-                >
-                  <span className="material-symbols-outlined">print</span>
-                  IMPRIMIR PARA BALCÃO
-                </button>
-                <button
-                  onClick={() => setShowQRModal(false)}
-                  className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
-                >
-                  FECHAR
-                </button>
-              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {showMarketingAuthModal && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="w-full max-w-md bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
+      {
+        showMarketingAuthModal && (
+          <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
+            <div className="w-full max-w-md bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
 
-            <div className="text-center mb-10">
-              <div className="size-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6">
-                <span className="material-symbols-outlined text-4xl">lock</span>
+              <div className="text-center mb-10">
+                <div className="size-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                  <span className="material-symbols-outlined text-4xl">lock</span>
+                </div>
+                <h3 className="text-2xl font-black tracking-tight text-secondary leading-none">Acesso Restrito</h3>
+                <p className="text-[#BBBBBB] text-[11px] font-black uppercase tracking-widest mt-4">Insira a sua password de parceiro</p>
               </div>
-              <h3 className="text-2xl font-black tracking-tight text-secondary leading-none">Acesso Restrito</h3>
-              <p className="text-[#BBBBBB] text-[11px] font-black uppercase tracking-widest mt-4">Insira a sua password de parceiro</p>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (marketingPasswordPrompt === company.password) {
+                    setIsMarketingUnlocked(true);
+                    setActiveTab('MARKETING');
+                    setShowMarketingAuthModal(false);
+                    setMarketingAuthError(false);
+                  } else {
+                    setMarketingAuthError(true);
+                  }
+                }}
+                className="space-y-6"
+              >
+                <div className="space-y-2">
+                  <input
+                    type="password"
+                    value={marketingPasswordPrompt}
+                    onChange={(e) => setMarketingPasswordPrompt(e.target.value)}
+                    placeholder="Password da Empresa"
+                    autoFocus
+                    className={`w-full h-16 bg-[#F9F9F9] border-2 rounded-2xl px-6 font-bold text-center text-[#111111] transition-all outline-none ${marketingAuthError ? 'border-red-500 animate-shake' : 'border-transparent focus:border-primary'}`}
+                  />
+                  {marketingAuthError && (
+                    <p className="text-[10px] text-red-500 font-black uppercase tracking-widest text-center mt-2">Password Incorrecta</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 pt-4">
+                  <button
+                    type="submit"
+                    className="w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-secondary transition-all"
+                  >
+                    AUTENTICAR
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMarketingAuthModal(false)}
+                    className="w-full py-4 text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em] hover:text-secondary transition-colors"
+                  >
+                    CANCELAR
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (marketingPasswordPrompt === company.password) {
-                  setIsMarketingUnlocked(true);
-                  setActiveTab('MARKETING');
-                  setShowMarketingAuthModal(false);
-                  setMarketingAuthError(false);
-                } else {
-                  setMarketingAuthError(true);
-                }
-              }}
-              className="space-y-6"
-            >
-              <div className="space-y-2">
-                <input
-                  type="password"
-                  value={marketingPasswordPrompt}
-                  onChange={(e) => setMarketingPasswordPrompt(e.target.value)}
-                  placeholder="Password da Empresa"
-                  autoFocus
-                  className={`w-full h-16 bg-[#F9F9F9] border-2 rounded-2xl px-6 font-bold text-center text-[#111111] transition-all outline-none ${marketingAuthError ? 'border-red-500 animate-shake' : 'border-transparent focus:border-primary'}`}
-                />
-                {marketingAuthError && (
-                  <p className="text-[10px] text-red-500 font-black uppercase tracking-widest text-center mt-2">Password Incorrecta</p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-secondary transition-all"
-                >
-                  AUTENTICAR
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowMarketingAuthModal(false)}
-                  className="w-full py-4 text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em] hover:text-secondary transition-colors"
-                >
-                  CANCELAR
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 };
