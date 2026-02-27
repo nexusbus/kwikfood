@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS public.orders (
     payment_method TEXT,
     payment_proof_url TEXT,
     order_type TEXT,
+    delivery_address TEXT,
+    delivery_coords JSONB,
     timer_accumulated_seconds INTEGER DEFAULT 0,
     timer_last_started_at TIMESTAMPTZ,
     cancelled_by TEXT,
@@ -85,6 +87,8 @@ BEGIN
         payment_method,
         payment_proof_url,
         order_type,
+        delivery_address,
+        delivery_coords,
         created_at
     ) VALUES (
         v_co_id,
@@ -98,6 +102,8 @@ BEGIN
         (p_payload->>'payment_method')::TEXT,
         (p_payload->>'payment_proof_url')::TEXT,
         (p_payload->>'order_type')::TEXT,
+        (p_payload->>'delivery_address')::TEXT,
+        (p_payload->'delivery_coords')::JSONB,
         v_created_at
     ) 
     RETURNING json_build_object(
@@ -111,6 +117,8 @@ BEGIN
         'queue_position', queue_position,
         'estimated_minutes', estimated_minutes,
         'order_type', order_type,
+        'delivery_address', delivery_address,
+        'delivery_coords', delivery_coords,
         'created_at', created_at
     ) INTO v_result;
 

@@ -73,6 +73,8 @@ export interface Order {
   customerName?: string;
   cancelledBy?: 'admin' | 'customer';
   orderType?: OrderType;
+  deliveryAddress?: string;
+  deliveryCoords?: { lat: number; lng: number };
 }
 export interface SuperAdmin {
   id: string;

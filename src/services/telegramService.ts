@@ -124,14 +124,23 @@ export const formatOrderNotification = (order: any, type: 'NEW' | 'STATUS_CHANGE
 
     const ticketLine = `<b>#${order.ticketCode || '---'}</b> - ${safeName} ${statusEmoji[order.status] || ''}\n`;
     const typeLine = `📍 Tipo: <b>${orderTypeText[order.orderType] || 'N/A'}</b>\n`;
+    let deliveryLine = '';
+    if (order.orderType === 'DELIVERY') {
+        if (order.deliveryAddress) {
+            deliveryLine = `🏠 Endereço: <b>${escapeHtml(order.deliveryAddress)}</b>\n`;
+        }
+        if (order.deliveryCoords) {
+            deliveryLine += `🗺️ Mapa: <a href="https://www.google.com/maps?q=${order.deliveryCoords.lat},${order.deliveryCoords.lng}">Ver Localização</a>\n`;
+        }
+    }
     const phoneLine = `📱 Contacto: ${safePhone}\n`;
     const statusLine = `🧾 Estado: <b>${statusText[order.status] || order.status || '---'}</b>\n`;
 
     const detailsBlock = `\n🛒 <b>ITENS DO PEDIDO:</b>\n${itemsText}\n\n💰 Total: ${safeTotal} Kz`;
 
     if (type === 'NEW') {
-        return `🆕 <b>NOVO PEDIDO</b>\n${ticketLine}${typeLine}${phoneLine}${detailsBlock}`;
+        return `🆕 <b>NOVO PEDIDO</b>\n${ticketLine}${typeLine}${deliveryLine}${phoneLine}${detailsBlock}`;
     } else {
-        return `🔔 <b>ACTUALIZAÇÃO</b>\n${ticketLine}${typeLine}${phoneLine}${statusLine}${detailsBlock}`;
+        return `🔔 <b>ACTUALIZAÇÃO</b>\n${ticketLine}${typeLine}${deliveryLine}${phoneLine}${statusLine}${detailsBlock}`;
     }
 };

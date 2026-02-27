@@ -59,7 +59,9 @@ export const createOrder = async (order: Omit<Order, 'id' | 'timestamp' | 'ticke
           estimated_minutes: order.estimatedMinutes,
           payment_method: order.paymentMethod,
           payment_proof_url: order.paymentProofUrl,
-          order_type: order.orderType
+          order_type: order.orderType,
+          delivery_address: order.deliveryAddress,
+          delivery_coords: order.deliveryCoords
         }
       });
 

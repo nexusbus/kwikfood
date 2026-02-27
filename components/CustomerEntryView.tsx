@@ -22,6 +22,9 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   const [matchedCompany, setMatchedCompany] = useState<Company | null>(null);
   const [selectedOrderType, setSelectedOrderType] = useState<OrderType | null>(null);
   const [isCheckingActiveOrder, setIsCheckingActiveOrder] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const codeRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
@@ -167,6 +170,11 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
       return;
     }
 
+    if (selectedOrderType === OrderType.DELIVERY && !deliveryAddress.trim() && !deliveryCoords) {
+      setError('Por favor, forneça o seu endereço ou partilhe a sua localização para a entrega.');
+      return;
+    }
+
     setLoading(true);
 
     if ("geolocation" in navigator) {
@@ -221,7 +229,9 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               status: OrderStatus.PENDING,
               queuePosition: 1,
               estimatedMinutes: 5,
-              orderType: selectedOrderType as OrderType
+              orderType: selectedOrderType as OrderType,
+              deliveryAddress: deliveryAddress,
+              deliveryCoords: deliveryCoords || undefined
             });
 
             // Save customer name if new
@@ -411,6 +421,54 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               </button>
             </div>
           </div>
+
+          {/* Delivery Details */}
+          {selectedOrderType === OrderType.DELIVERY && (
+            <div className="space-y-4 pt-4 animate-scale-in">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-outlined text-primary text-xl">location_on</span>
+                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Onde devemos entregar?</label>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCapturingLocation(true);
+                    if ("geolocation" in navigator) {
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setDeliveryCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                          setIsCapturingLocation(false);
+                          setError(null);
+                        },
+                        () => {
+                          setError('Não foi possível obter sua localização. Por favor, digite o endereço manualmente.');
+                          setIsCapturingLocation(false);
+                        }
+                      );
+                    }
+                  }}
+                  className={`w-full py-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest ${deliveryCoords ? 'bg-green-50 border-green-200 text-green-600' : 'bg-white border-[#EEEEEE] text-[#555555] hover:bg-primary/5 hover:border-primary/30'}`}
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    {deliveryCoords ? 'check_circle' : 'my_location'}
+                  </span>
+                  {isCapturingLocation ? 'Capturando...' : deliveryCoords ? 'Localização Capturada' : 'Partilhar localização actual'}
+                </button>
+
+                <div className="relative">
+                  <textarea
+                    rows={2}
+                    placeholder="Ou digite o endereço completo aqui..."
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    className="w-full bg-white border-2 border-[#EEEEEE] rounded-xl px-5 py-4 text-sm font-bold placeholder:text-[#BBBBBB] focus:border-primary/30 transition-all resize-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Terms Checkbox */}
           <label className="flex items-center gap-4 cursor-pointer group pt-4">
