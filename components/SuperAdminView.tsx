@@ -717,7 +717,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                       <th className="px-16 py-12">Ticket / Local</th>
                       <th className="px-12 py-12">Contacto Cliente</th>
                       <th className="px-12 py-12">Duração Serviço</th>
-                      <th className="px-12 py-12">Status</th>
+                      <th className="px-12 py-12">Tipo / Logística</th>
                       <th className="px-16 py-12 text-right">Data</th>
                     </tr>
                   </thead>
@@ -751,6 +751,21 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                             }`}>
                             {order.status}
                           </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-background border border-border/50 rounded text-[9px] font-black uppercase tracking-widest w-fit">
+                              <span className="material-symbols-outlined text-[12px]">
+                                {order.order_type === 'EAT_IN' ? 'restaurant' : order.order_type === 'TAKE_AWAY' ? 'local_mall' : 'delivery_dining'}
+                              </span>
+                              {order.order_type === 'EAT_IN' ? 'BALCÃO' : order.order_type === 'TAKE_AWAY' ? 'LEVANTAR' : 'ENTREGA'}
+                            </div>
+                            {order.order_type === 'DELIVERY' && order.delivery_address && (
+                              <p className="text-[10px] font-bold text-text-muted truncate max-w-[150px]" title={order.delivery_address}>
+                                {order.delivery_address}
+                              </p>
+                            )}
+                          </div>
                         </td>
                         <td className="px-8 py-4 text-right">
                           <p className="text-[11px] font-black text-secondary">{new Date(order.created_at).toLocaleDateString()}</p>

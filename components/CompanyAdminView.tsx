@@ -115,7 +115,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       const { data: oData } = await supabase
         .from('orders')
-        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url, order_type')
+        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url, order_type, delivery_address, delivery_coords')
         .eq('company_id', company.id)
         .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
         .order('created_at', { ascending: true });
@@ -139,7 +139,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       const { data: hData } = await supabase
         .from('orders')
-        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url, order_type')
+        .select('id, company_id, customer_phone, customer_name, status, items, total, queue_position, estimated_minutes, ticket_code, ticket_number, timer_last_started_at, timer_accumulated_seconds, created_at, cancelled_by, payment_method, payment_proof_url, order_type, delivery_address, delivery_coords')
         .eq('company_id', company.id)
         .in('status', [OrderStatus.DELIVERED, OrderStatus.CANCELLED])
         .order('created_at', { ascending: false })
@@ -1188,6 +1188,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         <th className="px-6 py-6">Estado</th>
                         <th className="px-6 py-6">Itens</th>
                         <th className="px-6 py-6">Pagto</th>
+                        <th className="px-6 py-6">Tipo / Endereço</th>
                         <th className="px-6 py-6 text-right">Valor</th>
                         <th className="px-6 py-6">Preparo</th>
                         <th className="px-8 py-6 text-right">Data/Hora</th>
@@ -1221,6 +1222,18 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-[9px] font-black text-secondary uppercase tracking-tight">{hOrder.paymentMethod || 'N/A'}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[9px] font-black text-secondary uppercase tracking-tight">
+                                {hOrder.orderType === OrderType.EAT_IN ? 'COMER AQUI' : hOrder.orderType === OrderType.TAKE_AWAY ? 'LEVANTAMENTO' : 'ENTREGA'}
+                              </span>
+                              {hOrder.orderType === OrderType.DELIVERY && hOrder.deliveryAddress && (
+                                <span className="text-[10px] font-bold text-text-muted truncate max-w-[200px]" title={hOrder.deliveryAddress}>
+                                  {hOrder.deliveryAddress}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 font-black text-secondary text-[12px] text-right">
                             {(hOrder.total || 0).toLocaleString()}
