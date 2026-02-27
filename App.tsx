@@ -8,6 +8,7 @@ import CompanyAdminView from './components/CompanyAdminView';
 import CustomerEntryView from './components/CustomerEntryView';
 import CustomerTrackingView from './components/CustomerTrackingView';
 import AdminAuthView from './components/AdminAuthView';
+import LegalTermsView from './components/LegalTermsView';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(() => {
@@ -120,6 +121,7 @@ const App: React.FC = () => {
           onAdminAccess={() => {
             setCurrentView('ADMIN_AUTH');
           }}
+          onShowTerms={() => setCurrentView('LEGAL_TERMS')}
         />;
       case 'ADMIN_AUTH':
         return <AdminAuthView
@@ -133,7 +135,10 @@ const App: React.FC = () => {
               setCurrentView('COMPANY_ADMIN');
             }
           }}
+          onShowTerms={() => setCurrentView('LEGAL_TERMS')}
         />;
+      case 'LEGAL_TERMS':
+        return <LegalTermsView onBack={() => setCurrentView('CUSTOMER_ENTRY')} />;
     }
   };
 

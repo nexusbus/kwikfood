@@ -9,9 +9,10 @@ interface CustomerEntryViewProps {
   companies: Company[];
   onJoinQueue: (order: Order) => void;
   onAdminAccess: () => void;
+  onShowTerms: () => void;
 }
 
-const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoinQueue, onAdminAccess }) => {
+const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoinQueue, onAdminAccess, onShowTerms }) => {
   const [code, setCode] = useState(['', '', '', '']);
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -484,7 +485,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               </div>
             </div>
             <span className="text-xs font-bold text-[#555555]">
-              Li e aceito os <span className="text-primary">Termos e Condições</span>
+              Li e aceito os <button type="button" onClick={(e) => { e.preventDefault(); onShowTerms(); }} className="text-primary hover:underline underline-offset-4 font-black">Termos e Condições</button>
             </span>
           </label>
 
@@ -540,6 +541,10 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
         <p className="text-[10px] text-[#555555] font-bold">
           © {new Date().getFullYear()} <span className="text-primary">KwikFood Angola</span>.<br />
           Todos os direitos reservados.
+          <br />
+          <button onClick={onShowTerms} className="mt-4 text-[9px] font-black text-secondary hover:text-primary uppercase tracking-[0.2em] transition-colors">
+            Privacidade & Termos Legais
+          </button>
         </p>
       </footer>
     </div>

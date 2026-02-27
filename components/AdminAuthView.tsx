@@ -6,9 +6,10 @@ import Logo from './Logo';
 interface AdminAuthViewProps {
     onSuccess: (type: 'SUPER' | 'COMPANY', id?: number) => void;
     onBack: () => void;
+    onShowTerms: () => void;
 }
 
-const AdminAuthView: React.FC<AdminAuthViewProps> = ({ onSuccess, onBack }) => {
+const AdminAuthView: React.FC<AdminAuthViewProps> = ({ onSuccess, onBack, onShowTerms }) => {
     const [isRegistering, setIsRegistering] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -187,6 +188,16 @@ const AdminAuthView: React.FC<AdminAuthViewProps> = ({ onSuccess, onBack }) => {
                             <span className="material-symbols-outlined text-xl group-hover:-translate-x-2 transition-transform">arrow_back</span>
                             Voltar ao Dashboard Público
                         </button>
+
+                        <div className="pt-4 border-t border-border/10">
+                            <button
+                                type="button"
+                                onClick={onShowTerms}
+                                className="w-full text-[9px] font-black text-text-muted/60 hover:text-primary uppercase tracking-[0.2em] transition-colors"
+                            >
+                                Termos & Privacidade
+                            </button>
+                        </div>
                     </form>
                 </div>
 
