@@ -880,12 +880,29 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               )}
             </div>
           ) : activeTab === 'PRODUTOS' ? (
-            <div className="space-y-16 animate-fade-in">
-              <div className="flex items-center gap-5 flex-wrap">
+            <div className="space-y-12 animate-fade-in pb-20">
+              {/* Cabeçalho da Seção de Produtos */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-8 bg-white p-8 sm:p-12 rounded-[3.5rem] border border-border/40 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-2 h-full bg-primary"></div>
+                <div>
+                  <h3 className="text-3xl font-black text-secondary tracking-tighter">Gestão de Cardápio</h3>
+                  <p className="text-text-muted text-sm font-medium mt-1">Organize os seus produtos e categorias com um clique.</p>
+                </div>
+                <button
+                  onClick={() => openModal('add')}
+                  className="w-full sm:w-auto h-20 px-10 bg-primary text-white rounded-[1.8rem] font-black text-xs uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:bg-secondary transition-all flex items-center justify-center gap-4 active:scale-95 group/add"
+                >
+                  <span className="material-symbols-outlined text-2xl group-hover/add:rotate-90 transition-transform">add_circle</span>
+                  NOVO PRODUTO
+                </button>
+              </div>
+
+              {/* Filtros de Categoria */}
+              <div className="flex items-center gap-4 overflow-x-auto pb-4 custom-scrollbar no-scrollbar scroll-smooth">
                 {categories.map(cat => (
                   <button
                     key={cat} onClick={() => setProductFilter(cat)}
-                    className={`px-10 py-4 rounded-full font-black text-[11px] uppercase tracking-widest transition-all ${productFilter === cat ? 'bg-secondary text-white shadow-premium' : 'bg-surface text-text-muted border border-border hover:border-secondary'}`}
+                    className={`px-10 py-5 rounded-3xl font-black text-[10px] uppercase tracking-widest transition-all flex-shrink-0 border-2 ${productFilter === cat ? 'bg-secondary border-secondary text-white shadow-premium scale-105' : 'bg-white border-slate-100 text-slate-400 hover:border-primary/20 hover:text-secondary'}`}
                   >
                     {cat}
                   </button>
@@ -904,22 +921,38 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-secondary/40 to-transparent"></div>
                     </div>
-                    <div className="p-10 flex flex-col flex-1 justify-between gap-10">
+                    <div className="p-10 flex flex-col flex-1 justify-between gap-10 bg-white">
                       <div>
-                        <h4 className="font-black text-2xl text-secondary tracking-tight mb-1">{p.name}</h4>
-                        {p.details && <p className="text-[10px] font-bold text-text-muted/60 uppercase tracking-widest mb-3 line-clamp-2">{p.details}</p>}
-                        <div className="flex items-center justify-between">
-                          <p className="text-primary font-black text-3xl tracking-tighter">Kz {p.price.toLocaleString()}</p>
-                          <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em] bg-background px-4 py-1.5 rounded-full">{p.category}</span>
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em] bg-primary/5 px-4 py-1.5 rounded-full">{p.category}</span>
+                          <div className="h-[1px] flex-1 bg-slate-100"></div>
+                        </div>
+                        <h4 className="font-black text-2xl text-secondary tracking-tight mb-2 group-hover:text-primary transition-colors">{p.name}</h4>
+                        {p.details && <p className="text-[11px] font-medium text-slate-400 leading-relaxed mb-6 line-clamp-2 italic">{p.details}</p>}
+
+                        <div className="flex items-center justify-between mt-4">
+                          <p className="text-secondary font-black text-3xl tracking-tighter">
+                            <span className="text-sm text-slate-300 mr-2 uppercase tracking-widest">Kz</span>
+                            {p.price.toLocaleString()}
+                          </p>
                         </div>
                       </div>
+
                       <div className="flex gap-4">
-                        <button onClick={() => openModal('edit', p)} className="flex-1 h-16 bg-background hover:bg-secondary hover:text-white rounded-[1.2rem] font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all">
-                          <span className="material-symbols-outlined text-2xl">edit_note</span>
+                        <button
+                          onClick={() => openModal('edit', p)}
+                          className="flex-1 h-16 bg-slate-50 hover:bg-secondary hover:text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 group/edit"
+                        >
+                          <span className="material-symbols-outlined text-2xl group-hover/edit:rotate-12 transition-transform">edit_square</span>
                           EDITAR
                         </button>
-                        <button onClick={() => handleDeleteProduct(p.id)} className="size-16 flex items-center justify-center bg-primary-soft text-primary rounded-[1.2rem] hover:bg-primary hover:text-white transition-all shadow-sm">
-                          <span className="material-symbols-outlined text-2xl">delete</span>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Excluir ${p.name}?`)) handleDeleteProduct(p.id);
+                          }}
+                          className="size-16 flex items-center justify-center bg-red-50 text-red-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-95"
+                        >
+                          <span className="material-symbols-outlined text-2xl">delete_sweep</span>
                         </button>
                       </div>
                     </div>
@@ -1229,61 +1262,117 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="bg-surface rounded-[4.5rem] w-full max-w-2xl shadow-premium p-16 animate-in zoom-in-95 duration-300 relative overflow-hidden">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="bg-white rounded-[3.5rem] sm:rounded-[4.5rem] w-full max-w-2xl shadow-premium animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col max-h-[95vh]">
             <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
-            <header className="flex justify-between items-start mb-12">
+            <header className="p-10 sm:p-14 border-b border-border/10 flex justify-between items-start">
               <div>
-                <h3 className="text-3xl lg:text-4xl font-black tracking-tighter text-secondary">
+                <h3 className="text-3xl sm:text-4xl font-black tracking-tighter text-secondary">
                   {modalMode === 'add' ? 'Novo Produto' : 'Editar Produto'}
                 </h3>
-                <p className="text-text-muted font-medium text-lg mt-2">Personalize os detalhes no menu digital.</p>
+                <p className="text-text-muted font-black text-[10px] uppercase tracking-widest mt-2 opacity-60">Gestão de Cardápio Digital</p>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="size-14 bg-background rounded-full flex items-center justify-center text-text-muted hover:bg-primary hover:text-white transition-all">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="size-14 bg-background rounded-2xl flex items-center justify-center text-text-muted hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
+              >
                 <span className="material-symbols-outlined text-3xl font-black">close</span>
               </button>
             </header>
 
-            <form onSubmit={handleSaveProduct} className="space-y-10">
-              <div className="space-y-3">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Identificação do Item</label>
-                <input type="text" value={pName} onChange={e => setPName(e.target.value)} placeholder="Ex: Grand Deluxe Master" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
-              </div>
-
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Investimento (Kz)</label>
-                  <input type="number" value={pPrice} onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none shadow-sm" required />
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Sessão do Menu</label>
-                  <select value={pCategory} onChange={e => setPCategory(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all outline-none appearance-none cursor-pointer">
-                    {categories.filter(c => c !== 'Todos').map(c => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Detalhes do Produto</label>
-                <textarea
-                  value={pDetails}
-                  onChange={e => setPDetails(e.target.value)}
-                  placeholder="Ex: Pão brioche, carne de 180g, queijo cheddar derretido e molho especial..."
-                  className="w-full h-32 bg-background border-2 border-border/40 rounded-[1.8rem] p-6 font-medium text-lg text-secondary focus:border-primary transition-all outline-none resize-none"
-                />
-              </div>
-
+            <form onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-10 sm:p-14 space-y-12 custom-scrollbar">
+              {/* Basic Info */}
               <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Impacto Visual</label>
-                <div className="flex gap-8 items-center bg-background/50 p-8 rounded-[3rem] border-2 border-dashed border-border/60 group">
-                  <div className="relative size-40 bg-white rounded-[2rem] shadow-premium flex items-center justify-center overflow-hidden flex-shrink-0">
+                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Dados Principais</label>
+                <div className="space-y-6">
+                  <div className="relative group">
+                    <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">label</span>
+                    <input
+                      type="text"
+                      value={pName}
+                      onChange={e => setPName(e.target.value)}
+                      placeholder="Nome do Produto (Ex: Master Burger)"
+                      className="w-full h-20 bg-[#F8F9FA] border-2 border-transparent rounded-[1.8rem] pl-16 pr-8 font-black text-xl text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="relative group">
+                      <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">payments</span>
+                      <input
+                        type="number"
+                        value={pPrice}
+                        onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="Preço (Kz)"
+                        className="w-full h-20 bg-[#F8F9FA] border-2 border-transparent rounded-[1.8rem] pl-16 pr-8 font-black text-xl text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
+                        required
+                      />
+                    </div>
+                    <div className="relative group">
+                      <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none">category</span>
+                      <select
+                        value={pCategory}
+                        onChange={e => setPCategory(e.target.value)}
+                        className="w-full h-20 bg-[#F8F9FA] border-2 border-transparent rounded-[1.8rem] pl-16 pr-12 font-black text-[11px] uppercase tracking-widest text-secondary focus:border-primary focus:bg-white transition-all outline-none appearance-none cursor-pointer"
+                      >
+                        {categories.filter(c => c !== 'Todos').map(c => (
+                          <option key={c}>{c}</option>
+                        ))}
+                      </select>
+                      <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Toggle */}
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Disponibilidade</label>
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-2 rounded-[2rem] border border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setPStatus(ProductStatus.ACTIVE)}
+                    className={`h-16 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${pStatus === ProductStatus.ACTIVE ? 'bg-green-500 text-white shadow-lg' : 'text-slate-400 hover:text-secondary'}`}
+                  >
+                    <span className="material-symbols-outlined text-xl">check_circle</span>
+                    Disponível
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPStatus(ProductStatus.OUT_OF_STOCK)}
+                    className={`h-16 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${pStatus === ProductStatus.OUT_OF_STOCK ? 'bg-red-500 text-white shadow-lg' : 'text-slate-400 hover:text-secondary'}`}
+                  >
+                    <span className="material-symbols-outlined text-xl">block</span>
+                    Esgotado
+                  </button>
+                </div>
+              </div>
+
+              {/* Detailed Info */}
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Descrição Detalhada</label>
+                <div className="relative group">
+                  <span className="material-symbols-outlined absolute left-6 top-8 text-slate-300 group-focus-within:text-primary transition-colors">notes</span>
+                  <textarea
+                    value={pDetails}
+                    onChange={e => setPDetails(e.target.value)}
+                    placeholder="Descreva os ingredientes, avisos ou detalhes do prato..."
+                    className="w-full h-40 bg-[#F8F9FA] border-2 border-transparent rounded-[1.8rem] pl-16 pr-8 py-7 font-medium text-lg text-secondary focus:border-primary focus:bg-white transition-all outline-none resize-none shadow-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Image Upload */}
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Fotografia do Produto</label>
+                <div className="flex flex-col sm:flex-row gap-8 items-center bg-[#F8F9FA] p-8 rounded-[3rem] border-2 border-dashed border-slate-200 group hover:border-primary/40 transition-all">
+                  <div className="relative size-40 bg-white rounded-[2rem] shadow-premium flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-100">
                     {pImageUrl ? (
                       <img src={pImageUrl} alt="Preview" className="size-full object-cover" />
                     ) : (
-                      <span className="material-symbols-outlined text-border text-6xl">image</span>
+                      <span className="material-symbols-outlined text-slate-200 text-6xl">image</span>
                     )}
                     {uploading && (
                       <div className="absolute inset-0 bg-secondary/80 flex items-center justify-center">
@@ -1291,24 +1380,61 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       </div>
                     )}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left">
                     <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="p-image-upload" />
-                    <label htmlFor="p-image-upload" className="inline-flex px-10 py-5 bg-secondary text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl cursor-pointer hover:bg-primary transition-all shadow-premium">
-                      Escolher Imagem
+                    <label
+                      htmlFor="p-image-upload"
+                      className="inline-flex px-10 py-5 bg-secondary text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl cursor-pointer hover:bg-primary transition-all shadow-lg active:scale-95"
+                    >
+                      Alterar Foto
                     </label>
-                    <p className="text-[11px] text-text-muted mt-4 font-medium italic">Selecione uma foto apelativa para os clientes.</p>
+                    <p className="text-[10px] text-slate-400 mt-4 font-bold uppercase tracking-widest leading-relaxed">Formatos: JPG, PNG • Máx 5MB</p>
                   </div>
                 </div>
               </div>
+            </form>
 
-              <div className="pt-10 flex gap-6">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-20 font-black uppercase tracking-[0.4em] text-text-muted hover:text-primary transition-all text-[12px]">Descartar</button>
-                <button type="submit" disabled={saving || uploading} className="flex-[2] h-20 bg-primary hover:bg-secondary text-white rounded-[1.8rem] font-black uppercase tracking-[0.4em] text-[13px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
-                  {saving ? 'PROCESSANDO...' : 'FINALIZAR & SALVAR'}
+            <footer className="p-10 sm:p-14 bg-[#F8F9FA] border-t border-border/10 flex flex-col sm:flex-row gap-6">
+              {modalMode === 'edit' && selectedProduct && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDeleteProduct(selectedProduct.id);
+                    setIsModalOpen(false);
+                  }}
+                  className="h-20 px-8 rounded-[1.8rem] bg-red-50 text-red-500 font-black uppercase tracking-widest text-[11px] hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3 border border-red-100"
+                >
+                  <span className="material-symbols-outlined">delete</span>
+                  APAGAR PRODUTO
+                </button>
+              )}
+
+              <div className="flex-1 flex gap-6">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 h-20 font-black uppercase tracking-widest text-slate-400 hover:text-secondary transition-all text-[11px]"
+                >
+                  CANCELAR
+                </button>
+                <button
+                  onClick={(e) => {
+                    // Manually trigger form submit since buttons are outside
+                    e.preventDefault();
+                    const form = document.querySelector('form');
+                    if (form) form.requestSubmit();
+                  }}
+                  disabled={saving || uploading}
+                  className="flex-[2] h-20 bg-primary hover:bg-secondary text-white rounded-[1.8rem] font-black uppercase tracking-[0.3em] text-[12px] shadow-xl shadow-primary/20 active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group/btn"
+                >
+                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 skew-x-12"></div>
+                  <span className="flex items-center justify-center gap-3">
+                    <span className="material-symbols-outlined text-2xl">{saving ? 'autorenew' : 'done_all'}</span>
+                    {saving ? 'GUARDANDO...' : 'SALVAR ALTERAÇÕES'}
+                  </span>
                 </button>
               </div>
-            </form>
+            </footer>
           </div>
         </div>
       )}
