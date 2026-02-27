@@ -27,6 +27,7 @@ export interface Product {
   category: string;
   status: ProductStatus;
   imageUrl: string;
+  details?: string;
 }
 
 export interface Company {

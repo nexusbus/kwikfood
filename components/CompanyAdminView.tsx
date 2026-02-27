@@ -58,6 +58,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [pCategory, setPCategory] = useState('Hambúrgueres');
   const [pStatus, setPStatus] = useState<ProductStatus>(ProductStatus.ACTIVE);
   const [pImageUrl, setPImageUrl] = useState('');
+  const [pDetails, setPDetails] = useState('');
   const [saving, setSaving] = useState(false);
 
   // History filters
@@ -111,8 +112,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
   const loadData = async () => {
     try {
-      const { data: pData } = await supabase.from('products').select('*').eq('company_id', company.id);
-      if (pData) setProducts(pData.map(p => ({ ...p, imageUrl: p.image_url })));
+      const { data: pData } = await supabase.from('products').select('*').eq('company_id', company.id).order('created_at', { ascending: false });
+      if (pData) setProducts(pData.map(p => ({ ...p, imageUrl: p.image_url, details: p.details })));
 
       const { data: oData } = await supabase
         .from('orders')
@@ -374,7 +375,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     if (pPrice === '') return;
     setSaving(true);
     try {
-      const productData = { name: pName, price: Number(pPrice), category: pCategory, status: pStatus, image_url: pImageUrl, company_id: company.id };
+      const productData = { name: pName, price: Number(pPrice), category: pCategory, status: pStatus, image_url: pImageUrl, details: pDetails, company_id: company.id };
       if (modalMode === 'add') {
         const { error } = await supabase.from('products').insert([productData]);
         if (error) throw error;
@@ -439,10 +440,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     setModalMode(mode);
     if (mode === 'edit' && product) {
       setSelectedProduct(product);
-      setPName(product.name); setPPrice(product.price); setPCategory(product.category); setPStatus(product.status); setPImageUrl(product.imageUrl);
+      setPName(product.name); setPPrice(product.price); setPCategory(product.category); setPStatus(product.status); setPImageUrl(product.imageUrl); setPDetails(product.details || '');
     } else {
       setSelectedProduct(null);
-      setPName(''); setPPrice(''); setPCategory('Hambúrgueres'); setPStatus(ProductStatus.ACTIVE); setPImageUrl('');
+      setPName(''); setPPrice(''); setPCategory('Hambúrgueres'); setPStatus(ProductStatus.ACTIVE); setPImageUrl(''); setPDetails('');
     }
     setIsModalOpen(true);
   };
@@ -905,7 +906,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     </div>
                     <div className="p-10 flex flex-col flex-1 justify-between gap-10">
                       <div>
-                        <h4 className="font-black text-2xl text-secondary tracking-tight mb-3">{p.name}</h4>
+                        <h4 className="font-black text-2xl text-secondary tracking-tight mb-1">{p.name}</h4>
+                        {p.details && <p className="text-[10px] font-bold text-text-muted/60 uppercase tracking-widest mb-3 line-clamp-2">{p.details}</p>}
                         <div className="flex items-center justify-between">
                           <p className="text-primary font-black text-3xl tracking-tighter">Kz {p.price.toLocaleString()}</p>
                           <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em] bg-background px-4 py-1.5 rounded-full">{p.category}</span>
@@ -1264,6 +1266,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 </div>
               </div>
 
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Detalhes do Produto</label>
+                <textarea
+                  value={pDetails}
+                  onChange={e => setPDetails(e.target.value)}
+                  placeholder="Ex: Pão brioche, carne de 180g, queijo cheddar derretido e molho especial..."
+                  className="w-full h-32 bg-background border-2 border-border/40 rounded-[1.8rem] p-6 font-medium text-lg text-secondary focus:border-primary transition-all outline-none resize-none"
+                />
+              </div>
+
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-40">Impacto Visual</label>
                 <div className="flex gap-8 items-center bg-background/50 p-8 rounded-[3rem] border-2 border-dashed border-border/60 group">
@@ -1301,120 +1313,124 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         </div>
       )}
 
-      {showQRModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+      {
+        showQRModal && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+            <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
-            <div className="text-center mb-12">
-              <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
-                <span className="material-symbols-outlined text-5xl">qr_code_2</span>
+              <div className="text-center mb-12">
+                <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
+                  <span className="material-symbols-outlined text-5xl">qr_code_2</span>
+                </div>
+                <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{company.name}</h3>
+                <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
+                  Código do Local: <span className="text-primary font-black">{company.id.toString().padStart(4, '0')}</span>
+                </p>
               </div>
-              <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{company.name}</h3>
-              <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
-                Código do Local: <span className="text-primary font-black">{company.id.toString().padStart(4, '0')}</span>
-              </p>
-            </div>
 
-            <div className="flex flex-col items-center gap-10">
-              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group" style={{ filter: 'sharp-edges' }}>
-                <div className="relative">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
-                    alt="QR Code"
-                    className="size-64"
-                  />
-                  {company.logoUrl && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
-                        <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+              <div className="flex flex-col items-center gap-10">
+                <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group" style={{ filter: 'sharp-edges' }}>
+                  <div className="relative">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
+                      alt="QR Code"
+                      className="size-64"
+                    />
+                    {company.logoUrl && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
+                          <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                </div>
+
+                <div className="w-full space-y-4">
+                  <button
+                    onClick={() => window.print()}
+                    className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
+                  >
+                    <span className="material-symbols-outlined">print</span>
+                    IMPRIMIR PARA BALCÃO
+                  </button>
+                  <button
+                    onClick={() => setShowQRModal(false)}
+                    className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
+                  >
+                    FECHAR
+                  </button>
                 </div>
               </div>
-
-              <div className="w-full space-y-4">
-                <button
-                  onClick={() => window.print()}
-                  className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
-                >
-                  <span className="material-symbols-outlined">print</span>
-                  IMPRIMIR PARA BALCÃO
-                </button>
-                <button
-                  onClick={() => setShowQRModal(false)}
-                  className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
-                >
-                  FECHAR
-                </button>
-              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {showMarketingAuthModal && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="w-full max-w-md bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
+      {
+        showMarketingAuthModal && (
+          <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
+            <div className="w-full max-w-md bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
 
-            <div className="text-center mb-10">
-              <div className="size-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6">
-                <span className="material-symbols-outlined text-4xl">lock</span>
+              <div className="text-center mb-10">
+                <div className="size-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                  <span className="material-symbols-outlined text-4xl">lock</span>
+                </div>
+                <h3 className="text-2xl font-black tracking-tight text-secondary leading-none">Acesso Restrito</h3>
+                <p className="text-[#BBBBBB] text-[11px] font-black uppercase tracking-widest mt-4">Insira a sua password de parceiro</p>
               </div>
-              <h3 className="text-2xl font-black tracking-tight text-secondary leading-none">Acesso Restrito</h3>
-              <p className="text-[#BBBBBB] text-[11px] font-black uppercase tracking-widest mt-4">Insira a sua password de parceiro</p>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (marketingPasswordPrompt === company.password) {
+                    setIsMarketingUnlocked(true);
+                    setActiveTab('MARKETING');
+                    setShowMarketingAuthModal(false);
+                    setMarketingAuthError(false);
+                  } else {
+                    setMarketingAuthError(true);
+                  }
+                }}
+                className="space-y-6"
+              >
+                <div className="space-y-2">
+                  <input
+                    type="password"
+                    value={marketingPasswordPrompt}
+                    onChange={(e) => setMarketingPasswordPrompt(e.target.value)}
+                    placeholder="Password da Empresa"
+                    autoFocus
+                    className={`w-full h-16 bg-[#F9F9F9] border-2 rounded-2xl px-6 font-bold text-center text-[#111111] transition-all outline-none ${marketingAuthError ? 'border-red-500 animate-shake' : 'border-transparent focus:border-primary'}`}
+                  />
+                  {marketingAuthError && (
+                    <p className="text-[10px] text-red-500 font-black uppercase tracking-widest text-center mt-2">Password Incorrecta</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 pt-4">
+                  <button
+                    type="submit"
+                    className="w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-secondary transition-all"
+                  >
+                    AUTENTICAR
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMarketingAuthModal(false)}
+                    className="w-full py-4 text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em] hover:text-secondary transition-colors"
+                  >
+                    CANCELAR
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (marketingPasswordPrompt === company.password) {
-                  setIsMarketingUnlocked(true);
-                  setActiveTab('MARKETING');
-                  setShowMarketingAuthModal(false);
-                  setMarketingAuthError(false);
-                } else {
-                  setMarketingAuthError(true);
-                }
-              }}
-              className="space-y-6"
-            >
-              <div className="space-y-2">
-                <input
-                  type="password"
-                  value={marketingPasswordPrompt}
-                  onChange={(e) => setMarketingPasswordPrompt(e.target.value)}
-                  placeholder="Password da Empresa"
-                  autoFocus
-                  className={`w-full h-16 bg-[#F9F9F9] border-2 rounded-2xl px-6 font-bold text-center text-[#111111] transition-all outline-none ${marketingAuthError ? 'border-red-500 animate-shake' : 'border-transparent focus:border-primary'}`}
-                />
-                {marketingAuthError && (
-                  <p className="text-[10px] text-red-500 font-black uppercase tracking-widest text-center mt-2">Password Incorrecta</p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-secondary transition-all"
-                >
-                  AUTENTICAR
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowMarketingAuthModal(false)}
-                  className="w-full py-4 text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em] hover:text-secondary transition-colors"
-                >
-                  CANCELAR
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 
