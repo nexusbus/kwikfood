@@ -50,6 +50,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [ticketSearch, setTicketSearch] = useState('');
   const [showQRModal, setShowQRModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [isKitchenMonitor, setIsKitchenMonitor] = useState(false);
 
   // Form state
   const [pName, setPName] = useState('');
@@ -536,7 +537,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         />
       )}
       {/* Premium Sidebar - Collapsible */}
-      <aside className={`fixed lg:static inset-y-0 left-0 w-80 bg-white/95 lg:bg-white backdrop-blur-xl lg:backdrop-blur-none border-r border-white/50 lg:border-border/30 p-8 flex flex-col gap-10 z-[200] transition-transform duration-500 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto custom-scrollbar ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed lg:static inset-y-0 left-0 w-80 bg-white/95 lg:bg-white backdrop-blur-xl lg:backdrop-blur-none border-r border-white/50 lg:border-border/30 p-8 flex flex-col gap-10 z-[200] transition-all duration-500 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto custom-scrollbar ${isKitchenMonitor ? '-translate-x-full absolute' : (showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')}`}>
         <div className="flex flex-col items-center text-center gap-6 py-4">
           {company.logoUrl && (
             <div className="size-28 bg-white rounded-[2.5rem] shadow-premium border-2 border-primary/5 overflow-hidden group/logo">
@@ -641,71 +642,91 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       >
         <div className="fixed top-0 right-0 w-1/3 h-1/2 bg-red-500/5 rounded-full blur-[150px] pointer-events-none"></div>
 
-        <header className="mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-center gap-6 relative z-10 animate-fade-in no-print">
+        <header className={`mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-center gap-6 relative z-10 animate-fade-in no-print ${isKitchenMonitor ? 'bg-white rounded-[2rem] p-6 shadow-premium border border-border/20 mb-8' : ''}`}>
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="group flex items-center justify-center p-2 rounded-xl hover:bg-slate-100 transition-all active:scale-90"
-            >
-              <Logo variant="icon" size={44} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
-            </button>
+            {!isKitchenMonitor && (
+              <button
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="group flex items-center justify-center p-2 rounded-xl hover:bg-slate-100 transition-all active:scale-90"
+              >
+                <Logo variant="icon" size={44} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
+              </button>
+            )}
             <div>
               <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mb-1">Painel Administrativo</p>
-              <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-slate-900">
+              <h2 className={`font-black tracking-tight text-slate-900 ${isKitchenMonitor ? 'text-3xl' : 'text-2xl lg:text-3xl'}`}>
                 {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : activeTab === 'MARKETING' ? 'Marketing' : 'Relatórios'}
               </h2>
             </div>
           </div>
 
           <div className="flex flex-wrap justify-center items-center gap-4">
-            <button
-              onClick={async () => {
-                const newState = !company.isAcceptingOrders;
-                const { error } = await supabase
-                  .from('companies')
-                  .update({ is_accepting_orders: newState })
-                  .eq('id', company.id);
-                if (error) alert('Erro ao atualizar estado de pedidos.');
-                else {
-                  company.isAcceptingOrders = newState;
-                  setNow(new Date()); // trigger re-render if needed
-                }
-              }}
-              className={`h-16 px-8 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg active:scale-95 ${company.isAcceptingOrders === false ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-green-500 text-white shadow-green-500/20'}`}
-            >
-              <span className="material-symbols-outlined text-2xl">
-                {company.isAcceptingOrders === false ? 'block' : 'check_circle'}
-              </span>
-              {company.isAcceptingOrders === false ? 'PEDIDOS DESATIVADOS' : 'PEDIDOS ATIVADOS'}
-            </button>
+            {activeTab === 'FILA' && (
+              <button
+                onClick={() => setIsKitchenMonitor(!isKitchenMonitor)}
+                className={`h-16 px-8 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg active:scale-95 ${isKitchenMonitor ? 'bg-secondary text-white' : 'bg-white text-secondary border border-border shadow-md'}`}
+              >
+                <span className="material-symbols-outlined text-2xl">
+                  {isKitchenMonitor ? 'fullscreen_exit' : 'fullscreen'}
+                </span>
+                {isKitchenMonitor ? 'SAIR DO MONITOR' : 'MODO MONITOR'}
+              </button>
+            )}
+
+            {!isKitchenMonitor && (
+              <button
+                onClick={async () => {
+                  const newState = !company.isAcceptingOrders;
+                  const { error } = await supabase
+                    .from('companies')
+                    .update({ is_accepting_orders: newState })
+                    .eq('id', company.id);
+                  if (error) alert('Erro ao atualizar estado de pedidos.');
+                  else {
+                    company.isAcceptingOrders = newState;
+                    setNow(new Date()); // trigger re-render if needed
+                  }
+                }}
+                className={`h-16 px-8 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center gap-3 shadow-lg active:scale-95 ${company.isAcceptingOrders === false ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-green-500 text-white shadow-green-500/20'}`}
+              >
+                <span className="material-symbols-outlined text-2xl">
+                  {company.isAcceptingOrders === false ? 'block' : 'check_circle'}
+                </span>
+                {company.isAcceptingOrders === false ? 'PEDIDOS DESATIVADOS' : 'PEDIDOS ATIVADOS'}
+              </button>
+            )}
 
             {activeTab === 'FILA' && (
               <>
-                <button
-                  onClick={async () => {
-                    const res = await sendTelegramMessage(
-                      company.telegramBotToken || '',
-                      company.telegramChatId || '',
-                      `🧪 <b>TESTE DE CONECTIVIDADE</b>\nO seu terminal administrativo está correctamente ligado ao Telegram! 🚀`
-                    );
-                    if (res?.success) alert('Sucesso! Verifique o Telegram.');
-                    else alert(`FALHA: ${res?.error}`);
-                  }}
-                  className="h-14 px-5 bg-white border border-slate-200 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all flex items-center gap-2 active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-lg text-primary">send</span>
-                  TESTAR TELEGRAM
-                </button>
+                {!isKitchenMonitor && (
+                  <button
+                    onClick={async () => {
+                      const res = await sendTelegramMessage(
+                        company.telegramBotToken || '',
+                        company.telegramChatId || '',
+                        `🧪 <b>TESTE DE CONECTIVIDADE</b>\nO seu terminal administrativo está correctamente ligado ao Telegram! 🚀`
+                      );
+                      if (res?.success) alert('Sucesso! Verifique o Telegram.');
+                      else alert(`FALHA: ${res?.error}`);
+                    }}
+                    className="h-14 px-5 bg-white border border-slate-200 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all flex items-center gap-2 active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-lg text-primary">send</span>
+                    TESTAR TELEGRAM
+                  </button>
+                )}
 
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="bg-white px-5 py-3 rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[120px]">
                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Pedidos Atuais</p>
                     <p className="text-xl font-black text-slate-900">{orders.length}</p>
                   </div>
-                  <div className="bg-white px-5 py-3 rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[120px]">
-                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Status SMS</p>
-                    <p className="text-xl font-black text-slate-900">{smsCount}</p>
-                  </div>
+                  {!isKitchenMonitor && (
+                    <div className="bg-white px-5 py-3 rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[120px]">
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Status SMS</p>
+                      <p className="text-xl font-black text-slate-900">{smsCount}</p>
+                    </div>
+                  )}
                   <div className="relative group w-full sm:w-60">
                     <input
                       type="text"
@@ -734,126 +755,117 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
               {filteredOrders.length === 0 ? (
                 <div className="bg-white rounded-[2rem] p-12 sm:p-20 text-center border border-slate-200 border-dashed animate-scale-in">
-                  <div className="size-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
-                    <span className="material-symbols-outlined text-4xl">inbox</span>
+                  <div className="size-24 sm:size-32 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 text-slate-300">
+                    <span className="material-symbols-outlined text-5xl sm:text-6xl">restaurant_menu</span>
                   </div>
-                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sem pedidos no momento</h3>
+                  <h3 className="text-xl font-black text-slate-300 uppercase tracking-[0.3em]">Cozinha em Espera</h3>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                <div className={`grid gap-4 sm:gap-6 lg:gap-8 ${isKitchenMonitor ? 'grid-cols-1 md:grid-cols-2 2xl:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'}`}>
                   {filteredOrders.map(order => (
-                    <div key={order.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col group animate-scale-in">
-                      {/* Borda lateral de status */}
-                      <div className="h-2 w-full" style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#FACC15' : order.status === OrderStatus.READY ? '#22C55E' : '#E11D48' }}></div>
+                    <div key={order.id} className="bg-white rounded-[2.5rem] border border-border shadow-md hover:shadow-premium transition-all duration-500 overflow-hidden flex flex-col group animate-scale-in relative">
+                      {/* Borda Lateral Ultra-Impactante */}
+                      <div className={`absolute top-0 left-0 w-3 h-full ${order.status === OrderStatus.PREPARING ? 'bg-amber-400' : order.status === OrderStatus.READY ? 'bg-emerald-400' : 'bg-rose-500'}`}></div>
 
-                      <div className="p-5 flex-1 flex flex-col gap-5">
-                        {/* Cabeçalho do Card */}
-                        <div className="flex justify-between items-start">
+                      <div className="p-8 sm:p-10 flex-1 flex flex-col gap-8 ml-3">
+                        {/* Cabeçalho do Ticket */}
+                        <div className="flex justify-between items-start border-b border-border/40 pb-6">
                           <div>
-                            <span className="text-primary text-[20px] font-black leading-none mb-1 block">#{order.ticketCode}</span>
-                            <div className="flex flex-col">
-                              {order.customerName && <p className="text-[11px] font-black text-slate-800 uppercase tracking-tight">{order.customerName}</p>}
-                              <p className="text-[10px] font-bold text-slate-400">{maskPhone(order.customerPhone, order.id)}</p>
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Ticket ID</span>
+                              {order.orderType === OrderType.EAT_IN && <span className="px-2 py-0.5 bg-blue-50 text-blue-500 rounded-md text-[8px] font-black uppercase tracking-widest">NO LOCAL</span>}
+                              {order.orderType === OrderType.TAKE_AWAY && <span className="px-2 py-0.5 bg-orange-50 text-orange-500 rounded-md text-[8px] font-black uppercase tracking-widest">TAKE AWAY</span>}
+                              {order.orderType === OrderType.DELIVERY && <span className="px-2 py-0.5 bg-rose-50 text-rose-500 rounded-md text-[8px] font-black uppercase tracking-widest">ENTREGA</span>}
+                            </div>
+                            <h2 className="text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter leading-none">
+                              <span className="text-primary">#</span>{order.ticketCode}
+                            </h2>
+                            <div className="mt-4 flex flex-col">
+                              {order.customerName && <p className="text-base font-black text-slate-800 uppercase tracking-tight">{order.customerName}</p>}
+                              <p className="text-xs font-bold text-slate-400 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-sm">phone_android</span>
+                                {maskPhone(order.customerPhone, order.id)}
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-black text-slate-900 tracking-tighter">{(order.total || 0).toLocaleString()} Kz</p>
-                            <div className="flex items-center justify-end gap-1 mt-0.5 text-slate-400 font-black text-[9px] uppercase tracking-widest">
-                              <span className="material-symbols-outlined text-sm">timer</span>
-                              <span className={order.status === OrderStatus.PREPARING ? 'text-primary animate-pulse' : ''}>
-                                {formatTime(calculateElapsed(order))}
-                              </span>
+                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${order.status === OrderStatus.PREPARING ? 'bg-amber-50 text-amber-600 border border-amber-100' : order.status === OrderStatus.READY ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
+                              <span className="size-2 rounded-full bg-current animate-pulse"></span>
+                              {order.status === OrderStatus.PREPARING ? 'Preparando' : order.status === OrderStatus.READY ? 'Pronto' : 'Na Fila'}
+                            </div>
+                            <div className="mt-6 flex flex-col items-end">
+                              <p className="text-2xl font-black text-slate-900 tracking-tighter">{(order.total || 0).toLocaleString()} <span className="text-sm font-bold text-slate-400 uppercase ml-1">Kz</span></p>
+                              <div className="flex items-center gap-2 mt-2 text-primary bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">
+                                <span className="material-symbols-outlined text-base animate-spin-slow">timer</span>
+                                <span className="font-black text-[13px] tabular-nums tracking-widest">
+                                  {formatTime(calculateElapsed(order))}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
 
-                        {/* Badges de Tipo e Pagamento */}
-                        <div className="flex flex-wrap gap-2">
-                          <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest flex items-center gap-1 bg-slate-100 text-slate-600`}>
-                            <span className="material-symbols-outlined text-xs">
-                              {order.orderType === OrderType.EAT_IN ? 'restaurant' : order.orderType === OrderType.TAKE_AWAY ? 'shopping_bag' : 'delivery_dining'}
-                            </span>
-                            {order.orderType === OrderType.EAT_IN ? 'LOCAL' : order.orderType === OrderType.TAKE_AWAY ? 'LEVANTAR' : 'ENTREGA'}
-                          </span>
-                          <span className="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest bg-slate-50 text-slate-500 border border-slate-100">
-                            {order.paymentMethod === 'TRANSFER' ? 'TRANSFERÊNCIA' : 'NUMERÁRIO'}
-                          </span>
-                          {order.status === OrderStatus.READY && (
-                            <span className="px-2 py-1 bg-green-500 text-white rounded-md text-[8px] font-black uppercase tracking-widest animate-pulse">PRONTO</span>
-                          )}
-                        </div>
-
-                        {/* Endereço de Entrega se houver */}
-                        {order.orderType === OrderType.DELIVERY && order.deliveryAddress && (
-                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-start gap-2">
-                            <span className="material-symbols-outlined text-primary text-sm mt-0.5">location_on</span>
-                            <p className="text-[10px] font-bold text-slate-600 leading-tight">
-                              {order.deliveryAddress}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Itens do Pedido */}
-                        <div className="space-y-3 py-2 border-y border-slate-50">
-                          {order.items.map((item, i) => (
-                            <div key={i} className="flex justify-between items-start gap-4">
-                              <div className="flex gap-2 min-w-0">
-                                <span className="text-sm font-black text-slate-900">{item.quantity}x</span>
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-bold text-slate-700 leading-none">{item.name}</span>
+                        {/* Itens do Pedido (Aumentado para Melhor Leitura) */}
+                        <div className="flex-1">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-6">Conteúdo do Pedido</p>
+                          <div className="space-y-6">
+                            {order.items.map((item, i) => (
+                              <div key={i} className="flex gap-6 items-start group/item">
+                                <div className="size-14 bg-slate-50 rounded-2xl flex items-center justify-center font-black text-xl text-slate-900 border border-slate-100 group-hover/item:bg-primary group-hover/item:text-white transition-colors flex-shrink-0">
+                                  {item.quantity}
+                                </div>
+                                <div className="flex flex-col min-w-0 flex-1 pt-1">
+                                  <span className="text-xl font-black text-slate-800 leading-tight group-hover/item:text-primary transition-colors">{item.name}</span>
                                   {item.observation && (
-                                    <span className="text-[10px] text-slate-400 font-medium italic mt-1 leading-tight">{item.observation}</span>
+                                    <div className="mt-3 flex gap-2 items-start bg-amber-50/50 p-4 rounded-2xl border border-amber-100/50">
+                                      <span className="material-symbols-outlined text-amber-500 text-lg">info</span>
+                                      <span className="text-xs text-amber-700 font-black uppercase tracking-tight leading-relaxed italic">{item.observation}</span>
+                                    </div>
                                   )}
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
 
-                        {/* Ações do Card */}
-                        <div className="mt-auto space-y-2 pt-2">
+                        {/* Acções de Gestão de Ticket (Ultra Premium) */}
+                        <div className="mt-auto space-y-4 pt-6 border-t border-border/40">
                           {order.status === OrderStatus.READY ? (
                             <button
                               onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                              className="w-full h-12 bg-green-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/20 hover:bg-green-600 transition-all flex items-center justify-center gap-2 active:scale-95"
+                              className="w-full h-20 bg-emerald-500 text-white rounded-3xl font-black text-xs uppercase tracking-[0.3em] shadow-lg shadow-emerald-500/20 hover:bg-slate-900 transition-all flex items-center justify-center gap-4 active:scale-95 group/btn"
                             >
-                              <span className="material-symbols-outlined text-lg">check_circle</span>
-                              CONCLUIR PEDIDO
+                              <span className="material-symbols-outlined text-2xl group-hover/btn:translate-x-2 transition-transform">check_circle</span>
+                              CONCLUIR ENTREGA
                             </button>
                           ) : (
-                            <div className="flex flex-col gap-2">
-                              <div className="grid grid-cols-2 gap-2">
-                                <button
-                                  onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
-                                  disabled={order.status === OrderStatus.PREPARING}
-                                  className={`h-11 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${order.status === OrderStatus.PREPARING ? 'bg-primary/10 text-primary border border-primary/20 cursor-default' : 'bg-primary text-white hover:bg-slate-900 shadow-md shadow-primary/10'}`}
-                                >
-                                  <span className="material-symbols-outlined text-lg">{order.status === OrderStatus.PREPARING ? 'restaurant' : 'outdoor_grill'}</span>
-                                  {order.status === OrderStatus.PREPARING ? 'COZINHANDO' : 'PREPARAR'}
-                                </button>
+                            <div className="grid grid-cols-1 gap-4">
+                              <button
+                                onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
+                                disabled={order.status === OrderStatus.PREPARING}
+                                className={`w-full h-20 rounded-3xl font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95 group/btn ${order.status === OrderStatus.PREPARING ? 'bg-slate-50 text-slate-300 border border-border cursor-default' : 'bg-primary text-white hover:bg-secondary shadow-primary/20'}`}
+                              >
+                                <span className={`material-symbols-outlined text-2xl ${order.status === OrderStatus.PREPARING ? '' : 'group-hover/btn:rotate-12 transition-transform'}`}>
+                                  {order.status === OrderStatus.PREPARING ? 'outdoor_grill' : 'local_fire_department'}
+                                </span>
+                                {order.status === OrderStatus.PREPARING ? 'EM PREPARAÇÃO' : 'INICIAR PREPARO'}
+                              </button>
+
+                              <div className="grid grid-cols-2 gap-4">
                                 <button
                                   onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
-                                  className="h-11 bg-white border border-slate-200 text-slate-900 rounded-xl font-black text-[9px] uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2"
+                                  className="h-16 bg-white border-2 border-slate-100 text-slate-800 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-3 active:scale-95"
                                 >
-                                  <span className="material-symbols-outlined text-lg">notifications</span>
+                                  <span className="material-symbols-outlined text-xl">notifications_active</span>
                                   NOTIFICAR
-                                </button>
-                              </div>
-                              <div className="grid grid-cols-2 gap-2">
-                                <button
-                                  onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                                  className="h-11 bg-slate-50 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-100 transition-all flex items-center justify-center gap-2 border border-slate-200"
-                                >
-                                  <span className="material-symbols-outlined text-lg">check</span>
-                                  ENTREGAR
                                 </button>
                                 <button
                                   onClick={() => {
-                                    if (confirm('Cancelar este pedido?')) updateOrderStatus(order.id, OrderStatus.CANCELLED);
+                                    if (confirm('Cancelar este pedido permanentemente?')) updateOrderStatus(order.id, OrderStatus.CANCELLED);
                                   }}
-                                  className="h-11 bg-white text-slate-300 hover:text-red-500 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                  className="h-16 bg-white border-2 border-slate-100 text-slate-300 hover:text-red-500 hover:border-red-100 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-3 active:scale-95"
                                 >
-                                  <span className="material-symbols-outlined text-lg">close</span>
+                                  <span className="material-symbols-outlined text-xl">block</span>
                                   CANCELAR
                                 </button>
                               </div>
