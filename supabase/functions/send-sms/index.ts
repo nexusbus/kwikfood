@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from "@supabase/supabase-js";
 
 const SMSHUB_BASE_URL = "https://app.smshubangola.com/api";
@@ -66,6 +67,12 @@ Deno.serve(async (req: Request) => {
             });
         }
 
+        // Pre-normalization defense: Ensure it has 244 if it looks like a local number
+        let normalizedRecipient = recipient.replace(/\D/g, '');
+        if (normalizedRecipient.length === 9 && normalizedRecipient.startsWith('9')) {
+            normalizedRecipient = '244' + normalizedRecipient;
+        }
+
         // 2. Send SMS
         const sendResponse = await fetch(`${SMSHUB_BASE_URL}/sendsms`, {
             method: "POST",
@@ -74,17 +81,20 @@ Deno.serve(async (req: Request) => {
                 "accessToken": accessToken,
             },
             body: JSON.stringify({
-                contactNo: [recipient],
+                contactNo: [normalizedRecipient],
                 message: message,
                 from: "KWIKFOOD",
             }),
         });
 
         const sendData = await sendResponse.json().catch(() => ({}));
-        console.log("[Edge Function] SMS Hub response status:", sendResponse.status, sendData);
+        console.log(`[Edge Function] SMS Hub response for ${normalizedRecipient}:`, sendResponse.status, sendData);
+
+        // SMS Hub specific error check even if status is 200
+        const isSuccess = sendResponse.ok && (sendData?.status === "success" || sendData?.code === "100" || sendData?.message?.toLowerCase().includes("success"));
 
         // 3. Log the SMS if successful
-        if (sendResponse.ok && companyId) {
+        if (isSuccess && companyId) {
             try {
                 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
                 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -93,7 +103,7 @@ Deno.serve(async (req: Request) => {
                     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
                     const { error: logError } = await supabaseAdmin.from("sms_logs").insert([{
                         company_id: companyId,
-                        recipient: recipient,
+                        recipient: normalizedRecipient,
                         message: message,
                         cost: 5
                     }]);

@@ -518,6 +518,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
   return (
     <div className="flex h-screen bg-[#F9F9F9] overflow-hidden selection:bg-primary selection:text-white relative font-sans">
+      {/* Mobile Menu Toggle - Only visible on small screens */}
+      {!showSidebar && (
+        <button
+          onClick={() => setShowSidebar(true)}
+          className="lg:hidden fixed bottom-8 right-8 z-[160] size-16 bg-primary text-white rounded-2xl shadow-premium flex items-center justify-center animate-fade-in active:scale-90 transition-all"
+        >
+          <span className="material-symbols-outlined text-3xl">menu</span>
+        </button>
+      )}
+
       {/* Sidebar Backdrop - Click to Close */}
       {showSidebar && (
         <div
@@ -526,7 +536,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         />
       )}
       {/* Premium Sidebar - Collapsible */}
-      <aside className={`fixed inset-y-0 left-0 w-80 bg-white/95 backdrop-blur-xl border-r border-white/50 p-8 flex flex-col gap-10 z-[200] transition-transform duration-500 ease-in-out shadow-2xl overflow-y-auto custom-scrollbar ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed lg:static inset-y-0 left-0 w-80 bg-white/95 lg:bg-white backdrop-blur-xl lg:backdrop-blur-none border-r border-white/50 lg:border-border/30 p-8 flex flex-col gap-10 z-[200] transition-transform duration-500 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto custom-scrollbar ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="flex flex-col items-center text-center gap-6 py-4">
           {company.logoUrl && (
             <div className="size-28 bg-white rounded-[2.5rem] shadow-premium border-2 border-primary/5 overflow-hidden group/logo">
@@ -631,7 +641,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       >
         <div className="fixed top-0 right-0 w-1/3 h-1/2 bg-red-500/5 rounded-full blur-[150px] pointer-events-none"></div>
 
-        <header className="mb-10 flex flex-col lg:flex-row justify-between items-center gap-8 relative z-10 animate-fade-in">
+        <header className="mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-center gap-6 lg:gap-8 relative z-10 animate-fade-in no-print">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowSidebar(!showSidebar)}
@@ -686,7 +696,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   TESTAR TELEGRAM
                 </button>
 
-                <div className="grid grid-cols-2 gap-3 lg:gap-4 shrink-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4 shrink-0 w-full lg:w-auto">
                   <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
                     <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5 flex items-center gap-2">
                       Pedidos Atuais
@@ -1122,7 +1132,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   <span className="material-symbols-outlined text-primary">filter_alt</span>
                   <p className="text-[11px] font-black text-secondary uppercase tracking-[0.4em]">Filtros de Auditoria & Fecho do Dia</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
                   <div className="space-y-3">
                     <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">Data Inicial</label>
                     <input
@@ -1183,8 +1193,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 <div className="p-12 border-b border-border/40 bg-white/50 no-print">
                   <h4 className="text-2xl font-black text-secondary uppercase tracking-tighter">Histórico Detalhado de Operações</h4>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
+                <div className="overflow-x-auto custom-scrollbar">
+                  <table className="w-full text-left min-w-[1000px]">
                     <thead>
                       <tr className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] border-b border-border/50 bg-background/30">
                         <th className="px-8 py-6">Senha</th>

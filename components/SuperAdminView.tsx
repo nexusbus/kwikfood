@@ -362,7 +362,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         <div className="absolute bottom-[-10%] left-[-20%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[150px]"></div>
       </div>
 
-      <header className="glass sticky top-0 z-[60] px-12 py-8 flex items-center justify-between border-b border-white/50 animate-fade-in">
+      <header className="glass sticky top-0 z-[60] px-6 lg:px-12 py-6 lg:py-8 flex flex-col lg:flex-row items-center justify-between gap-6 border-b border-white/50 animate-fade-in no-print">
         <div className="flex items-center gap-6">
           <button onClick={onBack} className="size-16 bg-white/50 hover:bg-secondary hover:text-white rounded-[1.5rem] flex items-center justify-center transition-all shadow-md group">
             <span className="material-symbols-outlined text-3xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
@@ -370,7 +370,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
           <Logo variant="full" color="dark" size={48} />
         </div>
 
-        <div className="flex items-center gap-4 bg-background/50 p-2 rounded-[1.5rem] border border-border/50">
+        <div className="flex items-center gap-2 lg:gap-4 bg-background/50 p-2 rounded-[1.5rem] border border-border/50 overflow-x-auto no-scrollbar max-w-full">
           <button
             onClick={() => setActiveView('ESTABELECIMENTOS')}
             className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'ESTABELECIMENTOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
@@ -404,10 +404,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       </header>
 
 
-      <main className="max-w-7xl mx-auto px-12 py-16 space-y-20 relative z-10">
+      <main className="max-w-7xl mx-auto px-6 lg:px-12 py-8 lg:py-16 space-y-12 lg:space-y-20 relative z-10">
 
         {/* Dashboard Cards (Common for Top) */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-8 animate-fade-in">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 animate-fade-in">
           <div className="bg-surface p-10 rounded-[3rem] border border-white/60 shadow-premium">
             <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">Estabelecimentos Ativos</p>
             <p className="text-5xl font-black text-secondary tracking-tighter">{companies.filter(c => c.isActive).length}</p>
@@ -429,7 +429,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         {activeView === 'ESTABELECIMENTOS' ? (
           <>
             {/* Registration Section */}
-            <section className="bg-surface rounded-[4.5rem] shadow-premium p-16 border border-white/60 relative overflow-hidden animate-scale-in">
+            <section className="bg-surface rounded-[2.5rem] lg:rounded-[4.5rem] shadow-premium p-6 lg:p-16 border border-white/60 relative overflow-hidden animate-scale-in">
               <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
 
               <div className="max-w-4xl mx-auto space-y-12">
@@ -445,7 +445,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                   </div>
                 </div>
 
-                <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <form onSubmit={handleRegister} className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-10">
                   <div className="space-y-4">
                     <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Código ID (Referência)</label>
                     <input
@@ -710,15 +710,15 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             </div>
 
             <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left min-w-[1000px]">
                   <thead>
                     <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
-                      <th className="px-16 py-12">Ticket / Local</th>
-                      <th className="px-12 py-12">Contacto Cliente</th>
-                      <th className="px-12 py-12">Duração Serviço</th>
-                      <th className="px-12 py-12">Tipo / Logística</th>
-                      <th className="px-16 py-12 text-right">Data</th>
+                      <th className="px-6 lg:px-16 py-6 lg:py-12">Ticket / Local</th>
+                      <th className="px-6 lg:px-12 py-6 lg:py-12">Contacto Cliente</th>
+                      <th className="px-6 lg:px-12 py-6 lg:py-12">Duração Serviço</th>
+                      <th className="px-6 lg:px-12 py-6 lg:py-12">Tipo / Logística</th>
+                      <th className="px-6 lg:px-16 py-6 lg:py-12 text-right">Data</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
@@ -960,14 +960,14 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                 <h2 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório Financeiro de SMS</h2>
                 <p className="text-text-muted font-medium mt-2">Controle de envios e custos operacionais por parceiro.</p>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left min-w-[800px]">
                   <thead>
                     <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
-                      <th className="px-16 py-12">Estabelecimento</th>
-                      <th className="px-12 py-12">SMS Enviadas</th>
-                      <th className="px-12 py-12 text-center">Custo Acumulado</th>
-                      <th className="px-16 py-12 text-right">Receita Estimada (DIA)</th>
+                      <th className="px-6 lg:px-16 py-6 lg:py-12">Estabelecimento</th>
+                      <th className="px-6 lg:px-12 py-6 lg:py-12">SMS Enviadas</th>
+                      <th className="px-6 lg:px-12 py-6 lg:py-12 text-center">Custo Acumulado</th>
+                      <th className="px-6 lg:px-16 py-6 lg:py-12 text-right">Receita Estimada (DIA)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
