@@ -13,6 +13,7 @@
         rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: "class",
             theme: {
                 extend: {
                     colors: {
@@ -20,9 +21,17 @@
                         "secondary": "#000000",
                         "background": "#FFFFFF",
                         "surface": "#F4F4F5",
+                        "background-light": "#F8F6F6",
+                        "background-dark": "#211115",
                     },
                     fontFamily: {
-                        "display": ["Work Sans", "sans-serif"]
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
                     }
                 }
             }

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { createClient } from "@supabase/supabase-js";
 
-const SMSHUB_BASE_URL = "https://app.smshubangola.com/api";
+const SMSHUB_BASE_URL = Deno.env.get("SMSHUB_BASE_URL") || "https://app.smshubangola.com/api";
 
 Deno.serve(async (req: Request) => {
     // Handle CORS preflight requests

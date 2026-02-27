@@ -637,21 +637,22 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       <main
         ref={mainContentRef}
-        className="flex-1 overflow-y-auto p-6 lg:p-12 relative custom-scrollbar bg-[#F9F9F9]"
+        className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-12 relative custom-scrollbar bg-slate-50"
       >
         <div className="fixed top-0 right-0 w-1/3 h-1/2 bg-red-500/5 rounded-full blur-[150px] pointer-events-none"></div>
 
-        <header className="mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-center gap-6 lg:gap-8 relative z-10 animate-fade-in no-print">
+        <header className="mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-center gap-6 relative z-10 animate-fade-in no-print">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowSidebar(!showSidebar)}
-              className="group flex items-center justify-center p-2 rounded-xl hover:bg-red-50 transition-all active:scale-90"
+              className="group flex items-center justify-center p-2 rounded-xl hover:bg-slate-100 transition-all active:scale-90"
             >
               <Logo variant="icon" size={44} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
             </button>
             <div>
-              <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-[#111111]">
-                {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : activeTab === 'MARKETING' ? 'Marketing' : 'Auditoria & Relatórios'}
+              <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mb-1">Painel Administrativo</p>
+              <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-slate-900">
+                {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : activeTab === 'MARKETING' ? 'Marketing' : 'Relatórios'}
               </h2>
             </div>
           </div>
@@ -687,228 +688,178 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       company.telegramChatId || '',
                       `🧪 <b>TESTE DE CONECTIVIDADE</b>\nO seu terminal administrativo está correctamente ligado ao Telegram! 🚀`
                     );
-                    if (res?.success) alert('Mensagem de teste enviada com sucesso! Verifique o seu grupo no Telegram.');
-                    else alert(`FALHA NO TELEGRAM: ${res?.error || 'Erro desconhecido'}`);
+                    if (res?.success) alert('Sucesso! Verifique o Telegram.');
+                    else alert(`FALHA: ${res?.error}`);
                   }}
-                  className="h-16 px-6 bg-white border border-[#F5F5F5] text-secondary rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:border-primary/20 hover:text-primary transition-all flex items-center gap-2 active:scale-95"
+                  className="h-14 px-5 bg-white border border-slate-200 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all flex items-center gap-2 active:scale-95"
                 >
-                  <span className="material-symbols-outlined text-xl">send_and_archive</span>
+                  <span className="material-symbols-outlined text-lg text-primary">send</span>
                   TESTAR TELEGRAM
                 </button>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4 shrink-0 w-full lg:w-auto">
-                  <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
-                    <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5 flex items-center gap-2">
-                      Pedidos Atuais
-                    </p>
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-4xl font-black text-[#111111]">{orders.length}</p>
-                      <span className="text-[10px] font-black text-green-500 flex items-center gap-0.5">
-                        <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                        20%
-                      </span>
-                    </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="bg-white px-5 py-3 rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[120px]">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Pedidos Atuais</p>
+                    <p className="text-xl font-black text-slate-900">{orders.length}</p>
                   </div>
-                  <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
-                    <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5">Tempo Médio</p>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-4xl font-black text-[#111111]">12'</p>
-                      <p className="text-[11px] font-black text-[#BBBBBB] uppercase">min</p>
-                    </div>
+                  <div className="bg-white px-5 py-3 rounded-xl border border-slate-100 shadow-sm flex flex-col min-w-[120px]">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Status SMS</p>
+                    <p className="text-xl font-black text-slate-900">{smsCount}</p>
                   </div>
-                </div>
-
-                <div className="relative group ml-0 lg:ml-2">
-                  <input
-                    type="text"
-                    placeholder="Buscar ticket ou telefone..."
-                    value={ticketSearch}
-                    onChange={(e) => setTicketSearch(e.target.value.toUpperCase())}
-                    className="w-80 h-16 bg-white border border-[#F5F5F5] rounded-[2rem] px-14 font-bold text-base text-[#111111] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] focus:border-primary transition-all outline-none placeholder:text-[#BBBBBB]/60"
-                  />
-                  <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-[#BBBBBB]">search</span>
+                  <div className="relative group w-full sm:w-60">
+                    <input
+                      type="text"
+                      placeholder="Pesquisar..."
+                      value={ticketSearch}
+                      onChange={(e) => setTicketSearch(e.target.value.toUpperCase())}
+                      className="w-full h-14 bg-white border border-slate-200 rounded-xl px-10 font-bold text-xs text-slate-700 shadow-sm focus:border-primary transition-all outline-none"
+                    />
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-300">search</span>
+                  </div>
                 </div>
               </>
-            )}
-
-            {activeTab === 'PRODUTOS' && (
-              <button
-                onClick={() => openModal('add')}
-                className="h-16 px-10 bg-primary hover:bg-[#111111] text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 transition-all flex items-center gap-3 active:scale-95"
-              >
-                <span className="material-symbols-outlined text-2xl">add</span>
-                NOVO ITEM
-              </button>
             )}
           </div>
         </header>
 
         <div className="relative z-10">
-          {activeTab === 'FILA' && (
-            <div className="flex items-center gap-3 mb-10 overflow-hidden">
-              <h3 className="text-[13px] font-black text-[#111111] uppercase tracking-[0.2em] whitespace-nowrap">Fila de Pedidos</h3>
-              <span className="px-3 py-1 bg-red-50 text-primary rounded-lg text-[9px] font-black uppercase tracking-widest">Novos</span>
-              <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
-            </div>
-          )}
-
           {activeTab === 'FILA' ? (
-            <div className="space-y-12 animate-fade-in">
+            <div className="px-4 sm:px-0 space-y-6 animate-fade-in">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-[0.2em]">Fila de Preparação</h3>
+                  <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-md text-[8px] font-black uppercase tracking-widest">{filteredOrders.length} Ativos</span>
+                </div>
+              </div>
+
               {filteredOrders.length === 0 ? (
-                <div className="bg-white rounded-none p-40 text-center border-2 border-dashed border-border/60 animate-scale-in">
-                  <div className="size-32 bg-background rounded-full flex items-center justify-center mx-auto mb-10 text-border">
-                    <span className="material-symbols-outlined text-6xl">restaurant</span>
+                <div className="bg-white rounded-[2rem] p-12 sm:p-20 text-center border border-slate-200 border-dashed animate-scale-in">
+                  <div className="size-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                    <span className="material-symbols-outlined text-4xl">inbox</span>
                   </div>
-                  <h3 className="text-3xl font-black text-border uppercase tracking-[0.3em]">Nenhum pedido encontrado</h3>
-                  <p className="text-text-muted mt-4 font-medium text-lg">Tente um termo de pesquisa diferente ou aguarde novos pedidos.</p>
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Sem pedidos no momento</h3>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                   {filteredOrders.map(order => (
-                    <div key={order.id} className="bg-white rounded-[2rem] p-6 lg:p-8 border border-[#F5F5F5] shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] group relative overflow-hidden animate-scale-in flex flex-col justify-between min-h-[400px]">
-                      <div className="absolute top-0 left-0 w-2 h-full transition-all group-hover:w-3"
-                        style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#FACC15' : order.status === OrderStatus.READY ? '#22C55E' : '#E11D48' }}>
-                      </div>
+                    <div key={order.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col group animate-scale-in">
+                      {/* Borda lateral de status */}
+                      <div className="h-2 w-full" style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#FACC15' : order.status === OrderStatus.READY ? '#22C55E' : '#E11D48' }}></div>
 
-                      <div>
-                        <div className="flex justify-between items-start mb-6">
+                      <div className="p-5 flex-1 flex flex-col gap-5">
+                        {/* Cabeçalho do Card */}
+                        <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="text-3xl font-black text-[#E11D48] tracking-tight mb-1">#{order.ticketCode}</h3>
+                            <span className="text-primary text-[20px] font-black leading-none mb-1 block">#{order.ticketCode}</span>
                             <div className="flex flex-col">
-                              {order.customerName && <p className="text-sm font-black text-[#111111] uppercase tracking-wider">{order.customerName}</p>}
-                              <p className="text-base font-bold text-[#BBBBBB]">{order.customerPhone}</p>
+                              {order.customerName && <p className="text-[11px] font-black text-slate-800 uppercase tracking-tight">{order.customerName}</p>}
+                              <p className="text-[10px] font-bold text-slate-400">{maskPhone(order.customerPhone, order.id)}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-black text-[#111111]">{(order.total || 0).toLocaleString()} Kz</p>
-                            <div className="flex items-center justify-end gap-1.5 mt-1 text-[#BBBBBB]">
-                              <span className="material-symbols-outlined text-[18px]">schedule</span>
-                              <span className={`text-[10px] font-black uppercase tracking-widest leading-none ${order.status === OrderStatus.PREPARING ? 'text-primary animate-pulse' : ''}`}>
+                            <p className="text-lg font-black text-slate-900 tracking-tighter">{(order.total || 0).toLocaleString()} Kz</p>
+                            <div className="flex items-center justify-end gap-1 mt-0.5 text-slate-400 font-black text-[9px] uppercase tracking-widest">
+                              <span className="material-symbols-outlined text-sm">timer</span>
+                              <span className={order.status === OrderStatus.PREPARING ? 'text-primary animate-pulse' : ''}>
                                 {formatTime(calculateElapsed(order))}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        {order.status === OrderStatus.READY && (
-                          <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black uppercase tracking-widest">PRONTO</span>
-                        )}
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${order.paymentMethod === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'}`}>
-                            {order.paymentMethod || 'PAGAMENTO: N/A'}
-                          </span>
-                          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary border border-primary/10 flex items-center gap-1.5`}>
-                            <span className="material-symbols-outlined text-[14px]">
-                              {order.orderType === OrderType.EAT_IN ? 'restaurant' : order.orderType === OrderType.TAKE_AWAY ? 'local_mall' : 'delivery_dining'}
+                        {/* Badges de Tipo e Pagamento */}
+                        <div className="flex flex-wrap gap-2">
+                          <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest flex items-center gap-1 bg-slate-100 text-slate-600`}>
+                            <span className="material-symbols-outlined text-xs">
+                              {order.orderType === OrderType.EAT_IN ? 'restaurant' : order.orderType === OrderType.TAKE_AWAY ? 'shopping_bag' : 'delivery_dining'}
                             </span>
-                            {order.orderType === OrderType.EAT_IN ? 'COMER AQUI' : order.orderType === OrderType.TAKE_AWAY ? 'LEVANTAMENTO' : 'ENTREGA'}
+                            {order.orderType === OrderType.EAT_IN ? 'LOCAL' : order.orderType === OrderType.TAKE_AWAY ? 'LEVANTAR' : 'ENTREGA'}
                           </span>
+                          <span className="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest bg-slate-50 text-slate-500 border border-slate-100">
+                            {order.paymentMethod === 'TRANSFER' ? 'TRANSFERÊNCIA' : 'NUMERÁRIO'}
+                          </span>
+                          {order.status === OrderStatus.READY && (
+                            <span className="px-2 py-1 bg-green-500 text-white rounded-md text-[8px] font-black uppercase tracking-widest animate-pulse">PRONTO</span>
+                          )}
                         </div>
 
-                        {order.orderType === OrderType.DELIVERY && (order.deliveryAddress || order.deliveryCoords) && (
-                          <div className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                            <div className="flex items-center gap-2 mb-2 text-primary">
-                              <span className="material-symbols-outlined text-base">location_on</span>
-                              <span className="text-[10px] font-black uppercase tracking-widest">Endereço de Entrega</span>
-                            </div>
-                            {order.deliveryAddress && (
-                              <p className="text-sm font-bold text-[#111111] mb-3 leading-relaxed">
-                                {order.deliveryAddress}
-                              </p>
-                            )}
-                            {order.deliveryCoords && (
-                              <a
-                                href={`https://www.google.com/maps?q=${order.deliveryCoords.lat},${order.deliveryCoords.lng}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-primary rounded-xl text-[10px] font-black uppercase tracking-widest border border-primary/20 hover:bg-primary/5 transition-all shadow-sm"
-                              >
-                                <span className="material-symbols-outlined text-base">map</span>
-                                VER NO MAPA
-                              </a>
-                            )}
+                        {/* Endereço de Entrega se houver */}
+                        {order.orderType === OrderType.DELIVERY && order.deliveryAddress && (
+                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-start gap-2">
+                            <span className="material-symbols-outlined text-primary text-sm mt-0.5">location_on</span>
+                            <p className="text-[10px] font-bold text-slate-600 leading-tight">
+                              {order.deliveryAddress}
+                            </p>
                           </div>
                         )}
-                      </div>
 
-                      {order.paymentMethod === 'TRANSFER' && order.paymentProofUrl && (
-                        <div className="mb-6">
-                          <a
-                            href={order.paymentProofUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full flex items-center justify-center gap-2 h-12 bg-blue-50 text-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
-                          >
-                            <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
-                            VER COMPROVATIVO
-                          </a>
+                        {/* Itens do Pedido */}
+                        <div className="space-y-3 py-2 border-y border-slate-50">
+                          {order.items.map((item, i) => (
+                            <div key={i} className="flex justify-between items-start gap-4">
+                              <div className="flex gap-2 min-w-0">
+                                <span className="text-sm font-black text-slate-900">{item.quantity}x</span>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-bold text-slate-700 leading-none">{item.name}</span>
+                                  {item.observation && (
+                                    <span className="text-[10px] text-slate-400 font-medium italic mt-1 leading-tight">{item.observation}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      )}
 
-                      <div className="space-y-4 mb-8">
-                        {order.items.map((item, i) => (
-                          <div key={i} className="flex justify-between items-start group/item">
-                            <div className="flex gap-3">
-                              <span className="text-lg font-black text-[#111111] leading-tight">{item.quantity}x</span>
-                              <span className="text-lg font-bold text-[#111111] leading-tight">{item.name}</span>
+                        {/* Ações do Card */}
+                        <div className="mt-auto space-y-2 pt-2">
+                          {order.status === OrderStatus.READY ? (
+                            <button
+                              onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
+                              className="w-full h-12 bg-green-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-500/20 hover:bg-green-600 transition-all flex items-center justify-center gap-2 active:scale-95"
+                            >
+                              <span className="material-symbols-outlined text-lg">check_circle</span>
+                              CONCLUIR PEDIDO
+                            </button>
+                          ) : (
+                            <div className="flex flex-col gap-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
+                                  disabled={order.status === OrderStatus.PREPARING}
+                                  className={`h-11 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${order.status === OrderStatus.PREPARING ? 'bg-primary/10 text-primary border border-primary/20 cursor-default' : 'bg-primary text-white hover:bg-slate-900 shadow-md shadow-primary/10'}`}
+                                >
+                                  <span className="material-symbols-outlined text-lg">{order.status === OrderStatus.PREPARING ? 'restaurant' : 'outdoor_grill'}</span>
+                                  {order.status === OrderStatus.PREPARING ? 'COZINHANDO' : 'PREPARAR'}
+                                </button>
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
+                                  className="h-11 bg-white border border-slate-200 text-slate-900 rounded-xl font-black text-[9px] uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-2"
+                                >
+                                  <span className="material-symbols-outlined text-lg">notifications</span>
+                                  NOTIFICAR
+                                </button>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
+                                  className="h-11 bg-slate-50 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-100 transition-all flex items-center justify-center gap-2 border border-slate-200"
+                                >
+                                  <span className="material-symbols-outlined text-lg">check</span>
+                                  ENTREGAR
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm('Cancelar este pedido?')) updateOrderStatus(order.id, OrderStatus.CANCELLED);
+                                  }}
+                                  className="h-11 bg-white text-slate-300 hover:text-red-500 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                >
+                                  <span className="material-symbols-outlined text-lg">close</span>
+                                  CANCELAR
+                                </button>
+                              </div>
                             </div>
-                            {item.observation && (
-                              <span className="text-[12px] font-medium text-[#BBBBBB] italic shrink-0 ml-4">{item.observation}</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="space-y-3">
-                        {order.status === OrderStatus.READY ? (
-                          <button
-                            onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                            className="w-full flex items-center justify-center gap-3 h-16 bg-[#22C55E] text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-green-500/20 hover:bg-[#1DA850] transition-all active:scale-95"
-                          >
-                            <span className="material-symbols-outlined text-2xl">check_circle</span>
-                            ENTREGAR AGORA
-                          </button>
-                        ) : (
-                          <>
-                            <div className="grid grid-cols-2 gap-3">
-                              <button
-                                onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
-                                disabled={order.status === OrderStatus.PREPARING}
-                                className={`flex items-center justify-center gap-2 h-16 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all shadow-md group/btn ${order.status === OrderStatus.PREPARING ? 'bg-red-50 text-primary border border-primary/20 cursor-default' : 'bg-[#E11D48] text-white hover:bg-[#BE123C] active:scale-95'}`}
-                              >
-                                <span className="material-symbols-outlined text-xl">{order.status === OrderStatus.PREPARING ? 'cooking' : 'outdoor_grill'}</span>
-                                {order.status === OrderStatus.PREPARING ? 'PREPARANDO' : 'PREPARAR'}
-                              </button>
-                              <button
-                                onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
-                                className="flex items-center justify-center gap-2 h-16 bg-white border border-[#F5F5F5] text-[#111111] rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-sm hover:border-primary/20 hover:text-primary transition-all active:scale-95 group/btn"
-                              >
-                                <span className="material-symbols-outlined text-xl group-hover/btn:animate-pulse">notifications</span>
-                                NOTIFICAR
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <button
-                                onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                                className="flex items-center justify-center gap-2 h-16 bg-white border border-[#F5F5F5] text-[#111111] rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-sm hover:border-black/10 transition-all active:scale-95"
-                              >
-                                <span className="material-symbols-outlined text-xl">check_circle</span>
-                                ENTREGAR
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (confirm('Tem certeza que deseja cancelar este pedido?')) {
-                                    updateOrderStatus(order.id, OrderStatus.CANCELLED);
-                                  }
-                                }}
-                                className="flex items-center justify-center gap-2 h-16 bg-white text-[#BBBBBB] hover:text-red-500 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95"
-                              >
-                                <span className="material-symbols-outlined text-xl">cancel</span>
-                                CANCELAR
-                              </button>
-                            </div>
-                          </>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1053,135 +1004,118 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               </div>
             </div>
           ) : (
-            <div className="space-y-12 animate-fade-in pb-20">
+            <div className="space-y-6 animate-fade-in pb-20">
               {/* Header de Relatório com Exportação */}
-              <div className="flex justify-between items-center bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium no-print">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 sm:p-8 rounded-2xl sm:rounded-[3rem] border border-border/40 shadow-sm no-print">
                 <div>
-                  <h3 className="text-3xl font-black text-secondary tracking-tighter">Auditoria & Relatórios</h3>
-                  <p className="text-text-muted font-medium mt-1">Visão geral do faturamento, custos e histórico de operações.</p>
+                  <h3 className="text-xl sm:text-2xl font-black text-secondary tracking-tight">Auditoria & Relatórios</h3>
+                  <p className="text-text-muted text-xs font-medium mt-1">Monitorização financeira e histórico de operações.</p>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex w-full sm:w-auto gap-3">
                   <button
                     onClick={handleExportCSV}
-                    className="h-16 px-10 bg-white border border-border/40 text-secondary hover:bg-background rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-sm flex items-center gap-3 active:scale-95"
+                    className="flex-1 sm:px-6 h-12 bg-slate-100 border border-border/40 text-secondary hover:bg-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
                   >
-                    <span className="material-symbols-outlined text-2xl">table_rows</span> EXCEL (CSV)
+                    <span className="material-symbols-outlined text-lg">description</span> EXCEL
                   </button>
                   <button
                     onClick={handlePrint}
-                    className="h-16 px-10 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-premium flex items-center gap-3 active:scale-95"
+                    className="flex-[1.5] sm:px-8 h-12 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-95"
                   >
-                    <span className="material-symbols-outlined text-2xl">picture_as_pdf</span> GERAR PDF
+                    <span className="material-symbols-outlined text-lg">picture_as_pdf</span> GERAR PDF
                   </button>
                 </div>
               </div>
 
-              {/* Print Only Header */}
-              <div className="hidden print:flex justify-between items-center border-b-4 border-primary pb-8 mb-12">
-                <div>
-                  <h1 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório de Desempenho & Auditoria</h1>
-                  <p className="text-xl font-bold text-primary mt-2">{company.name}</p>
+              {/* Monitor em Tempo Real (KPIs) */}
+              <section>
+                <div className="flex items-center justify-between mb-4 px-2">
+                  <h4 className="text-primary text-[10px] font-black leading-normal tracking-[0.2em] uppercase">Monitor em Tempo Real</h4>
+                  <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-black text-secondary uppercase tracking-widest">Extraído em:</p>
-                  <p className="text-lg font-bold text-text-muted">{new Date().toLocaleString()}</p>
-                </div>
-              </div>
-
-              {/* KPIs Consolidados */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Faturamento Bruto</p>
-                  <div className="flex items-baseline gap-3">
-                    <p className="text-4xl font-black text-secondary tracking-tighter">{totalRevenue.toLocaleString()} Kz</p>
-                    <span className="text-[11px] font-black text-green-500 uppercase">Total</span>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="flex flex-col gap-1 rounded-2xl p-4 sm:p-6 bg-white border border-slate-200 shadow-sm group hover:border-primary/20 transition-all">
+                    <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Faturamento Bruto</p>
+                    <p className="text-slate-900 text-xl font-black tracking-tight">{totalRevenue.toLocaleString()} Kz</p>
                   </div>
-                </div>
-                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Investimento SMS</p>
-                  <div className="flex items-baseline gap-3">
-                    <p className="text-4xl font-black text-primary tracking-tighter">{(smsCount * 5).toLocaleString()} Kz</p>
-                    <span className="text-[11px] font-black text-primary uppercase">{smsCount}</span>
+                  <div className="flex flex-col gap-1 rounded-2xl p-4 sm:p-6 bg-white border border-slate-200 shadow-sm group hover:border-primary/20 transition-all">
+                    <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Investimento SMS</p>
+                    <p className="text-slate-900 text-xl font-black tracking-tight">{(smsCount * 5).toLocaleString()} Kz</p>
                   </div>
-                </div>
-                <div className="bg-white p-10 rounded-[3.5rem] border border-secondary shadow-premium group hover:border-primary/20 transition-all">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.3em] mb-4">Faturamento Líquido</p>
-                  <div className="flex items-baseline gap-3">
-                    <p className="text-4xl font-black text-secondary tracking-tighter">
-                      {(totalRevenue - (smsCount * 5)).toLocaleString()} Kz
-                    </p>
-                    <span className="text-[11px] font-black text-secondary/30 uppercase">Líquido</span>
+                  <div className="flex flex-col gap-1 rounded-2xl p-4 sm:p-6 bg-white border border-slate-200 shadow-sm group hover:border-primary/20 transition-all border-l-4 border-l-primary">
+                    <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Faturamento Líquido</p>
+                    <p className="text-primary text-xl font-black tracking-tight">{(totalRevenue - (smsCount * 5)).toLocaleString()} Kz</p>
                   </div>
-                </div>
-                <div className="bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium group hover:border-primary/20 transition-all">
-                  <p className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">Tempo Preparo</p>
-                  <div className="flex items-baseline gap-3">
-                    <p className="text-4xl font-black text-secondary tracking-tighter">
+                  <div className="flex flex-col gap-1 rounded-2xl p-4 sm:p-6 bg-white border border-slate-200 shadow-sm group hover:border-primary/20 transition-all">
+                    <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Tempo Preparo</p>
+                    <p className="text-slate-900 text-xl font-black tracking-tight">
                       {filteredHistory.length > 0
                         ? Math.round(filteredHistory.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / filteredHistory.length / 60)
-                        : 0}m
+                        : 0} min
                     </p>
-                    <span className="text-[11px] font-black text-text-muted uppercase">Média</span>
                   </div>
                 </div>
-              </div>
+              </section>
 
               {/* Filtros Avançados */}
-              <div className="bg-surface p-12 rounded-[3.5rem] border border-border shadow-premium space-y-8 no-print">
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="material-symbols-outlined text-primary">filter_alt</span>
-                  <p className="text-[11px] font-black text-secondary uppercase tracking-[0.4em]">Filtros de Auditoria & Fecho do Dia</p>
+              <div className="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6 no-print">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-primary">filter_list</span>
+                  <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Filtros de Auditoria & Fecho do Dia</p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">Data Inicial</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Data Inicial</label>
                     <input
                       type="datetime-local"
                       value={hStartDate}
                       onChange={e => setHStartDate(e.target.value)}
-                      className="w-full h-14 bg-background border border-border/50 rounded-xl px-4 font-bold text-xs text-secondary outline-none focus:border-primary transition-all"
+                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 font-bold text-xs text-secondary outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">Data Final</label>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Data Final</label>
                     <input
                       type="datetime-local"
                       value={hEndDate}
                       onChange={e => setHEndDate(e.target.value)}
-                      className="w-full h-14 bg-background border border-border/50 rounded-xl px-4 font-bold text-xs text-secondary outline-none focus:border-primary transition-all"
+                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 font-bold text-xs text-secondary outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">Estado</label>
-                    <select
-                      value={hStatusFilter}
-                      onChange={e => setHStatusFilter(e.target.value)}
-                      className="w-full h-14 bg-background border border-border/50 rounded-xl px-4 font-bold text-[10px] uppercase tracking-widest text-secondary outline-none appearance-none cursor-pointer"
-                    >
-                      <option>Todos</option>
-                      <option>{OrderStatus.RECEIVED}</option>
-                      <option>{OrderStatus.PREPARING}</option>
-                      <option>{OrderStatus.READY}</option>
-                      <option>{OrderStatus.DELIVERED}</option>
-                    </select>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Estado</label>
+                    <div className="relative">
+                      <select
+                        value={hStatusFilter}
+                        onChange={e => setHStatusFilter(e.target.value)}
+                        className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 font-bold text-[10px] uppercase tracking-widest text-secondary outline-none appearance-none cursor-pointer focus:border-primary focus:ring-1 focus:ring-primary"
+                      >
+                        <option>Todos</option>
+                        <option>{OrderStatus.RECEIVED}</option>
+                        <option>{OrderStatus.PREPARING}</option>
+                        <option>{OrderStatus.READY}</option>
+                        <option>{OrderStatus.DELIVERED}</option>
+                      </select>
+                      <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">Contacto</label>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Contacto</label>
                     <input
                       type="text"
                       placeholder="9xx..."
                       value={hContactFilter}
                       onChange={e => setHContactFilter(e.target.value)}
-                      className="w-full h-14 bg-background border border-border/50 rounded-xl px-4 font-bold text-xs text-secondary outline-none focus:border-primary transition-all"
+                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 font-bold text-xs text-secondary outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     />
                   </div>
                 </div>
-                <div className="flex justify-end gap-4 pt-4">
+                <div className="flex justify-end gap-3 pt-2">
                   <button
                     onClick={() => {
                       setHStartDate(''); setHEndDate(''); setHStatusFilter('Todos'); setHContactFilter('');
                     }}
-                    className="px-8 py-3 bg-primary-soft text-primary rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
+                    className="px-6 h-10 bg-slate-50 text-slate-500 rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-slate-100 transition-all border border-slate-200"
                   >
                     Resetar Filtros
                   </button>
@@ -1189,74 +1123,81 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               </div>
 
               {/* Tabela de Auditoria Unificada */}
-              <div className="bg-surface rounded-[4.5rem] shadow-premium border border-border overflow-hidden">
-                <div className="p-12 border-b border-border/40 bg-white/50 no-print">
-                  <h4 className="text-2xl font-black text-secondary uppercase tracking-tighter">Histórico Detalhado de Operações</h4>
+              <div className="bg-white rounded-2xl sm:rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center no-print">
+                  <h4 className="text-sm font-black text-slate-700 uppercase tracking-tight">Histórico Detalhado de Operações</h4>
+                  <span className="text-[10px] text-slate-400">{filteredHistory.length} resultados encontrados</span>
                 </div>
                 <div className="overflow-x-auto custom-scrollbar">
                   <table className="w-full text-left min-w-[1000px]">
                     <thead>
-                      <tr className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] border-b border-border/50 bg-background/30">
-                        <th className="px-8 py-6">Senha</th>
-                        <th className="px-6 py-6">Contacto</th>
-                        <th className="px-6 py-6">Estado</th>
-                        <th className="px-6 py-6">Itens</th>
-                        <th className="px-6 py-6">Pagto</th>
-                        <th className="px-6 py-6">Tipo / Endereço</th>
-                        <th className="px-6 py-6 text-right">Valor</th>
-                        <th className="px-6 py-6">Preparo</th>
-                        <th className="px-8 py-6 text-right">Data/Hora</th>
+                      <tr className="text-[9px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100 bg-slate-50/30">
+                        <th className="px-6 py-4">Senha</th>
+                        <th className="px-5 py-4">Contacto</th>
+                        <th className="px-5 py-4">Estado</th>
+                        <th className="px-5 py-4">Itens</th>
+                        <th className="px-5 py-4">Pagto</th>
+                        <th className="px-5 py-4">Tipo / Endereço</th>
+                        <th className="px-5 py-4 text-right">Valor</th>
+                        <th className="px-5 py-4">Preparo</th>
+                        <th className="px-6 py-4 text-right">Data/Hora</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/20">
+                    <tbody className="divide-y divide-slate-50">
                       {filteredHistory.map((hOrder) => (
-                        <tr key={hOrder.id} className="group hover:bg-background/40 transition-all border-b border-border/10">
-                          <td className="px-8 py-4">
-                            <div className="size-10 bg-secondary text-white rounded-lg flex items-center justify-center font-black text-sm group-hover:bg-primary transition-colors">
+                        <tr key={hOrder.id} className="group hover:bg-slate-50 transition-all">
+                          <td className="px-6 py-4">
+                            <div className="h-10 w-12 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-[11px] group-hover:bg-primary transition-colors">
                               #{hOrder.ticketCode}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-[12px] font-black text-secondary">
-                            {maskPhone(hOrder.customerPhone, hOrder.id)}
-                            {!showFullPhones[hOrder.id] && (
-                              <button onClick={() => revealPhone(hOrder.id)} className="text-[8px] bg-primary-soft text-primary px-1.5 py-0.5 rounded ml-1 no-print">
-                                VER
-                              </button>
-                            )}
+                          <td className="px-5 py-4 text-[11px] font-black text-slate-700">
+                            <div className="flex items-center gap-2">
+                              {maskPhone(hOrder.customerPhone, hOrder.id)}
+                              {!showFullPhones[hOrder.id] && (
+                                <button onClick={() => revealPhone(hOrder.id)} className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded no-print hover:bg-primary hover:text-white transition-all">
+                                  VER
+                                </button>
+                              )}
+                            </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider ${getStatusColor(hOrder.status as OrderStatus)}`}>
+                          <td className="px-5 py-4">
+                            <span className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest ${getStatusColor(hOrder.status as OrderStatus)}`}>
                               {getStatusLabel(hOrder)}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
-                            <p className="text-[10px] font-bold text-text-muted truncate max-w-[150px]" title={hOrder.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}>
+                          <td className="px-5 py-4">
+                            <p className="text-[10px] font-bold text-slate-500 truncate max-w-[150px]" title={hOrder.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}>
                               {hOrder.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
                             </p>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className="text-[9px] font-black text-secondary uppercase tracking-tight">{hOrder.paymentMethod || 'N/A'}</span>
+                          <td className="px-5 py-4">
+                            <span className="text-[9px] font-black text-slate-700 uppercase tracking-tight bg-slate-100 px-2 py-1 rounded">{hOrder.paymentMethod || 'N/A'}</span>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[9px] font-black text-secondary uppercase tracking-tight">
+                          <td className="px-5 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-[9px] font-black text-slate-700 uppercase tracking-tight">
                                 {hOrder.orderType === OrderType.EAT_IN ? 'COMER AQUI' : hOrder.orderType === OrderType.TAKE_AWAY ? 'LEVANTAMENTO' : 'ENTREGA'}
                               </span>
                               {hOrder.orderType === OrderType.DELIVERY && hOrder.deliveryAddress && (
-                                <span className="text-[10px] font-bold text-text-muted truncate max-w-[200px]" title={hOrder.deliveryAddress}>
+                                <span className="text-[9px] font-bold text-slate-400 truncate max-w-[180px]" title={hOrder.deliveryAddress}>
                                   {hOrder.deliveryAddress}
                                 </span>
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 font-black text-secondary text-[12px] text-right">
-                            {(hOrder.total || 0).toLocaleString()}
+                          <td className="px-5 py-4 font-black text-slate-900 text-[12px] text-right">
+                            {(hOrder.total || 0).toLocaleString()} Kz
                           </td>
-                          <td className="px-6 py-4 font-black text-text-muted text-[11px]">
-                            {Math.floor((hOrder.timerAccumulatedSeconds || 0) / 60)}m
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-1.5 font-black text-slate-500 text-[10px]">
+                              <span className="material-symbols-outlined text-sm">schedule</span>
+                              {Math.floor((hOrder.timerAccumulatedSeconds || 0) / 60)}m
+                            </div>
                           </td>
-                          <td className="px-8 py-4 text-right font-medium text-secondary text-[11px]">
-                            {hOrder.timestamp}
+                          <td className="px-6 py-4 text-right">
+                            <p className="text-[10px] font-black text-slate-700">{hOrder.timestamp.split(', ')[0]}</p>
+                            <p className="text-[9px] font-bold text-slate-400">{hOrder.timestamp.split(', ')[1]}</p>
                           </td>
                         </tr>
                       ))}
@@ -1346,125 +1287,121 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             </form>
           </div>
         </div>
-      )
-      }
+      )}
 
-      {
-        showQRModal && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-            <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-              <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+      {showQRModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
-              <div className="text-center mb-12">
-                <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
-                  <span className="material-symbols-outlined text-5xl">qr_code_2</span>
-                </div>
-                <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{company.name}</h3>
-                <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
-                  Código do Local: <span className="text-primary font-black">{company.id.toString().padStart(4, '0')}</span>
-                </p>
+            <div className="text-center mb-12">
+              <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
+                <span className="material-symbols-outlined text-5xl">qr_code_2</span>
               </div>
-
-              <div className="flex flex-col items-center gap-10">
-                <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group" style={{ filter: 'sharp-edges' }}>
-                  <div className="relative">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
-                      alt="QR Code"
-                      className="size-64"
-                    />
-                    {company.logoUrl && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
-                          <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="w-full space-y-4">
-                  <button
-                    onClick={() => window.print()}
-                    className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
-                  >
-                    <span className="material-symbols-outlined">print</span>
-                    IMPRIMIR PARA BALCÃO
-                  </button>
-                  <button
-                    onClick={() => setShowQRModal(false)}
-                    className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
-                  >
-                    FECHAR
-                  </button>
-                </div>
-              </div>
+              <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{company.name}</h3>
+              <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
+                Código do Local: <span className="text-primary font-black">{company.id.toString().padStart(4, '0')}</span>
+              </p>
             </div>
-          </div>
-        )
-      }
 
-      {
-        showMarketingAuthModal && (
-          <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
-            <div className="w-full max-w-md bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-              <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
-
-              <div className="text-center mb-10">
-                <div className="size-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6">
-                  <span className="material-symbols-outlined text-4xl">lock</span>
-                </div>
-                <h3 className="text-2xl font-black tracking-tight text-secondary leading-none">Acesso Restrito</h3>
-                <p className="text-[#BBBBBB] text-[11px] font-black uppercase tracking-widest mt-4">Insira a sua password de parceiro</p>
-              </div>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (marketingPasswordPrompt === company.password) {
-                    setIsMarketingUnlocked(true);
-                    setActiveTab('MARKETING');
-                    setShowMarketingAuthModal(false);
-                    setMarketingAuthError(false);
-                  } else {
-                    setMarketingAuthError(true);
-                  }
-                }}
-                className="space-y-6"
-              >
-                <div className="space-y-2">
-                  <input
-                    type="password"
-                    value={marketingPasswordPrompt}
-                    onChange={(e) => setMarketingPasswordPrompt(e.target.value)}
-                    placeholder="Password da Empresa"
-                    autoFocus
-                    className={`w-full h-16 bg-[#F9F9F9] border-2 rounded-2xl px-6 font-bold text-center text-[#111111] transition-all outline-none ${marketingAuthError ? 'border-red-500 animate-shake' : 'border-transparent focus:border-primary'}`}
+            <div className="flex flex-col items-center gap-10">
+              <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group" style={{ filter: 'sharp-edges' }}>
+                <div className="relative">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
+                    alt="QR Code"
+                    className="size-64"
                   />
-                  {marketingAuthError && (
-                    <p className="text-[10px] text-red-500 font-black uppercase tracking-widest text-center mt-2">Password Incorrecta</p>
+                  {company.logoUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
+                        <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                      </div>
+                    </div>
                   )}
                 </div>
+              </div>
 
-                <div className="flex flex-col gap-3 pt-4">
-                  <button
-                    type="submit"
-                    className="w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-secondary transition-all"
-                  >
-                    AUTENTICAR
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowMarketingAuthModal(false)}
-                    className="w-full py-4 text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em] hover:text-secondary transition-colors"
-                  >
-                    CANCELAR
-                  </button>
-                </div>
-              </form>
+              <div className="w-full space-y-4">
+                <button
+                  onClick={() => window.print()}
+                  className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
+                >
+                  <span className="material-symbols-outlined">print</span>
+                  IMPRIMIR PARA BALCÃO
+                </button>
+                <button
+                  onClick={() => setShowQRModal(false)}
+                  className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
+                >
+                  FECHAR
+                </button>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
+
+      {showMarketingAuthModal && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="w-full max-w-md bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
+
+            <div className="text-center mb-10">
+              <div className="size-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                <span className="material-symbols-outlined text-4xl">lock</span>
+              </div>
+              <h3 className="text-2xl font-black tracking-tight text-secondary leading-none">Acesso Restrito</h3>
+              <p className="text-[#BBBBBB] text-[11px] font-black uppercase tracking-widest mt-4">Insira a sua password de parceiro</p>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (marketingPasswordPrompt === company.password) {
+                  setIsMarketingUnlocked(true);
+                  setActiveTab('MARKETING');
+                  setShowMarketingAuthModal(false);
+                  setMarketingAuthError(false);
+                } else {
+                  setMarketingAuthError(true);
+                }
+              }}
+              className="space-y-6"
+            >
+              <div className="space-y-2">
+                <input
+                  type="password"
+                  value={marketingPasswordPrompt}
+                  onChange={(e) => setMarketingPasswordPrompt(e.target.value)}
+                  placeholder="Password da Empresa"
+                  autoFocus
+                  className={`w-full h-16 bg-[#F9F9F9] border-2 rounded-2xl px-6 font-bold text-center text-[#111111] transition-all outline-none ${marketingAuthError ? 'border-red-500 animate-shake' : 'border-transparent focus:border-primary'}`}
+                />
+                {marketingAuthError && (
+                  <p className="text-[10px] text-red-500 font-black uppercase tracking-widest text-center mt-2">Password Incorrecta</p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3 pt-4">
+                <button
+                  type="submit"
+                  className="w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-secondary transition-all"
+                >
+                  AUTENTICAR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowMarketingAuthModal(false)}
+                  className="w-full py-4 text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em] hover:text-secondary transition-colors"
+                >
+                  CANCELAR
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

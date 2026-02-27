@@ -362,313 +362,247 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         <div className="absolute bottom-[-10%] left-[-20%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[150px]"></div>
       </div>
 
-      <header className="glass sticky top-0 z-[60] px-6 lg:px-12 py-6 lg:py-8 flex flex-col lg:flex-row items-center justify-between gap-6 border-b border-white/50 animate-fade-in no-print">
+      <header className="glass sticky top-0 z-[60] px-6 lg:px-12 py-6 flex flex-col lg:flex-row items-center justify-between gap-6 border-b border-border/30 animate-fade-in no-print bg-white/80 backdrop-blur-xl">
         <div className="flex items-center gap-6">
-          <button onClick={onBack} className="size-16 bg-white/50 hover:bg-secondary hover:text-white rounded-[1.5rem] flex items-center justify-center transition-all shadow-md group">
-            <span className="material-symbols-outlined text-3xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
+          <button onClick={onBack} className="group flex items-center justify-center size-14 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-primary hover:text-white transition-all active:scale-95">
+            <span className="material-symbols-outlined text-2xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
           </button>
-          <Logo variant="full" color="dark" size={48} />
+          <div className="flex items-center gap-4">
+            <Logo variant="icon" size={44} color="primary" className="transform hover:rotate-12 transition-transform duration-500" />
+            <div>
+              <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mb-1">Central de Comando</p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-900 leading-none">Super Admin</h2>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 lg:gap-4 bg-background/50 p-2 rounded-[1.5rem] border border-border/50 overflow-x-auto no-scrollbar max-w-full">
-          <button
-            onClick={() => setActiveView('ESTABELECIMENTOS')}
-            className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'ESTABELECIMENTOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
-          >
-            Gestão
-          </button>
-          <button
-            onClick={() => setActiveView('AUDITORIA')}
-            className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'AUDITORIA' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
-          >
-            Auditoria
-          </button>
-          <button
-            onClick={() => setActiveView('SMS')}
-            className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'SMS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
-          >
-            SMS & Financeiro
-          </button>
-          <button
-            onClick={() => setActiveView('DIAGNOSTICO')}
-            className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeView === 'DIAGNOSTICO' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white'}`}
-          >
-            Diagnóstico
-          </button>
+        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto no-scrollbar max-w-full shadow-inner">
+          {[
+            { id: 'ESTABELECIMENTOS', label: 'Gestão' },
+            { id: 'AUDITORIA', label: 'Auditoria' },
+            { id: 'SMS', label: 'Financeiro' },
+            { id: 'DIAGNOSTICO', label: 'Diagnóstico' }
+          ].map(view => (
+            <button
+              key={view.id}
+              onClick={() => setActiveView(view.id as any)}
+              className={`px-6 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] transition-all ${activeView === view.id ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-white hover:text-slate-900'}`}
+            >
+              {view.label}
+            </button>
+          ))}
         </div>
 
-        <div className="hidden lg:flex items-center gap-4 px-8 py-4 bg-secondary text-white rounded-full font-black text-[11px] uppercase tracking-widest shadow-premium">
-          <span className="size-2 bg-green-400 rounded-full animate-pulse-soft"></span>
+        <div className="hidden lg:flex items-center gap-2 px-6 h-14 bg-green-50 text-green-600 rounded-2xl font-black text-[9px] uppercase tracking-widest border border-green-100">
+          <span className="size-2 bg-green-500 rounded-full animate-pulse"></span>
           Sistema Operativo
         </div>
       </header>
 
+      <main className="max-w-[1600px] mx-auto px-6 lg:px-12 py-8 lg:py-12 space-y-12 relative z-10">
 
-      <main className="max-w-7xl mx-auto px-6 lg:px-12 py-8 lg:py-16 space-y-12 lg:space-y-20 relative z-10">
-
-        {/* Dashboard Cards (Common for Top) */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 animate-fade-in">
-          <div className="bg-surface p-10 rounded-[3rem] border border-white/60 shadow-premium">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">Estabelecimentos Ativos</p>
-            <p className="text-5xl font-black text-secondary tracking-tighter">{companies.filter(c => c.isActive).length}</p>
-          </div>
-          <div className="bg-surface p-10 rounded-[3rem] border border-white/60 shadow-premium">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">Clientes Hoje</p>
-            <p className="text-5xl font-black text-primary tracking-tighter">{totalClientCount}</p>
-          </div>
-          <div className="bg-surface p-10 rounded-[3rem] border border-white/60 shadow-premium">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">SMS Enviadas Hoje</p>
-            <p className="text-5xl font-black text-secondary tracking-tighter">{dailySmsCount}</p>
-          </div>
-          <div className="bg-surface p-10 rounded-[3rem] border border-white/60 shadow-premium">
-            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-4">Receita do Dia</p>
-            <p className="text-5xl font-black text-primary tracking-tighter">{dailyRevenue.toLocaleString()} Kz</p>
-          </div>
+        {/* Dashboard Analytics */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+          {[
+            { label: 'Estabelecimentos Ativos', val: companies.filter(c => c.isActive).length, color: 'text-slate-900' },
+            { label: 'Clientes Hoje', val: totalClientCount, color: 'text-primary' },
+            { label: 'SMS Enviadas Hoje', val: dailySmsCount, color: 'text-slate-900' },
+            { label: 'Receita do Dia', val: `${dailyRevenue.toLocaleString()} Kz`, color: 'text-primary' }
+          ].map((stat, i) => (
+            <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-1 group">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] group-hover:text-primary transition-colors">{stat.label}</p>
+              <p className={`text-4xl font-black ${stat.color} tracking-tighter`}>{stat.val}</p>
+            </div>
+          ))}
         </section>
 
         {activeView === 'ESTABELECIMENTOS' ? (
-          <>
-            {/* Registration Section */}
-            <section className="bg-surface rounded-[2.5rem] lg:rounded-[4.5rem] shadow-premium p-6 lg:p-16 border border-white/60 relative overflow-hidden animate-scale-in">
+          <div className="space-y-16">
+            {/* Registration Form */}
+            <section className="bg-white rounded-[3.5rem] p-8 lg:p-16 border border-slate-100 shadow-sm relative overflow-hidden animate-scale-in">
               <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
 
-              <div className="max-w-4xl mx-auto space-y-12">
-                <div className="flex items-center gap-8">
-                  <div className="size-20 bg-primary text-white rounded-[2.2rem] flex items-center justify-center shadow-premium transform rotate-3">
-                    <span className="material-symbols-outlined text-5xl">add_business</span>
+              <div className="max-w-5xl mx-auto">
+                <div className="flex items-center gap-6 mb-16">
+                  <div className="size-16 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                    <span className="material-symbols-outlined text-3xl">add_business</span>
                   </div>
                   <div>
-                    <h2 className="text-5xl font-black tracking-tight text-secondary leading-none">
+                    <h2 className="text-4xl font-black tracking-tight text-slate-900">
                       {editingCompany ? 'Ajustar Parceiro' : 'Novo Estabelecimento'}
                     </h2>
-                    <p className="text-text-muted font-medium text-lg mt-3">Expanda a rede KwikFood registando novos restaurantes.</p>
+                    <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Expanda a rede KwikFood registando novos restaurantes.</p>
                   </div>
                 </div>
 
-                <form onSubmit={handleRegister} className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-10">
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Código ID (Referência)</label>
+                <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Código ID de Referência</label>
                     <input
                       type="text"
                       value={id}
                       onChange={e => setId(e.target.value.replace(/\D/g, ''))}
+                      className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-primary outline-none focus:border-primary transition-all"
                       placeholder="0001"
-                      className="w-full h-20 bg-background border-2 border-primary/20 rounded-[1.8rem] px-8 font-black text-lg text-primary focus:border-primary transition-all outline-none"
                     />
                   </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Designação Social</label>
-                    <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Master Burger Central" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Designação / Nome Fantasia</label>
+                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Master Burger Central" required />
                   </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Tipo de Estabelecimento</label>
-                    <input type="text" value={type} onChange={e => setType(e.target.value)} placeholder="Ex: Restaurante, Hamburgaria..." className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Negócio</label>
+                    <input type="text" value={type} onChange={e => setType(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Restaurante, Hamburgaria..." required />
                   </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">NIF da Empresa</label>
-                    <input type="text" value={nif} onChange={e => setNif(e.target.value)} placeholder="000000000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">NIF Corporativo</label>
+                    <input type="text" value={nif} onChange={e => setNif(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="000000000" required />
                   </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Província</label>
-                    <select value={location} onChange={e => setLocation(e.target.value)} className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-[12px] uppercase tracking-widest text-secondary focus:border-primary transition-all appearance-none cursor-pointer outline-none">
-                      {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Província</label>
+                      <select value={location} onChange={e => setLocation(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-[12px] uppercase tracking-widest text-slate-900 outline-none focus:border-primary transition-all appearance-none cursor-pointer">
+                        {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cidade / Bairro</label>
+                      <input type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Talatona" required />
+                    </div>
                   </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Cidade</label>
-                    <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="Ex: Talatona, Benfica..." className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email de Acesso Administrativo</label>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="restaurante@exemplo.com" required />
                   </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Credenciais de Acesso (Email)</label>
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="restaurante@exemplo.com" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Senha de Parceiro</label>
+                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="••••••••" required />
                   </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Senha Administrativa</label>
-                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
-                  </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Telegram Chat ID</label>
-                    <input type="text" value={telegramChatId} onChange={e => setTelegramChatId(e.target.value)} placeholder="Ex: -100123456789" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" />
-                  </div>
-
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Telegram Bot Token</label>
-                    <input type="text" value={telegramBotToken} onChange={e => setTelegramBotToken(e.target.value)} placeholder="Ex: 123456:ABC-DEF..." className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" />
-                  </div>
-
-                  <div className="md:col-span-2 space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Logótipo da Empresa</label>
-                    <div className="flex items-center gap-8 p-8 bg-background border-2 border-border/40 rounded-[1.8rem]">
-                      <div className="size-24 bg-surface rounded-2xl flex items-center justify-center overflow-hidden border border-border relative group">
-                        {logoUrl ? (
-                          <img src={logoUrl} alt="Preview" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="material-symbols-outlined text-4xl text-text-muted">image</span>
-                        )}
-                        {logoLoading && (
-                          <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                            <span className="material-symbols-outlined animate-spin text-primary">sync</span>
-                          </div>
-                        )}
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Gestão de Logótipo</label>
+                    <div className="flex items-center gap-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <div className="size-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-inner">
+                        {logoUrl ? <img src={logoUrl} alt="Logo" className="size-full object-cover" /> : <span className="material-symbols-outlined text-slate-200 text-4xl">image</span>}
+                        {logoLoading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center"><span className="material-symbols-outlined animate-spin text-primary">sync</span></div>}
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <label className="inline-block px-8 py-4 bg-secondary text-white rounded-xl font-black text-[10px] uppercase tracking-widest cursor-pointer hover:bg-primary transition-all shadow-premium">
-                          {logoLoading ? 'A CARREGAR...' : logoUrl ? 'ALTERAR IMAGEM' : 'SELECIONAR LOGOTIPO'}
-                          <input type="file" onChange={handleLogoUpload} className="hidden" accept="image/*" disabled={logoLoading} />
+                      <div className="flex-1">
+                        <label className="inline-block px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest cursor-pointer hover:bg-primary transition-all shadow-lg active:scale-95">
+                          {logoUrl ? 'Alterar Logo' : 'Inserir Logo'}
+                          <input type="file" onChange={handleLogoUpload} className="hidden" accept="image/*" />
                         </label>
-                        <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest ml-1">PNG ou JPG até 2MB</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 space-y-6">
+                  <div className="col-span-full space-y-4 pt-4">
                     <div className="flex flex-col md:flex-row gap-6">
-                      <div className="flex-1 space-y-4">
-                        <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Coordenada Y (Lat)</label>
-                        <input type="text" value={lat} onChange={e => setLat(e.target.value === '' ? '' : parseFloat(e.target.value.toString()))} placeholder="0.0000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                      <div className="flex-1 space-y-3">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Latitude (Y)</label>
+                        <input type="text" value={lat} onChange={e => setLat(e.target.value === '' ? '' : parseFloat(e.target.value))} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" />
                       </div>
-                      <div className="flex-1 space-y-4">
-                        <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Coordenada X (Long)</label>
-                        <input type="text" value={lng} onChange={e => setLng(e.target.value === '' ? '' : parseFloat(e.target.value.toString()))} placeholder="0.0000" className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none" required />
+                      <div className="flex-1 space-y-3">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Longitude (X)</label>
+                        <input type="text" value={lng} onChange={e => setLng(e.target.value === '' ? '' : parseFloat(e.target.value))} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" />
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={handleGetCurrentLocation}
-                      disabled={geoLoading}
-                      className="w-full py-5 bg-background hover:bg-white text-secondary hover:text-primary rounded-[1.5rem] font-black text-[12px] uppercase tracking-widest border border-border/60 transition-all flex items-center justify-center gap-4 group"
-                    >
-                      <span className="material-symbols-outlined group-hover:rotate-180 transition-transform duration-700">{geoLoading ? 'sync' : 'my_location'}</span>
-                      {geoLoading ? 'DETECTANDO SINAL GPS...' : 'Detectar Minha Localização Atual'}
+                    <button type="button" onClick={handleGetCurrentLocation} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest text-slate-600 hover:text-primary transition-all active:scale-[0.98]">
+                      <span className="material-symbols-outlined text-xl">{geoLoading ? 'sync' : 'my_location'}</span>
+                      {geoLoading ? 'Detectando Localização...' : 'Capturar Coordenadas do GPS'}
                     </button>
                   </div>
 
-                  <div className="md:col-span-2 pt-10 flex gap-6">
+                  <div className="col-span-full pt-12 flex gap-4">
                     {editingCompany && (
-                      <button
-                        type="button"
-                        onClick={handleCancelEdit}
-                        className="flex-1 h-24 font-black uppercase tracking-[0.4em] text-text-muted hover:text-primary transition-all text-[12px]"
-                      >
-                        DESCARTAR
-                      </button>
+                      <button type="button" onClick={handleCancelEdit} className="flex-1 h-16 font-black text-slate-400 uppercase tracking-widest text-[11px] hover:text-primary transition-all">Cancelar</button>
                     )}
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex-[2] h-24 bg-primary hover:bg-secondary text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-[14px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group"
-                    >
-                      <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
-                      {loading ? 'SINCRONIZANDO...' : editingCompany ? 'SALVAR ALTERAÇÕES' : 'CONCLUIR REGISTO'}
+                    <button type="submit" disabled={loading} className="flex-[3] h-20 bg-primary text-white rounded-[1.5rem] font-black text-[13px] uppercase tracking-[0.3em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                      {loading ? 'Sincronizando...' : editingCompany ? 'Guardar Alterações' : 'Finalizar Registo'}
                     </button>
                   </div>
                 </form>
               </div>
             </section>
 
-            {/* List Section */}
-            <section className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-8">
+            {/* Partners List */}
+            <section className="space-y-8 animate-fade-in">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
                 <div>
-                  <h2 className="text-5xl font-black tracking-tight text-secondary leading-none">Parceiros KwikFood</h2>
-                  <div className="flex items-center gap-4 mt-4">
-                    <span className="px-5 py-2 bg-secondary text-white rounded-full text-[12px] font-black">
-                      {companies.length} Unidades
-                    </span>
-                    <p className="text-text-muted font-black uppercase text-[11px] tracking-[0.3em]">Gestão Global de Rede</p>
-                  </div>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tight">Rede de Parceiros</h3>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.35em] mt-1">{companies.length} Estabelecimentos Ligados</p>
                 </div>
-
-                <div className="relative w-full md:w-96 group">
-                  <input
-                    type="text"
-                    placeholder="PESQUISAR ESTABELECIMENTO..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full h-20 bg-surface border-2 border-border/40 rounded-[1.8rem] px-14 font-black text-[12px] text-secondary focus:border-primary transition-all outline-none tracking-widest"
-                  />
-                  <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors">search</span>
+                <div className="relative w-full sm:w-96">
+                  <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Pesquisar Unidade..." className="w-full h-16 bg-white border border-slate-100 rounded-2xl px-14 font-black text-xs text-slate-700 shadow-sm focus:border-primary outline-none transition-all" />
+                  <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">search</span>
                 </div>
               </div>
 
-              <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
+              <div className="bg-white rounded-[3.5rem] border border-slate-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto no-scrollbar">
+                  <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
-                        <th className="px-16 py-12">Estabelecimento</th>
-                        <th className="px-12 py-12">Localização</th>
-                        <th className="px-12 py-12 text-center">SMS Enviadas</th>
-                        <th className="px-12 py-12">Status</th>
-                        <th className="px-16 py-12 text-right">Controlo</th>
+                      <tr className="bg-slate-50 border-b border-slate-100">
+                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Estabelecimento</th>
+                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Contacto Directo</th>
+                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Localização</th>
+                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">Gestão de Status</th>
+                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-right">Acções Master</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/30">
-                      {filteredCompanies.map((co) => (
-                        <tr key={co.id} className="group hover:bg-background/40 transition-all duration-500 relative">
-                          <td className="px-16 py-12">
-                            <div className="flex items-center gap-8">
-                              <div className="size-20 bg-background rounded-[2.2rem] flex items-center justify-center text-secondary font-black text-3xl group-hover:bg-primary group-hover:text-white transition-all duration-700 shadow-sm border border-border overflow-hidden">
-                                {co.logoUrl ? (
-                                  <img src={co.logoUrl} alt={co.name} className="w-full h-full object-cover" />
-                                ) : co.name.charAt(0)}
+                    <tbody className="divide-y divide-slate-50">
+                      {companies.filter(c =>
+                        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        c.id.toString().includes(searchTerm)
+                      ).map((co) => (
+                        <tr key={co.id} className="group hover:bg-slate-50/50 transition-all">
+                          <td className="px-10 py-8">
+                            <div className="flex items-center gap-6">
+                              <div className="size-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                                {co.logoUrl ? <img src={co.logoUrl} alt={co.name} className="size-full object-cover" /> : <div className="size-full flex items-center justify-center font-black text-slate-300 text-2xl uppercase">{co.name[0]}</div>}
                               </div>
                               <div>
-                                <p className="text-2xl font-black text-secondary group-hover:translate-x-2 transition-transform duration-500">{co.name}</p>
-                                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mt-1">{co.type || 'Restaurante'}</p>
+                                <h4 className="font-black text-slate-900 text-base">{co.name}</h4>
+                                <p className="text-[10px] font-black text-primary uppercase tracking-widest">{co.type}</p>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {co.id.toString().padStart(4, '0')}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-12 py-12">
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[14px] font-black text-secondary">{co.city || co.location}</span>
-                              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{co.province || co.location}</span>
+                          <td className="px-10 py-8">
+                            <p className="font-black text-slate-700 text-sm">{co.email}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NIF: {co.nif}</p>
+                          </td>
+                          <td className="px-10 py-8">
+                            <div className="flex items-center gap-2 text-slate-600">
+                              <span className="material-symbols-outlined text-lg opacity-50">location_on</span>
+                              <p className="font-black text-xs uppercase tracking-wide">{co.location}, {co.city}</p>
                             </div>
                           </td>
-                          <td className="px-12 py-12 text-center text-xl font-black text-secondary">
-                            {smsStats[co.id.toString()] || 0}
-                          </td>
-                          <td className="px-12 py-12">
-                            <div className="flex items-center gap-3">
-                              <span className={`size-2.5 rounded-full ${co.isActive ? 'bg-green-500 animate-pulse-soft' : 'bg-red-500'}`}></span>
-                              <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${co.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                                {co.isActive ? 'ATIVO' : 'DESATIVADO'}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-16 py-12 text-right">
-                            <div className="flex justify-end gap-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-10 transition-all duration-700">
+                          <td className="px-10 py-8">
+                            <div className="flex items-center justify-center gap-2">
                               <button
                                 onClick={() => toggleStatus(co)}
-                                className={`size-16 border border-border/80 rounded-[1.5rem] flex items-center justify-center transition-all ${co.isActive ? 'bg-green-50 text-green-600' : 'bg-primary-soft text-primary'}`}
-                                title={co.isActive ? 'Desativar' : 'Ativar'}
+                                className={`px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all ${co.isActive ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-red-50 text-red-600 border border-red-100'}`}
                               >
-                                <span className="material-symbols-outlined text-3xl">{co.isActive ? 'link' : 'link_off'}</span>
+                                {co.isActive ? 'Activo' : 'Pausado'}
                               </button>
                               <button
                                 onClick={() => toggleMarketing(co)}
-                                className={`size-16 border border-border/80 rounded-[1.5rem] flex items-center justify-center transition-all ${co.marketingEnabled ? 'bg-secondary text-white shadow-premium' : 'bg-white text-text-muted hover:text-primary hover:shadow-premium'}`}
-                                title={co.marketingEnabled ? 'Desativar Marketing' : 'Ativar Marketing'}
+                                className={`size-10 rounded-xl flex items-center justify-center transition-all ${co.marketingEnabled ? 'bg-primary text-white shadow-lg' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                title="Marketing Automático"
                               >
-                                <span className="material-symbols-outlined text-3xl">campaign</span>
+                                <span className="material-symbols-outlined text-xl">campaign</span>
                               </button>
-                              <button onClick={() => setShowQRModal(co)} className="size-16 bg-white border border-border/80 rounded-[1.5rem] flex items-center justify-center text-text-muted hover:text-primary hover:shadow-premium transition-all">
-                                <span className="material-symbols-outlined text-3xl">qr_code_2</span>
+                            </div>
+                          </td>
+                          <td className="px-10 py-8 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button onClick={() => setShowQRModal(co)} className="size-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all active:scale-95 shadow-sm">
+                                <span className="material-symbols-outlined text-xl">qr_code_2</span>
                               </button>
-                              <button onClick={() => handleEditClick(co)} className="size-16 bg-white border border-border/80 rounded-[1.5rem] flex items-center justify-center text-text-muted hover:text-secondary hover:shadow-premium transition-all">
-                                <span className="material-symbols-outlined text-3xl">edit_note</span>
+                              <button onClick={() => handleEditClick(co)} className="size-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all active:scale-95 shadow-sm">
+                                <span className="material-symbols-outlined text-xl">edit_note</span>
                               </button>
-                              <button onClick={() => setShowDeleteModal(co.id.toString())} className="size-16 bg-primary-soft rounded-[1.5rem] flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-md">
-                                <span className="material-symbols-outlined text-3xl">delete</span>
+                              <button onClick={() => setShowDeleteModal(co.id.toString())} className="size-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm">
+                                <span className="material-symbols-outlined text-xl">delete</span>
                               </button>
                             </div>
                           </td>
@@ -679,97 +613,81 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                 </div>
               </div>
             </section>
-          </>
+          </div>
         ) : activeView === 'AUDITORIA' ? (
           <section className="space-y-12 animate-fade-in">
-            <div className="flex justify-between items-center bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium no-print">
+            <div className="flex flex-col lg:flex-row justify-between items-center gap-8 bg-white p-10 rounded-[3.5rem] border border-slate-100 shadow-sm no-print">
               <div>
-                <h3 className="text-3xl font-black text-secondary tracking-tighter">Relatórios de Auditoria</h3>
-                <p className="text-text-muted font-medium mt-1">Logs globais de todas as transações e pedidos.</p>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">Registo de Auditoria</h3>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Monitorização global de transações e logs de sistema.</p>
               </div>
-              <div className="flex gap-4">
-                <button onClick={handleExportAudit} className="h-16 px-10 bg-white border border-border/40 text-secondary rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all hover:bg-background flex items-center gap-3">
+              <div className="flex gap-4 w-full lg:w-auto">
+                <button onClick={handleExportAudit} className="flex-1 lg:flex-none h-16 px-10 bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white flex items-center justify-center gap-3">
                   <span className="material-symbols-outlined text-2xl">table_rows</span> CSV
                 </button>
-                <button onClick={() => window.print()} className="h-16 px-10 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-premium flex items-center gap-3">
+                <button onClick={() => window.print()} className="flex-1 lg:flex-none h-16 px-10 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-3 active:scale-95">
                   <span className="material-symbols-outlined text-2xl">picture_as_pdf</span> PDF
                 </button>
               </div>
             </div>
 
-            {/* Print Only Header */}
-            <div className="hidden print:flex justify-between items-center border-b-4 border-primary pb-8 mb-12">
-              <div>
-                <h1 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório de Auditoria Global</h1>
-                <p className="text-xl font-bold text-primary mt-2">KwikFood Management System</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-black text-secondary uppercase tracking-widest">Extraído em:</p>
-                <p className="text-lg font-bold text-text-muted">{new Date().toLocaleString()}</p>
-              </div>
-            </div>
-
-            <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left min-w-[1000px]">
+            <div className="bg-white rounded-[3.5rem] border border-slate-100 shadow-sm overflow-hidden animate-scale-in">
+              <div className="overflow-x-auto no-scrollbar">
+                <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
-                      <th className="px-6 lg:px-16 py-6 lg:py-12">Ticket / Local</th>
-                      <th className="px-6 lg:px-12 py-6 lg:py-12">Contacto Cliente</th>
-                      <th className="px-6 lg:px-12 py-6 lg:py-12">Duração Serviço</th>
-                      <th className="px-6 lg:px-12 py-6 lg:py-12">Tipo / Logística</th>
-                      <th className="px-6 lg:px-16 py-6 lg:py-12 text-right">Data</th>
+                    <tr className="bg-slate-50 border-b border-slate-100">
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Operação / Local</th>
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Cliente</th>
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Produtividade</th>
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Tipo de Pedido</th>
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-right">Data/Hora</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/30">
+                  <tbody className="divide-y divide-slate-50">
                     {auditOrders.map((order) => (
-                      <tr key={order.id} className="group hover:bg-background/40 transition-all border-b border-border/10">
-                        <td className="px-8 py-4">
+                      <tr key={order.id} className="group hover:bg-slate-50 transition-all">
+                        <td className="px-10 py-6">
                           <div className="flex items-center gap-4">
-                            <div className="size-10 bg-secondary text-white rounded-lg flex items-center justify-center font-black text-sm group-hover:bg-primary transition-colors">
+                            <div className="size-12 bg-slate-900 text-white rounded-xl flex items-center justify-center font-black text-xs shadow-lg">
                               #{order.ticket_code}
                             </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-black text-secondary uppercase truncate">{order.companies?.name}</p>
-                              {order.customer_name && <p className="text-[10px] font-black text-primary uppercase tracking-wider">{order.customer_name}</p>}
-                              <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest">Ref: {order.id.slice(0, 8)}</p>
+                            <div>
+                              <p className="text-sm font-black text-slate-900 uppercase truncate max-w-[150px]">{order.companies?.name}</p>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase mt-0.5 tracking-tighter">REF: {order.id.slice(0, 8)}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <p className="text-[12px] font-black text-secondary">{order.customer_phone}</p>
+                        <td className="px-10 py-6">
+                          <p className="text-[12px] font-black text-slate-900">{order.customer_phone}</p>
+                          {order.customer_name && <p className="text-[10px] font-bold text-primary uppercase tracking-wide">{order.customer_name}</p>}
                         </td>
-                        <td className="px-6 py-4">
-                          <p className="text-[13px] font-black text-secondary">
-                            {Math.floor((order.timer_accumulated_seconds || 0) / 60)}m {(order.timer_accumulated_seconds || 0) % 60}s
-                          </p>
+                        <td className="px-10 py-6">
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-slate-300 text-lg">timer</span>
+                            <p className="text-[12px] font-black text-slate-700 tracking-tight">
+                              {Math.floor((order.timer_accumulated_seconds || 0) / 60)}m {(order.timer_accumulated_seconds || 0) % 60}s
+                            </p>
+                          </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest ${order.status === 'DELIVERED' ? 'bg-gray-100 text-gray-600' :
-                            order.status === 'READY' ? 'bg-green-100 text-green-600' :
-                              'bg-orange-100 text-orange-600'
-                            }`}>
-                            {order.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-background border border-border/50 rounded text-[9px] font-black uppercase tracking-widest w-fit">
-                              <span className="material-symbols-outlined text-[12px]">
+                        <td className="px-10 py-6">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg text-[9px] font-black text-slate-600 w-fit uppercase tracking-widest">
+                              <span className="material-symbols-outlined text-[14px]">
                                 {order.order_type === 'EAT_IN' ? 'restaurant' : order.order_type === 'TAKE_AWAY' ? 'local_mall' : 'delivery_dining'}
                               </span>
-                              {order.order_type === 'EAT_IN' ? 'BALCÃO' : order.order_type === 'TAKE_AWAY' ? 'LEVANTAR' : 'ENTREGA'}
+                              {order.order_type === 'EAT_IN' ? 'No Local' : order.order_type === 'TAKE_AWAY' ? 'Take Away' : 'Entregue'}
                             </div>
-                            {order.order_type === 'DELIVERY' && order.delivery_address && (
-                              <p className="text-[10px] font-bold text-text-muted truncate max-w-[150px]" title={order.delivery_address}>
-                                {order.delivery_address}
-                              </p>
-                            )}
+                            <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest w-fit shadow-sm border ${order.status === 'DELIVERED' ? 'bg-slate-100 text-slate-500 border-slate-200' :
+                                order.status === 'READY' ? 'bg-green-50 text-green-600 border-green-100' :
+                                  'bg-primary/10 text-primary border-primary/20'
+                              }`}>
+                              {order.status}
+                            </span>
                           </div>
                         </td>
-                        <td className="px-8 py-4 text-right">
-                          <p className="text-[11px] font-black text-secondary">{new Date(order.created_at).toLocaleDateString()}</p>
-                          <p className="text-[9px] font-bold text-text-muted uppercase">{new Date(order.created_at).toLocaleTimeString()}</p>
+                        <td className="px-10 py-6 text-right">
+                          <p className="text-[11px] font-black text-slate-900 uppercase">{new Date(order.created_at).toLocaleDateString()}</p>
+                          <p className="text-[9px] font-bold text-slate-400">{new Date(order.created_at).toLocaleTimeString()}</p>
                         </td>
                       </tr>
                     ))}
@@ -787,30 +705,31 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
           </section>
         ) : activeView === 'DIAGNOSTICO' ? (
           <section className="space-y-12 animate-fade-in">
-            <div className="bg-surface rounded-[4.5rem] shadow-premium p-16 border border-white/60 relative overflow-hidden">
+            <div className="bg-white rounded-[3.5rem] p-8 lg:p-16 border border-slate-100 shadow-sm relative overflow-hidden animate-scale-in">
               <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
 
-              <div className="max-w-4xl mx-auto space-y-12">
-                <div className="flex items-center gap-8">
-                  <div className="size-20 bg-secondary text-white rounded-[2.2rem] flex items-center justify-center shadow-premium transform -rotate-3">
-                    <span className="material-symbols-outlined text-5xl">terminal</span>
+              <div className="max-w-4xl mx-auto">
+                <div className="flex items-center gap-8 mb-16">
+                  <div className="size-20 bg-slate-900 text-white rounded-[2.2rem] flex items-center justify-center shadow-2xl relative">
+                    <span className="material-symbols-outlined text-4xl">terminal</span>
+                    <div className="absolute -top-2 -right-2 size-6 bg-primary rounded-full border-4 border-white animate-pulse"></div>
                   </div>
                   <div>
-                    <h2 className="text-5xl font-black tracking-tight text-secondary leading-none">Consola de Diagnóstico</h2>
-                    <p className="text-text-muted font-medium text-lg mt-3">Teste a conectividade do Telegram manualmente.</p>
+                    <h2 className="text-4xl font-black tracking-tight text-slate-900">Consola de Diagnóstico</h2>
+                    <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Verificação de Integridade e Webhooks do Telegram.</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-10">
+                <div className="space-y-12">
                   <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Bot Token (BotFather)</label>
-                    <div className="flex gap-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Token de Acesso (Telegram BotFather)</label>
+                    <div className="flex flex-col sm:flex-row gap-4">
                       <input
                         type="text"
                         value={testToken}
                         onChange={e => setTestToken(e.target.value)}
-                        placeholder="Ex: 123456:ABC-DEF..."
-                        className="flex-1 h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none"
+                        className="flex-1 h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-[12px] text-slate-900 outline-none focus:border-primary transition-all"
+                        placeholder="Ex: 569812:AAHjKq9..."
                       />
                       <button
                         onClick={async () => {
@@ -818,77 +737,63 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                           if (res.success) alert(`✅ TOKEN VÁLIDO!\nBot: ${res.botName} (@${res.username})`);
                           else alert(`❌ TOKEN INVÁLIDO: ${res.error}`);
                         }}
-                        className="h-20 px-8 bg-white border-2 border-primary/20 text-primary rounded-[1.8rem] font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all active:scale-95"
+                        className="h-16 px-8 bg-slate-100 border border-slate-200 text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all active:scale-95 flex-shrink-0"
                       >
-                        Verificar
+                        Validar Token
                       </button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-4">
-                      <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Chat ID / Telefone (Destino)</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ID de Destino / Chat ID</label>
                       <input
                         type="text"
                         value={testChatId}
                         onChange={e => setTestChatId(e.target.value)}
-                        placeholder="Ex: 562819203 (Individual) ou -100... (Grupo)"
-                        className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-lg text-secondary focus:border-primary transition-all outline-none"
+                        className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-[12px] text-slate-900 outline-none focus:border-primary transition-all"
+                        placeholder="Ex: -100123... ou 91283..."
                       />
                     </div>
-                    <div className="space-y-4 text-left pt-10">
-                      <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10">
-                        <p className="text-[11px] font-black text-primary uppercase tracking-widest mb-2 flex items-center gap-2">
-                          <span className="material-symbols-outlined text-sm">info</span> IMPORTANTE
-                        </p>
-                        <p className="text-[10px] font-bold text-text-muted leading-relaxed mb-4">
-                          O Telegram <b>NÃO</b> aceita números de telefone. Use o ID numérico ou o @username.<br />
-                          Para grupos, use o botão abaixo para detectar o ID automaticamente.
-                        </p>
-                        <button
-                          onClick={async () => {
-                            setTestLoading(true);
-                            const res = await getBotUpdates(testToken);
-                            setTestLoading(false);
-                            if (res.success && res.chats && res.chats.length > 0) {
-                              const chatInfo = res.chats.map((c: any) => `${c.title} (ID: ${c.id})`).join('\n');
-                              alert(`📍 GRUPOS DETECTADOS:\n\n${chatInfo}\n\nCopie o ID desejado (incluindo o sinal -) para o campo ao lado.`);
-                            } else if (res.success) {
-                              alert("Nenhum grupo detectado.\n\nPROCEDIMENTO: Escreva uma mensagem qualquer no seu grupo do Telegram (ex: 'Olá Bot') e clique aqui novamente para o sistema capturar o ID.");
-                            } else {
-                              alert(`Erro ao detectar: ${res.error}`);
-                            }
-                          }}
-                          className="w-full py-4 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-xl font-black text-[9px] uppercase tracking-widest transition-all transition-all flex items-center justify-center gap-2"
-                        >
-                          <span className="material-symbols-outlined text-sm">radar</span>
-                          Detectar Grupos Ativos
-                        </button>
-                      </div>
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col justify-center gap-4">
+                      <p className="text-[10px] font-bold text-slate-500 leading-snug">
+                        Para grupos, escreva algo no Telegram e use o scanner para capturar o ID exacto.
+                      </p>
+                      <button
+                        onClick={async () => {
+                          setTestLoading(true);
+                          const res = await getBotUpdates(testToken);
+                          setTestLoading(false);
+                          if (res.success && res.chats && res.chats.length > 0) {
+                            alert(`📍 GRUPOS DETECTADOS:\n\n${res.chats.map((c: any) => `${c.title} (ID: ${c.id})`).join('\n')}`);
+                          } else {
+                            alert("Nenhum grupo detectado recentemente.");
+                          }
+                        }}
+                        className="w-full py-4 bg-white border border-slate-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-slate-900 hover:border-primary transition-all flex items-center justify-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-lg">radar</span> Scanner Ativo
+                      </button>
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Mensagem de Teste</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Carga Útil de Teste (Mensagem)</label>
                     <textarea
                       value={testMessage}
                       onChange={e => setTestMessage(e.target.value)}
-                      rows={3}
-                      className="w-full bg-background border-2 border-border/40 rounded-[1.8rem] p-8 font-medium text-lg text-secondary focus:border-primary transition-all outline-none resize-none"
+                      className="w-full bg-slate-50 border border-slate-100 rounded-[2rem] p-8 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all resize-none min-h-[140px]"
+                      placeholder="Escreva aqui a mensagem para enviar..."
                     />
                   </div>
 
                   {testResult && (
-                    <div className={`p-8 rounded-[2rem] border animate-fade-in ${testResult.success ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                    <div className={`p-8 rounded-3xl border animate-fade-in ${testResult.success ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'}`}>
                       <div className="flex items-start gap-4">
-                        <span className="material-symbols-outlined text-2xl">
-                          {testResult.success ? 'check_circle' : 'error'}
-                        </span>
+                        <span className="material-symbols-outlined">{testResult.success ? 'check_circle' : 'error'}</span>
                         <div>
-                          <p className="font-black uppercase text-[11px] tracking-widest mb-1">
-                            {testResult.success ? 'SUCESSO NO ENVIO' : 'ERRO DETECTADO'}
-                          </p>
-                          <p className="text-sm font-medium leading-relaxed">{testResult.message}</p>
+                          <p className="font-black text-[10px] uppercase tracking-widest mb-1">{testResult.success ? 'Diagnóstico OK' : 'Falha Crítica'}</p>
+                          <p className="text-xs font-bold">{testResult.message}</p>
                         </div>
                       </div>
                     </div>
@@ -898,28 +803,18 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     onClick={async () => {
                       setTestLoading(true);
                       setTestResult(null);
-                      try {
-                        const result = await sendTelegramMessage(testToken, testChatId, testMessage);
-                        if (result?.success) {
-                          setTestResult({ success: true, message: 'Mensagem entregue com sucesso! Verifique o Telegram.' });
-                        } else {
-                          let customError = result?.error || 'Falha desconhecida no envio.';
-                          if (customError.includes('chat not found')) {
-                            customError = 'CHAT NÃO ENCONTRADO: Certifique-se que o Bot é ADMINISTRADOR do grupo e que o ID começa com -100 (se for supergrupo).';
-                          }
-                          setTestResult({ success: false, message: customError });
-                        }
-                      } catch (err: any) {
-                        setTestResult({ success: false, message: err.message || 'Erro crítico ao tentar conectar.' });
-                      } finally {
-                        setTestLoading(false);
-                      }
+                      const result = await sendTelegramMessage(testToken, testChatId, testMessage);
+                      setTestResult({
+                        success: result?.success || false,
+                        message: result?.success ? 'Mensagem disparada com sucesso!' : (result?.error || 'Erro desconhecido.')
+                      });
+                      setTestLoading(false);
                     }}
                     disabled={testLoading || !testToken || !testChatId}
-                    className="w-full h-24 bg-secondary hover:bg-primary text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-[14px] shadow-premium active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group"
+                    className="w-full h-20 bg-slate-900 hover:bg-primary text-white rounded-[1.5rem] font-black uppercase tracking-[0.4em] text-[13px] shadow-xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4"
                   >
-                    <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
-                    {testLoading ? 'A PROCESSAR...' : 'DISPARAR TESTE MANUAL'}
+                    {testLoading ? 'Sincronizando...' : 'Disparar Teste de Alta Prioridade'}
+                    <span className="material-symbols-outlined">send</span>
                   </button>
                 </div>
               </div>
@@ -928,58 +823,49 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         ) : (
           /* SMS & Financial View */
           <section className="space-y-12 animate-fade-in">
-            <div className="flex justify-between items-center bg-white p-10 rounded-[3.5rem] border border-border/40 shadow-premium no-print">
+            <div className="flex flex-col lg:flex-row justify-between items-center gap-8 bg-white p-10 rounded-[3.5rem] border border-slate-100 shadow-sm no-print">
               <div>
-                <h3 className="text-3xl font-black text-secondary tracking-tighter">Financeiro & SMS</h3>
-                <p className="text-text-muted font-medium mt-1">Controle de custos operacionais e envios.</p>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">Financeiro & SMS</h3>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Monitorização de custos de mensageira por estabelecimento.</p>
               </div>
-              <div className="flex gap-4">
-                <button onClick={handleExportSMS} className="h-16 px-10 bg-white border border-border/40 text-secondary rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all hover:bg-background flex items-center gap-3">
+              <div className="flex gap-4 w-full lg:w-auto">
+                <button onClick={handleExportSMS} className="flex-1 lg:flex-none h-16 px-10 bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white flex items-center justify-center gap-3">
                   <span className="material-symbols-outlined text-2xl">table_rows</span> CSV
                 </button>
-                <button onClick={() => window.print()} className="h-16 px-10 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest transition-all shadow-premium flex items-center gap-3">
+                <button onClick={() => window.print()} className="flex-1 lg:flex-none h-16 px-10 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-3 active:scale-95">
                   <span className="material-symbols-outlined text-2xl">picture_as_pdf</span> PDF
                 </button>
               </div>
             </div>
 
-            {/* Print Only Header */}
-            <div className="hidden print:flex justify-between items-center border-b-4 border-primary pb-8 mb-12">
-              <div>
-                <h1 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório Financeiro Global</h1>
-                <p className="text-xl font-bold text-primary mt-2">KwikFood Management System</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-black text-secondary uppercase tracking-widest">Extraído em:</p>
-                <p className="text-lg font-bold text-text-muted">{new Date().toLocaleString()}</p>
-              </div>
-            </div>
-
-            <div className="bg-surface rounded-[4.5rem] shadow-premium border border-white/60 overflow-hidden">
-              <div className="p-16 border-b border-border/50 no-print">
-                <h2 className="text-4xl font-black text-secondary uppercase tracking-tighter">Relatório Financeiro de SMS</h2>
-                <p className="text-text-muted font-medium mt-2">Controle de envios e custos operacionais por parceiro.</p>
-              </div>
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left min-w-[800px]">
+            <div className="bg-white rounded-[3.5rem] border border-slate-100 shadow-sm overflow-hidden animate-scale-in">
+              <div className="overflow-x-auto no-scrollbar">
+                <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="text-[11px] font-black text-text-muted uppercase tracking-[0.4em] border-b border-border/50">
-                      <th className="px-6 lg:px-16 py-6 lg:py-12">Estabelecimento</th>
-                      <th className="px-6 lg:px-12 py-6 lg:py-12">SMS Enviadas</th>
-                      <th className="px-6 lg:px-12 py-6 lg:py-12 text-center">Custo Acumulado</th>
-                      <th className="px-6 lg:px-16 py-6 lg:py-12 text-right">Receita Estimada (DIA)</th>
+                    <tr className="bg-slate-50 border-b border-slate-100">
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Estabelecimento</th>
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">SMS Enviadas</th>
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">Custo Acumulado</th>
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-right">Margem Operacional</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/30">
+                  <tbody className="divide-y divide-slate-50">
                     {companies.map(co => {
                       const count = smsStats[co.id.toString()] || 0;
                       return (
-                        <tr key={co.id} className="hover:bg-background/20 transition-colors border-b border-border/10">
-                          <td className="px-16 py-6 font-black text-secondary text-base">{co.name}</td>
-                          <td className="px-12 py-6 font-black text-secondary text-base">{count}</td>
-                          <td className="px-12 py-6 font-black text-primary text-base text-center">{(count * 5).toLocaleString()} Kz</td>
-                          <td className="px-16 py-6 text-right font-black text-green-600 text-base">
-                            --
+                        <tr key={co.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-10 py-8">
+                            <div className="flex items-center gap-4">
+                              <div className="size-10 bg-slate-100 rounded-lg flex items-center justify-center font-black text-slate-400 text-xs">
+                                {co.id.toString().padStart(2, '0')}
+                              </div>
+                              <p className="font-black text-slate-900 uppercase text-sm tracking-tight">{co.name}</p>
+                            </div>
+                          </td>
+                          <td className="px-10 py-8 text-center font-black text-slate-700">{count}</td>
+                          <td className="px-10 py-8 text-center font-black text-primary">{(count * 5).toLocaleString()} Kz</td>
+                          <td className="px-10 py-8 text-right font-black text-green-600">
+                            Alta
                           </td>
                         </tr>
                       );
@@ -992,138 +878,81 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         )}
       </main>
 
-      {/* Premium Delete Modal */}
-      {
-        showDeleteModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-            <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-              <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+      {/* Delete Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in no-print">
+          <div className="w-full max-w-lg bg-white rounded-[3rem] p-12 shadow-2xl relative overflow-hidden animate-scale-in">
+            <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
 
-              <div className="text-center mb-12">
-                <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 animate-pulse-soft shadow-premium">
-                  <span className="material-symbols-outlined text-5xl">warning</span>
-                </div>
-                <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">Cuidado Crítico</h3>
-                <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
-                  A exclusão desta unidade é irreversível e removerá todos os produtos associados. Confirme as credenciais MASTER.
-                </p>
+            <div className="text-center mb-10">
+              <div className="size-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <span className="material-symbols-outlined text-4xl">warning</span>
               </div>
-
-              <form onSubmit={handleSecureDelete} className="space-y-8">
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Email de Autorização</label>
-                  <input
-                    type="email"
-                    required
-                    value={adminConfirmEmail}
-                    onChange={e => setAdminConfirmEmail(e.target.value)}
-                    className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none"
-                    placeholder="master@kwikfood.com"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Chave de Segurança</label>
-                  <input
-                    type="password"
-                    required
-                    value={adminConfirmPassword}
-                    onChange={e => setAdminConfirmPassword(e.target.value)}
-                    className="w-full h-20 bg-background border-2 border-border/40 rounded-[1.8rem] px-8 font-black text-xl text-secondary focus:border-primary transition-all outline-none"
-                    placeholder="••••••••"
-                  />
-                </div>
-
-                {deleteError && (
-                  <div className="p-6 bg-primary-soft text-primary text-[12px] font-black rounded-2xl text-center uppercase tracking-widest border border-primary/20 animate-fade-in">
-                    {deleteError}
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-6 mt-12">
-                  <button
-                    type="submit"
-                    disabled={deleteLoading}
-                    className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all disabled:opacity-50 relative overflow-hidden group"
-                  >
-                    <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-12"></div>
-                    {deleteLoading ? 'DESINTEGRANDO...' : 'EXECUTAR EXCLUSÃO'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowDeleteModal(null);
-                      setDeleteError(null);
-                      setAdminConfirmEmail('');
-                      setAdminConfirmPassword('');
-                    }}
-                    className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
-                  >
-                    DESISTIR AGORA
-                  </button>
-                </div>
-              </form>
+              <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-none uppercase">Acção Crítica</h3>
+              <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-4">
+                A exclusão da unidade é irreversível. Todos os produtos e logs serão perdidos imediatamente.
+              </p>
             </div>
-          </div>
-        )
-      }
 
-      {/* QR Code Modal */}
-      {
-        showQRModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-            <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-              <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
-
-              <div className="text-center mb-12">
-                <div className="size-24 bg-primary-soft text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-premium">
-                  <span className="material-symbols-outlined text-5xl">qr_code_2</span>
-                </div>
-                <h3 className="text-4xl font-black tracking-tighter text-secondary leading-none">{showQRModal.name}</h3>
-                <p className="text-text-muted text-lg font-medium mt-4 leading-relaxed">
-                  Código do Local: <span className="text-primary font-black">{showQRModal.id.toString().padStart(4, '0')}</span>
-                </p>
+            <form onSubmit={handleSecureDelete} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Master</label>
+                <input type="email" value={adminConfirmEmail} onChange={e => setAdminConfirmEmail(e.target.value)} required className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-black text-slate-900 outline-none focus:border-primary transition-all" placeholder="admin@master.com" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Chave Mestra</label>
+                <input type="password" value={adminConfirmPassword} onChange={e => setAdminConfirmPassword(e.target.value)} required className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-black text-slate-900 outline-none focus:border-primary transition-all" placeholder="••••••••" />
               </div>
 
-              <div className="flex flex-col items-center gap-10">
-                <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group">
-                  <div className="relative">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
-                      alt="QR Code"
-                      className="size-64"
-                    />
-                    {showQRModal.logoUrl && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
-                          <img src={showQRModal.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
-                        </div>
-                      </div>
-                    )}
+              {deleteError && <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-[10px] font-black rounded-xl text-center uppercase tracking-widest">{deleteError}</div>}
+
+              <div className="flex flex-col gap-4 pt-6">
+                <button type="submit" disabled={deleteLoading} className="w-full h-16 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-lg shadow-primary/20 hover:bg-slate-900 transition-all">
+                  {deleteLoading ? 'Eliminando...' : 'Confirmar Exclusão'}
+                </button>
+                <button type="button" onClick={() => setShowDeleteModal(null)} className="w-full h-12 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors">Abortar Operação</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* QR Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in no-print">
+          <div className="w-full max-w-lg bg-white rounded-[3rem] p-12 shadow-2xl relative overflow-hidden animate-scale-in text-center">
+            <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+
+            <div className="mb-10">
+              <h3 className="text-3xl font-black text-slate-900 tracking-tight uppercase leading-none">{showQRModal.name}</h3>
+              <p className="text-primary font-black text-[10px] uppercase tracking-[0.4em] mt-3">ID Local: {showQRModal.id.toString().padStart(4, '0')}</p>
+            </div>
+
+            <div className="bg-white p-8 border-2 border-slate-100 rounded-[2.5rem] shadow-inner mb-10 w-fit mx-auto relative group">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
+                alt="QR"
+                className="size-48"
+              />
+              {showQRModal.logoUrl && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="size-12 bg-white p-1 rounded-lg shadow-lg border border-slate-100 overflow-hidden">
+                    <img src={showQRModal.logoUrl} alt="L" className="size-full object-cover rounded" />
                   </div>
                 </div>
+              )}
+            </div>
 
-                <div className="w-full space-y-4">
-                  <button
-                    onClick={() => window.print()}
-                    className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
-                  >
-                    <span className="material-symbols-outlined">print</span>
-                    IMPRIMIR QR CODE
-                  </button>
-                  <button
-                    onClick={() => setShowQRModal(null)}
-                    className="w-full py-5 text-[12px] font-black text-text-muted uppercase tracking-[0.4em] hover:text-secondary transition-colors"
-                  >
-                    FECHAR
-                  </button>
-                </div>
-              </div>
+            <div className="space-y-4">
+              <button onClick={() => window.print()} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-lg flex items-center justify-center gap-3">
+                <span className="material-symbols-outlined">print</span> Imprimir Pack QR
+              </button>
+              <button onClick={() => setShowQRModal(null)} className="w-full h-12 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900">Fechar Janela</button>
             </div>
           </div>
-        )
-      }
-    </div >
+        </div>
+      )}
+    </div>
   );
 };
 

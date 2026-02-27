@@ -15,6 +15,8 @@
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
   --shadow-md: 0 12px 24px -6px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 40px 80px -15px rgba(0, 0, 0, 0.08);
+  --background-light: #F8F6F6;
+  --background-dark: #211115;
   --shadow-premium: 0 50px 100px -20px rgba(225, 29, 72, 0.1), 0 30px 60px -30px rgba(0, 0, 0, 0.1);
 }
 
