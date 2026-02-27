@@ -134,6 +134,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         timerLastStartedAt: o.timer_last_started_at,
         cancelledBy: o.cancelled_by,
         orderType: o.order_type as OrderType,
+        deliveryAddress: o.delivery_address,
+        deliveryCoords: o.delivery_coords,
         timestamp: new Date(o.created_at).toLocaleString()
       })));
 
@@ -157,6 +159,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         timerLastStartedAt: o.timer_last_started_at,
         cancelledBy: o.cancelled_by,
         orderType: o.order_type as OrderType,
+        deliveryAddress: o.delivery_address,
+        deliveryCoords: o.delivery_coords,
         timestamp: new Date(o.created_at).toLocaleString()
       })));
       const { count: sCount } = await supabase
