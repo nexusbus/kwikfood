@@ -387,7 +387,9 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                 <span className="material-symbols-outlined text-primary text-xl">list_alt</span>
                 <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest">Posição</span>
               </div>
-              <p className="text-lg font-black text-[#111111] font-sans">{order.queuePosition}º</p>
+              <p className="text-lg font-black text-[#111111] font-sans">
+                {order.status === OrderStatus.DELIVERED ? 'N/A' : `${order.queuePosition}º`}
+              </p>
             </div>
           </div>
 
