@@ -26,6 +26,8 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [companySearch, setCompanySearch] = useState('');
   const codeRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
@@ -262,6 +264,18 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
     }
   };
 
+  const handleSelectCompany = (companyId: number) => {
+    const codeStr = companyId.toString().padStart(4, '0');
+    setCode(codeStr.split(''));
+    setShowCompanyModal(false);
+    setCompanySearch('');
+  };
+
+  const filteredCompanies = companies.filter(c =>
+    c.name.toLowerCase().includes(companySearch.toLowerCase()) ||
+    c.id.toString().includes(companySearch)
+  );
+
   return (
     <div className="min-h-screen bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/20 overflow-x-hidden">
       {/* Header */}
@@ -345,6 +359,16 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
                   placeholder="•"
                 />
               ))}
+            </div>
+
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => setShowCompanyModal(true)}
+                className="text-primary font-black text-[12px] uppercase tracking-widest underline underline-offset-8 decoration-2 hover:text-secondary transition-all"
+              >
+                Escolha o local
+              </button>
             </div>
           </div>
 
@@ -547,6 +571,73 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
           </button>
         </p>
       </footer>
+
+      {/* Company Selection Modal */}
+      {showCompanyModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
+          <div className="absolute inset-0 bg-secondary/40 backdrop-blur-md" onClick={() => setShowCompanyModal(false)}></div>
+
+          <div className="bg-white w-full max-w-[600px] rounded-[3.5rem] shadow-premium relative z-10 overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
+            <header className="p-10 border-b border-border/10 flex flex-col gap-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-3xl font-black text-secondary tracking-tight">Seleção de Local</h3>
+                <button
+                  onClick={() => setShowCompanyModal(false)}
+                  className="size-12 rounded-2xl bg-background hover:bg-primary/10 text-text-muted hover:text-primary transition-all flex items-center justify-center"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">search</span>
+                <input
+                  type="text"
+                  placeholder="Pesquisar por nome ou código..."
+                  value={companySearch}
+                  onChange={(e) => setCompanySearch(e.target.value)}
+                  className="w-full h-16 bg-[#F8F9FA] border-2 border-border/20 rounded-2xl pl-16 pr-6 font-bold text-secondary outline-none focus:border-primary transition-all"
+                />
+              </div>
+            </header>
+
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                {filteredCompanies.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => handleSelectCompany(c.id)}
+                    className="flex flex-col items-center gap-4 p-5 rounded-[2rem] border-2 border-transparent hover:border-primary/20 hover:bg-primary/5 transition-all group"
+                  >
+                    <div className="size-20 bg-background rounded-[1.5rem] overflow-hidden shadow-sm group-hover:shadow-md transition-all flex items-center justify-center p-1 border border-border/10">
+                      {c.logoUrl ? (
+                        <img src={c.logoUrl} alt={c.name} className="size-full object-cover rounded-xl" />
+                      ) : (
+                        <span className="material-symbols-outlined text-3xl text-slate-300">store</span>
+                      )}
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[11px] font-black text-secondary leading-tight truncate w-full max-w-[100px]">{c.name}</p>
+                      <p className="text-[9px] font-bold text-primary mt-1">#{c.id.toString().padStart(4, '0')}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {filteredCompanies.length === 0 && (
+                <div className="py-20 text-center">
+                  <span className="material-symbols-outlined text-6xl text-slate-200 mb-4">search_off</span>
+                  <p className="font-black text-text-muted/60 uppercase tracking-widest text-xs">Nenhum local encontrado</p>
+                </div>
+              )}
+            </div>
+
+            <footer className="p-8 bg-[#F8F9FA] text-center">
+              <p className="text-[10px] font-black text-text-muted/40 uppercase tracking-widest">&copy; Kwikfood Rede de Parceiros</p>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
