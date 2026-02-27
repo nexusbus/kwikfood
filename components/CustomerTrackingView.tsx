@@ -134,7 +134,10 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             paymentProofUrl: latestOrder.payment_proof_url,
             items: latestOrder.items,
             total: latestOrder.total,
-            timestamp: latestOrder.created_at
+            timestamp: latestOrder.created_at,
+            deliveryAddress: latestOrder.delivery_address,
+            deliveryCoords: latestOrder.delivery_coords,
+            companyId: latestOrder.company_id // Garantir que temos o ID da empresa para carregar os produtos
           });
 
           calculateElapsed(latestOrder.timer_accumulated_seconds || 0, latestOrder.timer_last_started_at, latestOrder.status as OrderStatus);
