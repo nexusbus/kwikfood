@@ -927,12 +927,12 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em] bg-primary/5 px-4 py-1.5 rounded-full">{p.category}</span>
                           <div className="h-[1px] flex-1 bg-slate-100"></div>
                         </div>
-                        <h4 className="font-black text-2xl text-secondary tracking-tight mb-2 group-hover:text-primary transition-colors">{p.name}</h4>
-                        {p.details && <p className="text-[11px] font-medium text-slate-400 leading-relaxed mb-6 line-clamp-2 italic">{p.details}</p>}
+                        <h4 className="font-bold text-xl text-secondary tracking-tight mb-2 group-hover:text-primary transition-colors">{p.name}</h4>
+                        {p.details && <p className="text-[10px] font-medium text-slate-400 leading-relaxed mb-6 line-clamp-2 italic opacity-80">{p.details}</p>}
 
                         <div className="flex items-center justify-between mt-4">
-                          <p className="text-secondary font-black text-3xl tracking-tighter">
-                            <span className="text-sm text-slate-300 mr-2 uppercase tracking-widest">Kz</span>
+                          <p className="text-secondary font-bold text-2xl tracking-tighter">
+                            <span className="text-[10px] text-slate-300 mr-2 uppercase tracking-widest font-black">Kz</span>
                             {p.price.toLocaleString()}
                           </p>
                         </div>
@@ -1268,10 +1268,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
             <header className="p-10 sm:p-14 border-b border-border/10 flex justify-between items-start">
               <div>
-                <h3 className="text-3xl sm:text-4xl font-black tracking-tighter text-secondary">
-                  {modalMode === 'add' ? 'Novo Produto' : 'Editar Produto'}
+                <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary">
+                  {modalMode === 'add' ? 'Adicionar Produto' : 'Editar Produto'}
                 </h3>
-                <p className="text-text-muted font-black text-[10px] uppercase tracking-widest mt-2 opacity-60">Gestão de Cardápio Digital</p>
+                <p className="text-text-muted font-bold text-[9px] uppercase tracking-[0.2em] mt-1 opacity-50">Configuração de Item</p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -1366,9 +1366,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
               {/* Image Upload */}
               <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Fotografia do Produto</label>
-                <div className="flex flex-col sm:flex-row gap-8 items-center bg-[#F8F9FA] p-8 rounded-[3rem] border-2 border-dashed border-slate-200 group hover:border-primary/40 transition-all">
-                  <div className="relative size-40 bg-white rounded-[2rem] shadow-premium flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-100">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] ml-1">Fotografia</label>
+                <div className="flex flex-col sm:flex-row gap-6 items-center bg-slate-50/50 p-6 rounded-[2.5rem] border border-slate-100 group hover:border-primary/20 transition-all">
+                  <div className="relative size-32 bg-white rounded-3xl shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-100">
                     {pImageUrl ? (
                       <img src={pImageUrl} alt="Preview" className="size-full object-cover" />
                     ) : (
@@ -1399,38 +1399,38 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 <button
                   type="button"
                   onClick={() => {
-                    handleDeleteProduct(selectedProduct.id);
-                    setIsModalOpen(false);
+                    if (confirm(`Excluir ${selectedProduct.name}?`)) {
+                      handleDeleteProduct(selectedProduct.id);
+                      setIsModalOpen(false);
+                    }
                   }}
-                  className="h-20 px-8 rounded-[1.8rem] bg-red-50 text-red-500 font-black uppercase tracking-widest text-[11px] hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3 border border-red-100"
+                  className="h-16 px-8 rounded-2xl bg-red-50 text-red-500 font-bold uppercase tracking-widest text-[10px] hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3 border border-red-100/50"
                 >
-                  <span className="material-symbols-outlined">delete</span>
-                  APAGAR PRODUTO
+                  <span className="material-symbols-outlined text-xl">delete</span>
+                  APAGAR
                 </button>
               )}
 
-              <div className="flex-1 flex gap-6">
+              <div className="flex-1 flex gap-4">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 h-20 font-black uppercase tracking-widest text-slate-400 hover:text-secondary transition-all text-[11px]"
+                  className="flex-1 h-16 font-bold uppercase tracking-widest text-slate-400 hover:text-secondary transition-all text-[10px]"
                 >
                   CANCELAR
                 </button>
                 <button
                   onClick={(e) => {
-                    // Manually trigger form submit since buttons are outside
                     e.preventDefault();
                     const form = document.querySelector('form');
                     if (form) form.requestSubmit();
                   }}
                   disabled={saving || uploading}
-                  className="flex-[2] h-20 bg-primary hover:bg-secondary text-white rounded-[1.8rem] font-black uppercase tracking-[0.3em] text-[12px] shadow-xl shadow-primary/20 active:scale-[0.96] transition-all disabled:opacity-50 relative overflow-hidden group/btn"
+                  className="flex-[2] h-16 bg-primary hover:bg-secondary text-white rounded-2xl font-bold uppercase tracking-[0.2em] text-[11px] shadow-lg shadow-primary/10 active:scale-[0.98] transition-all disabled:opacity-50 relative overflow-hidden group/btn"
                 >
-                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 skew-x-12"></div>
                   <span className="flex items-center justify-center gap-3">
-                    <span className="material-symbols-outlined text-2xl">{saving ? 'autorenew' : 'done_all'}</span>
-                    {saving ? 'GUARDANDO...' : 'SALVAR ALTERAÇÕES'}
+                    <span className="material-symbols-outlined text-xl">{saving ? 'autorenew' : 'done'}</span>
+                    {saving ? 'GUARDANDO...' : 'SALVAR'}
                   </span>
                 </button>
               </div>
