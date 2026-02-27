@@ -116,15 +116,22 @@ export const formatOrderNotification = (order: any, type: 'NEW' | 'STATUS_CHANGE
     const safePhone = order.customerPhone || 'N/A';
     const safeTotal = order.total ? order.total.toLocaleString() : '0';
 
+    const orderTypeText: Record<string, string> = {
+        'EAT_IN': 'Comer aqui 🍽️',
+        'TAKE_AWAY': 'Levar/Pegar 🛍️',
+        'DELIVERY': 'Entrega 🛵'
+    };
+
     const ticketLine = `<b>#${order.ticketCode || '---'}</b> - ${safeName} ${statusEmoji[order.status] || ''}\n`;
+    const typeLine = `📍 Tipo: <b>${orderTypeText[order.orderType] || 'N/A'}</b>\n`;
     const phoneLine = `📱 Contacto: ${safePhone}\n`;
     const statusLine = `🧾 Estado: <b>${statusText[order.status] || order.status || '---'}</b>\n`;
 
     const detailsBlock = `\n🛒 <b>ITENS DO PEDIDO:</b>\n${itemsText}\n\n💰 Total: ${safeTotal} Kz`;
 
     if (type === 'NEW') {
-        return `🆕 <b>NOVO PEDIDO</b>\n${ticketLine}${phoneLine}${detailsBlock}`;
+        return `🆕 <b>NOVO PEDIDO</b>\n${ticketLine}${typeLine}${phoneLine}${detailsBlock}`;
     } else {
-        return `🔔 <b>ACTUALIZAÇÃO</b>\n${ticketLine}${phoneLine}${statusLine}${detailsBlock}`;
+        return `🔔 <b>ACTUALIZAÇÃO</b>\n${ticketLine}${typeLine}${phoneLine}${statusLine}${detailsBlock}`;
     }
 };

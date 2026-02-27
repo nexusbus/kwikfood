@@ -385,7 +385,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
-                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.EAT_IN ? null : OrderType.EAT_IN)}
+                onClick={() => setSelectedOrderType(OrderType.EAT_IN)}
                 className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border transition-all group ${selectedOrderType === OrderType.EAT_IN ? 'bg-white border-primary shadow-lg shadow-primary/10' : 'bg-white border-[#E31B44] text-[#111111] hover:bg-primary/5'}`}
               >
                 <span className="material-symbols-outlined text-4xl mb-2 text-[#E11D48] font-light">restaurant</span>
@@ -394,7 +394,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
               <button
                 type="button"
-                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.TAKE_AWAY ? null : OrderType.TAKE_AWAY)}
+                onClick={() => setSelectedOrderType(OrderType.TAKE_AWAY)}
                 className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border transition-all group ${selectedOrderType === OrderType.TAKE_AWAY ? 'bg-white border-primary shadow-lg shadow-primary/10' : 'bg-white border-[#E31B44] text-[#111111] hover:bg-primary/5'}`}
               >
                 <span className="material-symbols-outlined text-4xl mb-2 text-[#E11D48] font-light">local_mall</span>
@@ -403,7 +403,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
               <button
                 type="button"
-                onClick={() => setSelectedOrderType(selectedOrderType === OrderType.DELIVERY ? null : OrderType.DELIVERY)}
+                onClick={() => setSelectedOrderType(OrderType.DELIVERY)}
                 className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border transition-all group ${selectedOrderType === OrderType.DELIVERY ? 'bg-white border-primary shadow-lg shadow-primary/10' : 'bg-white border-[#E31B44] text-[#111111] hover:bg-primary/5'}`}
               >
                 <span className="material-symbols-outlined text-4xl mb-2 text-[#E11D48] font-light">delivery_dining</span>

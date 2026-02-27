@@ -779,9 +779,17 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         {order.status === OrderStatus.READY && (
                           <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black uppercase tracking-widest">PRONTO</span>
                         )}
-                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${order.paymentMethod === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'}`}>
-                          PAGAMENTO: {order.paymentMethod || 'N/A'}
-                        </span>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${order.paymentMethod === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'}`}>
+                            {order.paymentMethod || 'PAGAMENTO: N/A'}
+                          </span>
+                          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary border border-primary/10 flex items-center gap-1.5`}>
+                            <span className="material-symbols-outlined text-[14px]">
+                              {order.orderType === OrderType.EAT_IN ? 'restaurant' : order.orderType === OrderType.TAKE_AWAY ? 'local_mall' : 'delivery_dining'}
+                            </span>
+                            {order.orderType === OrderType.EAT_IN ? 'COMER AQUI' : order.orderType === OrderType.TAKE_AWAY ? 'LEVANTAMENTO' : 'ENTREGA'}
+                          </span>
+                        </div>
                       </div>
 
                       {order.paymentMethod === 'TRANSFER' && order.paymentProofUrl && (
