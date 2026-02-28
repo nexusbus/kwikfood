@@ -747,14 +747,14 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       <div>
                         <div className="flex justify-between items-start mb-6">
                           <div>
-                            <h3 className="text-3xl font-black text-[#E11D48] tracking-tight mb-1">#{order.ticketCode}</h3>
+                            <h3 className="text-2xl font-black text-[#E11D48] tracking-tight mb-1">#{order.ticketCode}</h3>
                             <div className="flex flex-col">
-                              {order.customerName && <p className="text-sm font-black text-[#111111] uppercase tracking-wider">{order.customerName}</p>}
-                              <p className="text-base font-bold text-[#BBBBBB]">{order.customerPhone}</p>
+                              {order.customerName && <p className="text-xs font-black text-[#111111] uppercase tracking-wider">{order.customerName}</p>}
+                              <p className="text-sm font-bold text-[#BBBBBB]">{order.customerPhone}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-black text-[#111111]">{(order.total || 0).toLocaleString()} Kz</p>
+                            <p className="text-lg font-black text-[#111111]">{(order.total || 0).toLocaleString()} Kz</p>
                             <div className="flex items-center justify-end gap-1.5 mt-1 text-[#BBBBBB]">
                               <span className="material-symbols-outlined text-[18px]">schedule</span>
                               <span className={`text-[10px] font-black uppercase tracking-widest leading-none ${order.status === OrderStatus.PREPARING ? 'text-primary animate-pulse' : ''}`}>
@@ -786,7 +786,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                               <span className="text-[10px] font-black uppercase tracking-widest">Endereço de Entrega</span>
                             </div>
                             {order.deliveryAddress && (
-                              <p className="text-sm font-bold text-[#111111] mb-3 leading-relaxed">
+                              <p className="text-xs font-bold text-[#111111] mb-3 leading-relaxed">
                                 {order.deliveryAddress}
                               </p>
                             )}
@@ -823,8 +823,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         {order.items.map((item, i) => (
                           <div key={i} className="flex justify-between items-start group/item">
                             <div className="flex gap-3">
-                              <span className="text-lg font-black text-[#111111] leading-tight">{item.quantity}x</span>
-                              <span className="text-lg font-bold text-[#111111] leading-tight">{item.name}</span>
+                              <span className="text-base font-black text-[#111111] leading-tight">{item.quantity}x</span>
+                              <span className="text-base font-bold text-[#111111] leading-tight">{item.name}</span>
                             </div>
                             {item.observation && (
                               <span className="text-[12px] font-medium text-[#BBBBBB] italic shrink-0 ml-4">{item.observation}</span>
