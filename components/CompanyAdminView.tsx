@@ -739,8 +739,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                   {filteredOrders.map(order => (
-                    <div key={order.id} className="bg-white rounded-[2rem] p-6 lg:p-8 border border-[#F5F5F5] shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] group relative overflow-hidden animate-scale-in flex flex-col justify-between min-h-[400px]">
-                      <div className="absolute top-0 left-0 w-2 h-full transition-all group-hover:w-3"
+                    <div key={order.id} className="bg-white rounded-none p-6 lg:p-8 border border-[#EEEEEE] shadow-sm group relative overflow-hidden animate-scale-in flex flex-col justify-between min-h-[400px]">
+                      <div className="absolute top-0 left-0 w-1.5 h-full transition-all"
                         style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#FACC15' : order.status === OrderStatus.READY ? '#22C55E' : '#E11D48' }}>
                       </div>
 
@@ -765,13 +765,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         </div>
 
                         {order.status === OrderStatus.READY && (
-                          <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black uppercase tracking-widest">PRONTO</span>
+                          <span className="px-3 py-1 bg-green-50 text-green-600 rounded-none text-[10px] font-black uppercase tracking-widest">PRONTO</span>
                         )}
                         <div className="flex flex-wrap gap-2 mt-2">
-                          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${order.paymentMethod === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'}`}>
+                          <span className={`px-3 py-1 rounded-none text-[10px] font-black uppercase tracking-widest ${order.paymentMethod === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'}`}>
                             {order.paymentMethod || 'PAGAMENTO: N/A'}
                           </span>
-                          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary border border-primary/10 flex items-center gap-1.5`}>
+                          <span className={`px-3 py-1 rounded-none text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary border border-primary/10 flex items-center gap-1.5`}>
                             <span className="material-symbols-outlined text-[14px]">
                               {order.orderType === OrderType.EAT_IN ? 'restaurant' : order.orderType === OrderType.TAKE_AWAY ? 'local_mall' : 'delivery_dining'}
                             </span>
@@ -811,7 +811,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                             href={order.paymentProofUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full flex items-center justify-center gap-2 h-12 bg-blue-50 text-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
+                            className="w-full flex items-center justify-center gap-2 h-12 bg-blue-50 text-blue-600 rounded-none font-black text-[10px] uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
                           >
                             <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
                             VER COMPROVATIVO
@@ -833,38 +833,38 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         ))}
                       </div>
 
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {order.status === OrderStatus.READY ? (
                           <button
                             onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                            className="w-full flex items-center justify-center gap-3 h-16 bg-[#22C55E] text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-green-500/20 hover:bg-[#1DA850] transition-all active:scale-95"
+                            className="w-full flex items-center justify-center gap-3 h-14 bg-[#22C55E] text-white rounded-none font-black text-[13px] uppercase tracking-widest shadow-md hover:bg-[#1DA850] transition-all active:scale-[0.98]"
                           >
                             <span className="material-symbols-outlined text-2xl">check_circle</span>
                             ENTREGAR AGORA
                           </button>
                         ) : (
                           <>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-2">
                               <button
                                 onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
                                 disabled={order.status === OrderStatus.PREPARING}
-                                className={`flex items-center justify-center gap-2 h-16 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all shadow-md group/btn ${order.status === OrderStatus.PREPARING ? 'bg-red-50 text-primary border border-primary/20 cursor-default' : 'bg-[#E11D48] text-white hover:bg-[#BE123C] active:scale-95'}`}
+                                className={`flex items-center justify-center gap-2 h-14 rounded-none font-black text-[10px] uppercase tracking-widest transition-all ${order.status === OrderStatus.PREPARING ? 'bg-amber-50 text-amber-600 border border-amber-200 cursor-default' : 'bg-[#E11D48] text-white hover:bg-[#BE123C] active:scale-[0.98]'}`}
                               >
                                 <span className="material-symbols-outlined text-xl">{order.status === OrderStatus.PREPARING ? 'cooking' : 'outdoor_grill'}</span>
                                 {order.status === OrderStatus.PREPARING ? 'PREPARANDO' : 'PREPARAR'}
                               </button>
                               <button
                                 onClick={() => updateOrderStatus(order.id, OrderStatus.READY)}
-                                className="flex items-center justify-center gap-2 h-16 bg-white border border-[#F5F5F5] text-[#111111] rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-sm hover:border-primary/20 hover:text-primary transition-all active:scale-95 group/btn"
+                                className="flex items-center justify-center gap-2 h-14 bg-white border border-[#EEEEEE] text-[#111111] rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-[0.98]"
                               >
-                                <span className="material-symbols-outlined text-xl group-hover/btn:animate-pulse">notifications</span>
+                                <span className="material-symbols-outlined text-xl">notifications</span>
                                 NOTIFICAR
                               </button>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-2">
                               <button
                                 onClick={() => updateOrderStatus(order.id, OrderStatus.DELIVERED)}
-                                className="flex items-center justify-center gap-2 h-16 bg-white border border-[#F5F5F5] text-[#111111] rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-sm hover:border-black/10 transition-all active:scale-95"
+                                className="flex items-center justify-center gap-2 h-14 bg-white border border-[#EEEEEE] text-[#111111] rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-[0.98]"
                               >
                                 <span className="material-symbols-outlined text-xl">check_circle</span>
                                 ENTREGAR
@@ -875,7 +875,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                                     updateOrderStatus(order.id, OrderStatus.CANCELLED);
                                   }
                                 }}
-                                className="flex items-center justify-center gap-2 h-16 bg-white text-[#BBBBBB] hover:text-red-500 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95"
+                                className="flex items-center justify-center gap-2 h-14 bg-slate-50 text-[#999999] hover:text-red-600 rounded-none font-black text-[10px] uppercase tracking-widest transition-all active:scale-[0.98]"
                               >
                                 <span className="material-symbols-outlined text-xl">cancel</span>
                                 CANCELAR
