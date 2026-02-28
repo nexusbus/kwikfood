@@ -44,6 +44,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [activeView, setActiveView] = useState<'ESTABELECIMENTOS' | 'AUDITORIA' | 'SMS' | 'DIAGNOSTICO'>('ESTABELECIMENTOS');
   const [auditOrders, setAuditOrders] = useState<any[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   // Telegram Test Console States
   const [testToken, setTestToken] = useState('8656847836:AAH0TkUpHdO_8ECYaSDBG5yGnppBc0hgoVM');
@@ -204,6 +205,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
       setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
       setCity(''); setType(''); setTelegramChatId(''); setTelegramBotToken('');
+      setIsFormVisible(false);
       const nextId = await getNextCompanyId();
       setId(nextId.toString().padStart(4, '0'));
     } catch (err: any) {
@@ -229,6 +231,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setLogoUrl(company.logoUrl || '');
     setTelegramChatId(company.telegramChatId || '');
     setTelegramBotToken(company.telegramBotToken || '');
+    setIsFormVisible(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -262,6 +265,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
     setCity(''); setType(''); setTelegramChatId(''); setTelegramBotToken('');
+    setIsFormVisible(false);
     const nextId = await getNextCompanyId();
     setId(nextId.toString().padStart(4, '0'));
   };
@@ -418,110 +422,122 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
         {activeView === 'ESTABELECIMENTOS' ? (
           <div className="space-y-16">
+            <div className="flex justify-start">
+              <button
+                onClick={() => setIsFormVisible(!isFormVisible)}
+                className={`h-16 px-8 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center gap-3 shadow-sm ${isFormVisible ? 'bg-slate-100 text-slate-500 hover:bg-slate-200' : 'bg-primary text-white hover:bg-secondary shadow-lg shadow-primary/20'}`}
+              >
+                <span className="material-symbols-outlined text-2xl">{isFormVisible ? 'close' : 'add_business'}</span>
+                {isFormVisible ? 'CANCELAR CADASTRO' : 'ADICIONAR NOVO PARCEIRO'}
+              </button>
+            </div>
+
             {/* Registration Form */}
-            <section className="bg-white rounded-[3.5rem] p-8 lg:p-16 border border-slate-100 shadow-sm relative overflow-hidden animate-scale-in">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
+            {isFormVisible && (
+              <section className="bg-white rounded-[3.5rem] p-8 lg:p-16 border border-slate-100 shadow-sm relative overflow-hidden animate-scale-in">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
 
-              <div className="max-w-5xl mx-auto">
-                <div className="flex items-center gap-6 mb-16">
-                  <div className="size-16 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                    <span className="material-symbols-outlined text-3xl">add_business</span>
+                <div className="max-w-5xl mx-auto">
+                  <div className="flex items-center gap-6 mb-16">
+                    <div className="size-16 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                      <span className="material-symbols-outlined text-3xl">add_business</span>
+                    </div>
+                    <div>
+                      <h2 className="text-4xl font-black tracking-tight text-slate-900">
+                        {editingCompany ? 'Ajustar Parceiro' : 'Novo Estabelecimento'}
+                      </h2>
+                      <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Expanda a rede KwikFood registando novos restaurantes.</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-4xl font-black tracking-tight text-slate-900">
-                      {editingCompany ? 'Ajustar Parceiro' : 'Novo Estabelecimento'}
-                    </h2>
-                    <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Expanda a rede KwikFood registando novos restaurantes.</p>
-                  </div>
+
+                  <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Código ID de Referência</label>
+                      <input
+                        type="text"
+                        value={id}
+                        onChange={e => setId(e.target.value.replace(/\D/g, ''))}
+                        className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-primary outline-none focus:border-primary transition-all"
+                        placeholder="0001"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Designação / Nome Fantasia</label>
+                      <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Master Burger Central" required />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Negócio</label>
+                      <input type="text" value={type} onChange={e => setType(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Restaurante, Hamburgaria..." required />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">NIF Corporativo</label>
+                      <input type="text" value={nif} onChange={e => setNif(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="000000000" required />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Província</label>
+                        <select value={location} onChange={e => setLocation(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-[12px] uppercase tracking-widest text-slate-900 outline-none focus:border-primary transition-all appearance-none cursor-pointer">
+                          {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cidade / Bairro</label>
+                        <input type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Talatona" required />
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email de Acesso Administrativo</label>
+                      <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="restaurante@exemplo.com" required />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Senha de Parceiro</label>
+                      <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="••••••••" required />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Gestão de Logótipo</label>
+                      <div className="flex items-center gap-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                        <div className="size-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-inner">
+                          {logoUrl ? <img src={logoUrl} alt="Logo" className="size-full object-cover" /> : <span className="material-symbols-outlined text-slate-200 text-4xl">image</span>}
+                          {logoLoading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center"><span className="material-symbols-outlined animate-spin text-primary">sync</span></div>}
+                        </div>
+                        <div className="flex-1">
+                          <label className="inline-block px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest cursor-pointer hover:bg-primary transition-all shadow-lg active:scale-95">
+                            {logoUrl ? 'Alterar Logo' : 'Inserir Logo'}
+                            <input type="file" onChange={handleLogoUpload} className="hidden" accept="image/*" />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-span-full space-y-4 pt-4">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        <div className="flex-1 space-y-3">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Latitude (Y)</label>
+                          <input type="text" value={lat} onChange={e => setLat(e.target.value === '' ? '' : parseFloat(e.target.value))} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" />
+                        </div>
+                        <div className="flex-1 space-y-3">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Longitude (X)</label>
+                          <input type="text" value={lng} onChange={e => setLng(e.target.value === '' ? '' : parseFloat(e.target.value))} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" />
+                        </div>
+                      </div>
+                      <button type="button" onClick={handleGetCurrentLocation} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest text-slate-600 hover:text-primary transition-all active:scale-[0.98]">
+                        <span className="material-symbols-outlined text-xl">{geoLoading ? 'sync' : 'my_location'}</span>
+                        {geoLoading ? 'Detectando Localização...' : 'Capturar Coordenadas do GPS'}
+                      </button>
+                    </div>
+
+                    <div className="col-span-full pt-12 flex gap-4">
+                      {editingCompany && (
+                        <button type="button" onClick={handleCancelEdit} className="flex-1 h-16 font-black text-slate-400 uppercase tracking-widest text-[11px] hover:text-primary transition-all">Cancelar</button>
+                      )}
+                      <button type="submit" disabled={loading} className="flex-[3] h-20 bg-primary text-white rounded-[1.5rem] font-black text-[13px] uppercase tracking-[0.3em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                        {loading ? 'Sincronizando...' : editingCompany ? 'Guardar Alterações' : 'Finalizar Registo'}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-
-                <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Código ID de Referência</label>
-                    <input
-                      type="text"
-                      value={id}
-                      onChange={e => setId(e.target.value.replace(/\D/g, ''))}
-                      className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-primary outline-none focus:border-primary transition-all"
-                      placeholder="0001"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Designação / Nome Fantasia</label>
-                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Master Burger Central" required />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Negócio</label>
-                    <input type="text" value={type} onChange={e => setType(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Restaurante, Hamburgaria..." required />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">NIF Corporativo</label>
-                    <input type="text" value={nif} onChange={e => setNif(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="000000000" required />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Província</label>
-                      <select value={location} onChange={e => setLocation(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-[12px] uppercase tracking-widest text-slate-900 outline-none focus:border-primary transition-all appearance-none cursor-pointer">
-                        {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-                      </select>
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cidade / Bairro</label>
-                      <input type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Talatona" required />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email de Acesso Administrativo</label>
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="restaurante@exemplo.com" required />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Senha de Parceiro</label>
-                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="••••••••" required />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Gestão de Logótipo</label>
-                    <div className="flex items-center gap-6 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                      <div className="size-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-inner">
-                        {logoUrl ? <img src={logoUrl} alt="Logo" className="size-full object-cover" /> : <span className="material-symbols-outlined text-slate-200 text-4xl">image</span>}
-                        {logoLoading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center"><span className="material-symbols-outlined animate-spin text-primary">sync</span></div>}
-                      </div>
-                      <div className="flex-1">
-                        <label className="inline-block px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest cursor-pointer hover:bg-primary transition-all shadow-lg active:scale-95">
-                          {logoUrl ? 'Alterar Logo' : 'Inserir Logo'}
-                          <input type="file" onChange={handleLogoUpload} className="hidden" accept="image/*" />
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="col-span-full space-y-4 pt-4">
-                    <div className="flex flex-col md:flex-row gap-6">
-                      <div className="flex-1 space-y-3">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Latitude (Y)</label>
-                        <input type="text" value={lat} onChange={e => setLat(e.target.value === '' ? '' : parseFloat(e.target.value))} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" />
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Longitude (X)</label>
-                        <input type="text" value={lng} onChange={e => setLng(e.target.value === '' ? '' : parseFloat(e.target.value))} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" />
-                      </div>
-                    </div>
-                    <button type="button" onClick={handleGetCurrentLocation} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest text-slate-600 hover:text-primary transition-all active:scale-[0.98]">
-                      <span className="material-symbols-outlined text-xl">{geoLoading ? 'sync' : 'my_location'}</span>
-                      {geoLoading ? 'Detectando Localização...' : 'Capturar Coordenadas do GPS'}
-                    </button>
-                  </div>
-
-                  <div className="col-span-full pt-12 flex gap-4">
-                    {editingCompany && (
-                      <button type="button" onClick={handleCancelEdit} className="flex-1 h-16 font-black text-slate-400 uppercase tracking-widest text-[11px] hover:text-primary transition-all">Cancelar</button>
-                    )}
-                    <button type="submit" disabled={loading} className="flex-[3] h-20 bg-primary text-white rounded-[1.5rem] font-black text-[13px] uppercase tracking-[0.3em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
-                      {loading ? 'Sincronizando...' : editingCompany ? 'Guardar Alterações' : 'Finalizar Registo'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </section>
+              </section>
+            )}
 
             {/* Partners List */}
             <section className="space-y-8 animate-fade-in">
@@ -678,8 +694,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                               {order.order_type === 'EAT_IN' ? 'No Local' : order.order_type === 'TAKE_AWAY' ? 'Take Away' : 'Entregue'}
                             </div>
                             <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest w-fit shadow-sm border ${order.status === 'DELIVERED' ? 'bg-slate-100 text-slate-500 border-slate-200' :
-                                order.status === 'READY' ? 'bg-green-50 text-green-600 border-green-100' :
-                                  'bg-primary/10 text-primary border-primary/20'
+                              order.status === 'READY' ? 'bg-green-50 text-green-600 border-green-100' :
+                                'bg-primary/10 text-primary border-primary/20'
                               }`}>
                               {order.status}
                             </span>
