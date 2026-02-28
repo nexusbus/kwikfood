@@ -767,9 +767,42 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         {order.status === OrderStatus.READY && (
                           <span className="px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black uppercase tracking-widest">PRONTO</span>
                         )}
-                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${order.paymentMethod === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'}`}>
-                          PAGAMENTO: {order.paymentMethod || 'N/A'}
-                        </span>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${order.paymentMethod === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'}`}>
+                            {order.paymentMethod || 'PAGAMENTO: N/A'}
+                          </span>
+                          <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary border border-primary/10 flex items-center gap-1.5`}>
+                            <span className="material-symbols-outlined text-[14px]">
+                              {order.orderType === OrderType.EAT_IN ? 'restaurant' : order.orderType === OrderType.TAKE_AWAY ? 'local_mall' : 'delivery_dining'}
+                            </span>
+                            {order.orderType === OrderType.EAT_IN ? 'COMER AQUI' : order.orderType === OrderType.TAKE_AWAY ? 'LEVANTAMENTO' : 'ENTREGA'}
+                          </span>
+                        </div>
+
+                        {order.orderType === OrderType.DELIVERY && (order.deliveryAddress || order.deliveryCoords) && (
+                          <div className="mt-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                            <div className="flex items-center gap-2 mb-2 text-primary">
+                              <span className="material-symbols-outlined text-base">location_on</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest">Endereço de Entrega</span>
+                            </div>
+                            {order.deliveryAddress && (
+                              <p className="text-sm font-bold text-[#111111] mb-3 leading-relaxed">
+                                {order.deliveryAddress}
+                              </p>
+                            )}
+                            {order.deliveryCoords && (
+                              <a
+                                href={`https://www.google.com/maps?q=${order.deliveryCoords.lat},${order.deliveryCoords.lng}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-primary rounded-xl text-[10px] font-black uppercase tracking-widest border border-primary/20 hover:bg-primary/5 transition-all shadow-sm"
+                              >
+                                <span className="material-symbols-outlined text-base">map</span>
+                                VER NO MAPA
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {order.paymentMethod === 'TRANSFER' && order.paymentProofUrl && (
