@@ -695,7 +695,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                       <tr key={order.id} className="group hover:bg-slate-50 transition-all">
                         <td className="px-10 py-6">
                           <div className="flex items-center gap-4">
-                            <div className="size-12 bg-slate-900 text-white rounded-xl flex items-center justify-center font-black text-xs shadow-lg">
+                            <div className="size-12 bg-white text-slate-900 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xs shadow-sm">
                               #{order.ticket_code}
                             </div>
                             <div>

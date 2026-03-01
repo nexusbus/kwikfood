@@ -1219,7 +1219,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         {filteredHistory.map((hOrder) => (
                           <tr key={hOrder.id} className="group hover:bg-slate-50 transition-all">
                             <td className="px-6 py-4">
-                              <div className="h-10 w-12 bg-slate-900 text-white rounded-lg flex items-center justify-center font-black text-[11px] group-hover:bg-primary transition-colors">
+                              <div className="h-10 w-12 bg-white text-slate-900 border border-slate-200 rounded-lg flex items-center justify-center font-black text-[11px] group-hover:border-primary group-hover:text-primary transition-all shadow-sm">
                                 #{hOrder.ticketCode}
                               </div>
                             </td>
