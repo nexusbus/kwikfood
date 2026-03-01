@@ -31,6 +31,33 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const lastStatusRef = useRef<OrderStatus>(initialOrder.status);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const statusMessages: Record<OrderStatus, { title: string; description: string }> = {
+    [OrderStatus.PENDING]: {
+      title: 'Seja Bem-vindo! 🌟',
+      description: 'A sua jornada gastronômica começa aqui. Escolha os seus itens favoritos abaixo.'
+    },
+    [OrderStatus.RECEIVED]: {
+      title: 'Pedido Recebido! ✅',
+      description: 'O seu pedido já está no nosso sistema. Aguarde um momento enquanto validamos tudo.'
+    },
+    [OrderStatus.PREPARING]: {
+      title: 'Em Preparo! 🔥',
+      description: 'A nossa cozinha já recebeu o seu pedido e estamos a tratar de tudo com prioridade máxima.'
+    },
+    [OrderStatus.READY]: {
+      title: 'Pedido Pronto! 🍔',
+      description: 'Estamos aguardando para vires pegar a sua comida! Pode levantar no balcão.'
+    },
+    [OrderStatus.DELIVERED]: {
+      title: 'Bom Apetite! 🍽️',
+      description: 'O seu pedido foi entregue com sucesso. Esperamos que goste e volte sempre!'
+    },
+    [OrderStatus.CANCELLED]: {
+      title: 'Pedido Cancelado 😔',
+      description: 'Lamentamos imenso, mas o seu pedido teve de ser cancelado. Por favor, contacte-nos para mais detalhes.'
+    }
+  };
+
   useEffect(() => {
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
     audioRef.current.load();
@@ -381,22 +408,12 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       {/* Main Content */}
       <main className="flex-1 w-full max-w-[480px] mx-auto px-6 py-10 space-y-10">
         <div className="text-center space-y-4">
-          {order.items && order.items.length > 0 ? (
-            <>
-              <h1 className="text-4xl font-black text-[#111111] tracking-tight animate-fade-in leading-tight">
-                Pedido Enviado! 🚀
-              </h1>
-              <p className="text-[#555555] font-medium text-[15px] animate-fade-in leading-relaxed">
-                A nossa cozinha já recebeu o seu pedido e estamos a tratar de tudo com <strong>prioridade máxima</strong>.
-                Enviaremos um SMS assim que começar o preparo, e pode acompanhar cada detalhe aqui!
-              </p>
-            </>
-          ) : (
-            <>
-              <h1 className="text-4xl font-black text-[#111111] tracking-tight">Seja Bem-vindo!</h1>
-              <p className="text-[#555555] font-medium text-base">A sua jornada gastronômica começa aqui.</p>
-            </>
-          )}
+          <h1 className="text-4xl font-black text-[#111111] tracking-tight animate-fade-in leading-tight">
+            {statusMessages[order.status]?.title || 'A carregar...'}
+          </h1>
+          <p className="text-[#555555] font-medium text-[15px] animate-fade-in leading-relaxed">
+            {statusMessages[order.status]?.description || 'Por favor, aguarde um momento.'}
+          </p>
         </div>
 
         {/* Status Dashboard */}
