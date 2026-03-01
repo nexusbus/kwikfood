@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Company, Order, OrderStatus, Product, CartItem } from '../types';
+import { Company, Order, OrderStatus, Product, CartItem, OrderType } from '../types';
 import { supabase } from '../src/lib/supabase';
 import { requestNotificationPermission, showNotification } from '../src/lib/notifications';
 import Logo from './Logo';
@@ -109,7 +109,22 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             const { id } = JSON.parse(saved);
             const { data: recoveredOrder } = await supabase.from('orders').select('*').eq('id', id).single();
             if (recoveredOrder && recoveredOrder.status !== OrderStatus.DELIVERED && recoveredOrder.status !== OrderStatus.CANCELLED) {
-              currentOrder = recoveredOrder as Order;
+              currentOrder = {
+                ...recoveredOrder,
+                id: recoveredOrder.id,
+                companyId: Number(recoveredOrder.company_id),
+                customerPhone: recoveredOrder.customer_phone,
+                ticketCode: recoveredOrder.ticket_code,
+                ticketNumber: recoveredOrder.ticket_number,
+                queuePosition: recoveredOrder.queue_position,
+                estimatedMinutes: recoveredOrder.estimated_minutes,
+                orderType: recoveredOrder.order_type as OrderType,
+                items: recoveredOrder.items || [],
+                total: recoveredOrder.total || 0,
+                timerAccumulatedSeconds: recoveredOrder.timer_accumulated_seconds || 0,
+                timerLastStartedAt: recoveredOrder.timer_last_started_at,
+                timestamp: recoveredOrder.created_at
+              } as Order;
               setOrder(currentOrder);
             }
           }

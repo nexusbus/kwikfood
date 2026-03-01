@@ -701,6 +701,42 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             </footer>
           </div>
         </div>
+      {/* QR Scanner Modal */}
+      {showScanner && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
+          <div className="absolute inset-0 bg-secondary/80 backdrop-blur-md" onClick={stopScanner}></div>
+          <div className="bg-white w-full max-w-[500px] rounded-[3rem] shadow-premium relative z-10 overflow-hidden animate-scale-in">
+            <header className="p-8 border-b border-border/10 flex justify-between items-center bg-white">
+              <div>
+                <h3 className="text-2xl font-black text-secondary tracking-tight">Scanner QR Code</h3>
+                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">Aponte para o QR Code do local</p>
+              </div>
+              <button
+                onClick={stopScanner}
+                className="size-12 rounded-2xl bg-background hover:bg-primary/10 text-text-muted hover:text-primary transition-all flex items-center justify-center"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </header>
+
+            <div className="p-8 bg-slate-50">
+              <div id="reader" className="overflow-hidden rounded-2xl border-4 border-white shadow-inner bg-black aspect-square"></div>
+              <div className="mt-8 text-center space-y-4">
+                <div className="flex items-center justify-center gap-2 text-primary animate-pulse">
+                  <span className="material-symbols-outlined text-xl">sensors</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">A aguardar leitura...</span>
+                </div>
+                <p className="text-xs text-text-muted font-medium px-8">
+                  Posicione o QR Code dentro do quadrado para entrar automaticamente na fila do estabelecimento.
+                </p>
+              </div>
+            </div>
+
+            <footer className="p-8 bg-white border-t border-border/5 border-dashed text-center">
+              <p className="text-[9px] font-black text-text-muted/40 uppercase tracking-widest">Kwikfood Scanner Intelligence</p>
+            </footer>
+          </div>
+        </div>
       )}
     </div>
   );

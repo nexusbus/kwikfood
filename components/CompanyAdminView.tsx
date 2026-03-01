@@ -1479,14 +1479,14 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group print:border-none print:shadow-none" style={{ filter: 'sharp-edges' }}>
                   <div className="relative">
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`https://kwikfood.vercel.app/?code=${company.id.toString().padStart(4, '0')}`)}`}
                       alt="QR Code"
-                      className="size-64 print:size-[500px]"
+                      className="size-72 print:size-[600px] transition-all"
                     />
                     {company.logoUrl && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden print:size-32">
-                          <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="size-12 bg-white p-1 rounded-lg shadow-xl border border-border/10 overflow-hidden print:size-24">
+                          <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-md" />
                         </div>
                       </div>
                     )}

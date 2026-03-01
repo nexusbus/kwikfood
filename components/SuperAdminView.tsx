@@ -984,14 +984,14 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
               <div className="bg-white p-8 border-2 border-slate-100 rounded-[2.5rem] shadow-inner mb-10 w-fit mx-auto relative group">
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`https://kwikfood.vercel.app/?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
                   alt="QR"
                   className="size-48"
                 />
                 {showQRModal.logoUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="size-12 bg-white p-1 rounded-lg shadow-lg border border-slate-100 overflow-hidden">
-                      <img src={showQRModal.logoUrl} alt="L" className="size-full object-cover rounded" />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="size-8 bg-white p-1 rounded-md shadow-lg border border-slate-100 overflow-hidden">
+                      <img src={showQRModal.logoUrl} alt="L" className="size-full object-cover" />
                     </div>
                   </div>
                 )}
