@@ -4,7 +4,6 @@ import { createOrder, STORE_RADIUS_METERS } from '../constants';
 import { Order, OrderStatus, Company, OrderType } from '../types';
 import { supabase } from '../src/lib/supabase';
 import Logo from './Logo';
-import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface CustomerEntryViewProps {
   companies: Company[];
@@ -29,8 +28,6 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [companySearch, setCompanySearch] = useState('');
-  const [showScanner, setShowScanner] = useState(false);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const codeRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
@@ -81,49 +78,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  const startScanner = () => {
-    setShowScanner(true);
-    setTimeout(() => {
-      scannerRef.current = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        false
-      );
-      scannerRef.current.render(onScanSuccess, onScanFailure);
-    }, 100);
-  };
 
-  const onScanSuccess = (decodedText: string) => {
-    try {
-      const url = new URL(decodedText);
-      const urlCode = url.searchParams.get('code');
-      if (urlCode && urlCode.length === 4) {
-        setCode(urlCode.split(''));
-        stopScanner();
-      } else {
-        setError('QR Code inválido. Certifique-se de que é um QR Code do KwikFood.');
-      }
-    } catch (e) {
-      if (decodedText.length === 4 && /^\d+$/.test(decodedText)) {
-        setCode(decodedText.split(''));
-        stopScanner();
-      } else {
-        setError('QR Code inválido.');
-      }
-    }
-  };
-
-  const onScanFailure = (error: any) => {
-    // console.warn(`QR error: ${error}`);
-  };
-
-  const stopScanner = () => {
-    if (scannerRef.current) {
-      scannerRef.current.clear().catch(err => console.error("Failed to clear scanner", err));
-      scannerRef.current = null;
-    }
-    setShowScanner(false);
-  };
 
   useEffect(() => {
     const checkCustomer = async () => {
@@ -392,45 +347,32 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
         {/* Form Card */}
         <div className="w-full bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.06)] border border-[#F5F5F5] p-8 space-y-10">
           {/* Local Selection & QR Code Section */}
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-xl">pin</span>
-                  <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Código do Local</label>
-                </div>
-                <div className="flex justify-between gap-2">
-                  {code.map((digit, i) => (
-                    <input
-                      key={i}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleCodeChange(i, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(i, e)}
-                      ref={codeRefs[i]}
-                      className="w-full h-14 bg-[#F8F9FA] border-none rounded-xl text-xl font-black text-center text-[#111111] focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                      placeholder="•"
-                    />
-                  ))}
-                </div>
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">pin</span>
+                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Código do Local</label>
               </div>
-
-              <div className="space-y-3">
-                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest block ml-1">Entrada Rápida</label>
-                <button
-                  type="button"
-                  onClick={startScanner}
-                  className="w-full h-14 bg-primary text-white rounded-xl flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest hover:bg-secondary transition-all shadow-lg shadow-primary/10 active:scale-[0.98]"
-                >
-                  <span className="material-symbols-outlined text-xl">qr_code_scanner</span>
-                  Ler QR Code
-                </button>
+              <div className="flex justify-between gap-3">
+                {code.map((digit, i) => (
+                  <input
+                    key={i}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleCodeChange(i, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(i, e)}
+                    ref={codeRefs[i]}
+                    className="w-full h-16 bg-[#F8F9FA] border-none rounded-2xl text-2xl font-black text-center text-[#111111] focus:ring-2 focus:ring-primary/20 transition-all outline-none shadow-sm"
+                    placeholder="•"
+                  />
+                ))}
               </div>
             </div>
 
             <div className="pt-2">
+
               <button
                 type="button"
                 onClick={() => setShowCompanyModal(true)}
@@ -709,43 +651,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
         </div>
       )}
 
-      {/* QR Scanner Modal */}
-      {showScanner && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
-          <div className="absolute inset-0 bg-secondary/80 backdrop-blur-md" onClick={stopScanner}></div>
-          <div className="bg-white w-full max-w-[500px] rounded-[3rem] shadow-premium relative z-10 overflow-hidden animate-scale-in">
-            <header className="p-8 border-b border-border/10 flex justify-between items-center bg-white">
-              <div>
-                <h3 className="text-2xl font-black text-secondary tracking-tight">Scanner QR Code</h3>
-                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">Aponte para o QR Code do local</p>
-              </div>
-              <button
-                onClick={stopScanner}
-                className="size-12 rounded-2xl bg-background hover:bg-primary/10 text-text-muted hover:text-primary transition-all flex items-center justify-center"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </header>
 
-            <div className="p-8 bg-slate-50">
-              <div id="reader" className="overflow-hidden rounded-2xl border-4 border-white shadow-inner bg-black aspect-square"></div>
-              <div className="mt-8 text-center space-y-4">
-                <div className="flex items-center justify-center gap-2 text-primary animate-pulse">
-                  <span className="material-symbols-outlined text-xl">sensors</span>
-                  <span className="text-[11px] font-black uppercase tracking-widest">A aguardar leitura...</span>
-                </div>
-                <p className="text-xs text-text-muted font-medium px-8">
-                  Posicione o QR Code dentro do quadrado para entrar automaticamente na fila do estabelecimento.
-                </p>
-              </div>
-            </div>
-
-            <footer className="p-8 bg-white border-t border-border/5 border-dashed text-center">
-              <p className="text-[9px] font-black text-text-muted/40 uppercase tracking-widest">Kwikfood Scanner Intelligence</p>
-            </footer>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
