@@ -457,10 +457,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     const matchesTicket = o.ticketCode.toLowerCase().includes(search);
     const matchesPhone = o.customerPhone.toLowerCase().includes(search);
     const matchesStatus = o.status.toLowerCase().includes(search);
-    const matchesItems = o.items.some(item =>
+    const matchesItems = o.items?.some(item =>
       item.name.toLowerCase().includes(search) ||
       (item.observation && item.observation.toLowerCase().includes(search))
-    );
+    ) || false;
     return matchesTicket || matchesPhone || matchesStatus || matchesItems;
   });
 
@@ -829,7 +829,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       )}
 
                       <div className="space-y-4 mb-8">
-                        {order.items.map((item, i) => (
+                        {(order.items || []).map((item, i) => (
                           <div key={i} className="flex justify-between items-start group/item">
                             <div className="flex gap-3">
                               <span className="text-base font-black text-[#111111] leading-tight">{item.quantity}x</span>
@@ -840,6 +840,11 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                             )}
                           </div>
                         ))}
+                        {(!order.items || order.items.length === 0) && (
+                          <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest italic">
+                            Aguardando seleção de itens...
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">

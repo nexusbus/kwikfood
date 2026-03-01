@@ -700,7 +700,7 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               <p className="text-[10px] font-black text-text-muted/40 uppercase tracking-widest">&copy; Kwikfood Rede de Parceiros</p>
             </footer>
           </div>
-        </div>
+        </main>
       {/* QR Scanner Modal */}
       {showScanner && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 animate-fade-in">

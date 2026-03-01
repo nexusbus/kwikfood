@@ -142,7 +142,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           } as Company);
         }
 
-        const { data: productData } = await supabase.from('products').select('*').eq('company_id', currentOrder.companyId).eq('is_available', true);
+        const { data: productData } = await supabase.from('products').select('*').eq('company_id', currentOrder.companyId).eq('status', 'ACTIVE');
         if (productData) setProducts(productData.map(p => ({ ...p, imageUrl: p.image_url })));
 
         const { data: latestOrder } = await supabase
