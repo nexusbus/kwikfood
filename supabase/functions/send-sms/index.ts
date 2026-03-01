@@ -88,10 +88,17 @@ Deno.serve(async (req: Request) => {
         });
 
         const sendData = await sendResponse.json().catch(() => ({}));
-        console.log(`[Edge Function] SMS Hub response for ${normalizedRecipient}:`, sendResponse.status, sendData);
+        console.log(`[Edge Function] SMS Hub response for ${normalizedRecipient}:`, sendResponse.status, JSON.stringify(sendData));
 
-        // SMS Hub specific error check even if status is 200
-        const isSuccess = sendResponse.ok && (sendData?.status === "success" || sendData?.code === "100" || sendData?.message?.toLowerCase().includes("success"));
+        // SMS Hub specific error check - be more flexible with success detection
+        // Accepting "success", code "100" (as string or number), or any 200 OK without explicit error
+        const isSuccess = sendResponse.ok && (
+            sendData?.status?.toLowerCase() === "success" ||
+            sendData?.status?.toLowerCase() === "ok" ||
+            String(sendData?.code) === "100" ||
+            (sendData?.message && sendData.message.toLowerCase().includes("success")) ||
+            (!sendData?.error && !sendData?.message?.toLowerCase().includes("fail"))
+        );
 
         // 3. Log the SMS if successful
         if (isSuccess && companyId) {
@@ -101,17 +108,21 @@ Deno.serve(async (req: Request) => {
 
                 if (supabaseUrl && supabaseServiceRoleKey) {
                     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+                    // Ensure companyId is a number
+                    const numericCompanyId = Number(companyId);
+
                     const { error: logError } = await supabaseAdmin.from("sms_logs").insert([{
-                        company_id: companyId,
+                        company_id: numericCompanyId,
                         recipient: normalizedRecipient,
                         message: message,
                         cost: 5
                     }]);
 
                     if (logError) {
-                        console.error("[Edge Function] Database Insert Error:", logError);
+                        console.error("[Edge Function] Database Insert Error:", JSON.stringify(logError));
                     } else {
-                        console.log("[Edge Function] SMS logged successfully for company:", companyId);
+                        console.log("[Edge Function] SMS logged successfully for company:", numericCompanyId);
                     }
                 } else {
                     console.warn("[Edge Function] Warning: SUPABASE_SERVICE_ROLE_KEY missing, cannot log SMS.");

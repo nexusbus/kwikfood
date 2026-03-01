@@ -73,7 +73,11 @@ const AdminAuthView: React.FC<AdminAuthViewProps> = ({ onSuccess, onBack, onShow
                     .single();
 
                 if (company) {
-                    onSuccess('COMPANY', company.id);
+                    if (company.isActive === false) {
+                        setError('Acesso negado. Por favor, contacte a empresa NexusBus LDA para reativar a sua conta.');
+                    } else {
+                        onSuccess('COMPANY', company.id);
+                    }
                 } else {
                     setError('ACESSO NEGADO: Credenciais incorretas.');
                 }

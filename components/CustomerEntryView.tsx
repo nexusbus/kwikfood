@@ -210,6 +210,11 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
       return;
     }
 
+    if (company.isActive === false) {
+      setError('Este estabelecimento está temporariamente inativo. Por favor, contacte a empresa NexusBus LDA.');
+      return;
+    }
+
     if (phone.length < 9) {
       setError('Insira um número de telefone válido.');
       return;
@@ -319,8 +324,9 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   };
 
   const filteredCompanies = companies.filter(c =>
-    c.name.toLowerCase().includes(companySearch.toLowerCase()) ||
-    c.id.toString().includes(companySearch)
+    (c.isActive !== false) &&
+    (c.name.toLowerCase().includes(companySearch.toLowerCase()) ||
+      c.id.toString().includes(companySearch))
   );
 
   return (

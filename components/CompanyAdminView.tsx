@@ -87,6 +87,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   }, []);
 
   useEffect(() => {
+    if (company.isActive === false) {
+      alert('Esta conta foi desativada. Por favor, contacte a empresa NexusBus LDA.');
+      onLogout();
+    }
+  }, [company.isActive, onLogout]);
+
+  useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
