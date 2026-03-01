@@ -4,6 +4,7 @@ import { createOrder, STORE_RADIUS_METERS } from '../constants';
 import { Order, OrderStatus, Company, OrderType } from '../types';
 import { supabase } from '../src/lib/supabase';
 import Logo from './Logo';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface CustomerEntryViewProps {
   companies: Company[];
@@ -28,6 +29,8 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [companySearch, setCompanySearch] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const codeRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
@@ -76,6 +79,50 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
       Math.cos(φ1) * Math.cos(φ2) *
       Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const startScanner = () => {
+    setShowScanner(true);
+    setTimeout(() => {
+      scannerRef.current = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        false
+      );
+      scannerRef.current.render(onScanSuccess, onScanFailure);
+    }, 100);
+  };
+
+  const onScanSuccess = (decodedText: string) => {
+    try {
+      const url = new URL(decodedText);
+      const urlCode = url.searchParams.get('code');
+      if (urlCode && urlCode.length === 4) {
+        setCode(urlCode.split(''));
+        stopScanner();
+      } else {
+        setError('QR Code inválido. Certifique-se de que é um QR Code do KwikFood.');
+      }
+    } catch (e) {
+      if (decodedText.length === 4 && /^\d+$/.test(decodedText)) {
+        setCode(decodedText.split(''));
+        stopScanner();
+      } else {
+        setError('QR Code inválido.');
+      }
+    }
+  };
+
+  const onScanFailure = (error: any) => {
+    // console.warn(`QR error: ${error}`);
+  };
+
+  const stopScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear().catch(err => console.error("Failed to clear scanner", err));
+      scannerRef.current = null;
+    }
+    setShowScanner(false);
   };
 
   useEffect(() => {
@@ -338,36 +385,53 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
         {/* Form Card */}
         <div className="w-full bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.06)] border border-[#F5F5F5] p-8 space-y-10">
-          {/* Local Code Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-primary text-xl">pin</span>
-              <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Código do Local</label>
-            </div>
-            <div className="flex justify-between gap-3">
-              {code.map((digit, i) => (
-                <input
-                  key={i}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleCodeChange(i, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(i, e)}
-                  ref={codeRefs[i]}
-                  className="w-full h-16 bg-[#F8F9FA] border-none rounded-2xl text-2xl font-black text-center text-[#111111] focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                  placeholder="•"
-                />
-              ))}
+          {/* Local Selection & QR Code Section */}
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-xl">pin</span>
+                  <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Código do Local</label>
+                </div>
+                <div className="flex justify-between gap-2">
+                  {code.map((digit, i) => (
+                    <input
+                      key={i}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleCodeChange(i, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(i, e)}
+                      ref={codeRefs[i]}
+                      className="w-full h-14 bg-[#F8F9FA] border-none rounded-xl text-xl font-black text-center text-[#111111] focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                      placeholder="•"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest block ml-1">Entrada Rápida</label>
+                <button
+                  type="button"
+                  onClick={startScanner}
+                  className="w-full h-14 bg-primary text-white rounded-xl flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest hover:bg-secondary transition-all shadow-lg shadow-primary/10 active:scale-[0.98]"
+                >
+                  <span className="material-symbols-outlined text-xl">qr_code_scanner</span>
+                  Ler QR Code
+                </button>
+              </div>
             </div>
 
-            <div className="flex justify-center pt-2">
+            <div className="pt-2">
               <button
                 type="button"
                 onClick={() => setShowCompanyModal(true)}
-                className="text-primary font-black text-[12px] uppercase tracking-widest underline underline-offset-8 decoration-2 hover:text-secondary transition-all"
+                className="w-full h-14 bg-[#F8F9FA] border border-slate-100 rounded-xl flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest text-[#555555] hover:text-primary transition-all active:scale-[0.98]"
               >
-                Escolha o local
+                <span className="material-symbols-outlined text-xl">map</span>
+                Listar Todos os Locais
               </button>
             </div>
           </div>

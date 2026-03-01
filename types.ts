@@ -48,6 +48,9 @@ export interface Company {
   telegramChatId?: string;
   telegramBotToken?: string;
   isAcceptingOrders?: boolean;
+  iban?: string;
+  expressNumber?: string;
+  kwikNumber?: string;
 }
 
 export interface CartItem extends Product {

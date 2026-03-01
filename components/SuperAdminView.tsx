@@ -32,6 +32,9 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [geoLoading, setGeoLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
   const [logoLoading, setLogoLoading] = useState(false);
+  const [iban, setIban] = useState('');
+  const [expressNumber, setExpressNumber] = useState('');
+  const [kwikNumber, setKwikNumber] = useState('');
   const [telegramChatId, setTelegramChatId] = useState('');
   const [telegramBotToken, setTelegramBotToken] = useState('');
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
@@ -82,7 +85,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     const { data: todayOrders } = await supabase.from('orders').select('total, customer_phone').gte('created_at', today);
     if (todayOrders) {
       setTotalClientCount(new Set(todayOrders.map(o => o.customer_phone)).size);
-      setDailyRevenue(todayOrders.reduce((acc, o) => acc + (o.total || 0), 0));
+      setDailyRevenue(todayOrders.reduce((acc, o) => acc + (o.total || 0), 0), 0);
     }
 
     const { count: todaySms } = await supabase.from('sms_logs').select('*', { count: 'exact', head: true }).gte('created_at', today);
@@ -185,6 +188,9 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         email,
         password,
         logo_url: logoUrl,
+        iban,
+        express_number: expressNumber,
+        kwik_number: kwikNumber,
         telegram_chat_id: telegramChatId,
         telegram_bot_token: telegramBotToken
       };
@@ -204,7 +210,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       }
 
       setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
-      setCity(''); setType(''); setTelegramChatId(''); setTelegramBotToken('');
+      setCity(''); setType(''); setIban(''); setExpressNumber(''); setKwikNumber('');
+      setTelegramChatId(''); setTelegramBotToken('');
       setIsFormVisible(false);
       const nextId = await getNextCompanyId();
       setId(nextId.toString().padStart(4, '0'));
@@ -229,6 +236,9 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setEmail(company.email || '');
     setPassword(company.password || '');
     setLogoUrl(company.logoUrl || '');
+    setIban(company.iban || '');
+    setExpressNumber(company.expressNumber || '');
+    setKwikNumber(company.kwikNumber || '');
     setTelegramChatId(company.telegramChatId || '');
     setTelegramBotToken(company.telegramBotToken || '');
     setIsFormVisible(true);
@@ -264,7 +274,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const handleCancelEdit = async () => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
-    setCity(''); setType(''); setTelegramChatId(''); setTelegramBotToken('');
+    setCity(''); setType(''); setIban(''); setExpressNumber(''); setKwikNumber('');
+    setTelegramChatId(''); setTelegramBotToken('');
     setIsFormVisible(false);
     const nextId = await getNextCompanyId();
     setId(nextId.toString().padStart(4, '0'));
@@ -526,6 +537,21 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                       </button>
                     </div>
 
+                    <div className="col-span-full grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">IBAN de Recebimento</label>
+                        <input type="text" value={iban} onChange={e => setIban(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="AO06 0000 0000 ..." />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Número Express</label>
+                        <input type="text" value={expressNumber} onChange={e => setExpressNumber(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="9XXXXXXXX" />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Número Kwik</label>
+                        <input type="text" value={kwikNumber} onChange={e => setKwikNumber(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="9XXXXXXXX" />
+                      </div>
+                    </div>
+
                     <div className="col-span-full pt-12 flex gap-4">
                       {editingCompany && (
                         <button type="button" onClick={handleCancelEdit} className="flex-1 h-16 font-black text-slate-400 uppercase tracking-widest text-[11px] hover:text-primary transition-all">Cancelar</button>
@@ -697,7 +723,11 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                               order.status === 'READY' ? 'bg-green-50 text-green-600 border-green-100' :
                                 'bg-primary/10 text-primary border-primary/20'
                               }`}>
-                              {order.status}
+                              {order.status === 'RECEIVED' ? 'RECEBIDO' :
+                                order.status === 'PREPARING' ? 'PREPARANDO' :
+                                  order.status === 'READY' ? 'PRONTO' :
+                                    order.status === 'DELIVERED' ? 'ENTREGUE' :
+                                      order.status === 'CANCELLED' ? 'CANCELADO' : order.status}
                             </span>
                           </div>
                         </td>
@@ -862,7 +892,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                       <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Estabelecimento</th>
                       <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">SMS Enviadas</th>
                       <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">Custo Acumulado</th>
-                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-right">Margem Operacional</th>
+                      <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-right">Margem Líquida</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -872,8 +902,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                         <tr key={co.id} className="hover:bg-slate-50 transition-colors">
                           <td className="px-10 py-8">
                             <div className="flex items-center gap-4">
-                              <div className="size-10 bg-slate-100 rounded-lg flex items-center justify-center font-black text-slate-400 text-xs">
-                                {co.id.toString().padStart(2, '0')}
+                              <div className="size-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 shadow-inner">
+                                {co.logoUrl ? <img src={co.logoUrl} alt={co.name} className="size-full object-cover" /> : <div className="size-full flex items-center justify-center font-black text-slate-300 text-xs uppercase">{co.name[0]}</div>}
                               </div>
                               <p className="font-black text-slate-900 uppercase text-sm tracking-tight">{co.name}</p>
                             </div>
@@ -895,80 +925,84 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       </main>
 
       {/* Delete Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in no-print">
-          <div className="w-full max-w-lg bg-white rounded-[3rem] p-12 shadow-2xl relative overflow-hidden animate-scale-in">
-            <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+      {
+        showDeleteModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in no-print">
+            <div className="w-full max-w-lg bg-white rounded-[3rem] p-12 shadow-2xl relative overflow-hidden animate-scale-in">
+              <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
 
-            <div className="text-center mb-10">
-              <div className="size-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <span className="material-symbols-outlined text-4xl">warning</span>
+              <div className="text-center mb-10">
+                <div className="size-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <span className="material-symbols-outlined text-4xl">warning</span>
+                </div>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-none uppercase">Acção Crítica</h3>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-4">
+                  A exclusão da unidade é irreversível. Todos os produtos e logs serão perdidos imediatamente.
+                </p>
               </div>
-              <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-none uppercase">Acção Crítica</h3>
-              <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-4">
-                A exclusão da unidade é irreversível. Todos os produtos e logs serão perdidos imediatamente.
-              </p>
+
+              <form onSubmit={handleSecureDelete} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Master</label>
+                  <input type="email" value={adminConfirmEmail} onChange={e => setAdminConfirmEmail(e.target.value)} required className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-black text-slate-900 outline-none focus:border-primary transition-all" placeholder="admin@master.com" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Chave Mestra</label>
+                  <input type="password" value={adminConfirmPassword} onChange={e => setAdminConfirmPassword(e.target.value)} required className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-black text-slate-900 outline-none focus:border-primary transition-all" placeholder="••••••••" />
+                </div>
+
+                {deleteError && <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-[10px] font-black rounded-xl text-center uppercase tracking-widest">{deleteError}</div>}
+
+                <div className="flex flex-col gap-4 pt-6">
+                  <button type="submit" disabled={deleteLoading} className="w-full h-16 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-lg shadow-primary/20 hover:bg-slate-900 transition-all">
+                    {deleteLoading ? 'Eliminando...' : 'Confirmar Exclusão'}
+                  </button>
+                  <button type="button" onClick={() => setShowDeleteModal(null)} className="w-full h-12 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors">Abortar Operação</button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleSecureDelete} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Master</label>
-                <input type="email" value={adminConfirmEmail} onChange={e => setAdminConfirmEmail(e.target.value)} required className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-black text-slate-900 outline-none focus:border-primary transition-all" placeholder="admin@master.com" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Chave Mestra</label>
-                <input type="password" value={adminConfirmPassword} onChange={e => setAdminConfirmPassword(e.target.value)} required className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-black text-slate-900 outline-none focus:border-primary transition-all" placeholder="••••••••" />
-              </div>
-
-              {deleteError && <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-[10px] font-black rounded-xl text-center uppercase tracking-widest">{deleteError}</div>}
-
-              <div className="flex flex-col gap-4 pt-6">
-                <button type="submit" disabled={deleteLoading} className="w-full h-16 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-lg shadow-primary/20 hover:bg-slate-900 transition-all">
-                  {deleteLoading ? 'Eliminando...' : 'Confirmar Exclusão'}
-                </button>
-                <button type="button" onClick={() => setShowDeleteModal(null)} className="w-full h-12 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors">Abortar Operação</button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* QR Modal */}
-      {showQRModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in no-print">
-          <div className="w-full max-w-lg bg-white rounded-[3rem] p-12 shadow-2xl relative overflow-hidden animate-scale-in text-center">
-            <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+      {
+        showQRModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in no-print">
+            <div className="w-full max-w-lg bg-white rounded-[3rem] p-12 shadow-2xl relative overflow-hidden animate-scale-in text-center">
+              <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
 
-            <div className="mb-10">
-              <h3 className="text-3xl font-black text-slate-900 tracking-tight uppercase leading-none">{showQRModal.name}</h3>
-              <p className="text-primary font-black text-[10px] uppercase tracking-[0.4em] mt-3">ID Local: {showQRModal.id.toString().padStart(4, '0')}</p>
-            </div>
+              <div className="mb-10">
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight uppercase leading-none">{showQRModal.name}</h3>
+                <p className="text-primary font-black text-[10px] uppercase tracking-[0.4em] mt-3">ID Local: {showQRModal.id.toString().padStart(4, '0')}</p>
+              </div>
 
-            <div className="bg-white p-8 border-2 border-slate-100 rounded-[2.5rem] shadow-inner mb-10 w-fit mx-auto relative group">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
-                alt="QR"
-                className="size-48"
-              />
-              {showQRModal.logoUrl && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="size-12 bg-white p-1 rounded-lg shadow-lg border border-slate-100 overflow-hidden">
-                    <img src={showQRModal.logoUrl} alt="L" className="size-full object-cover rounded" />
+              <div className="bg-white p-8 border-2 border-slate-100 rounded-[2.5rem] shadow-inner mb-10 w-fit mx-auto relative group">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${showQRModal.id.toString().padStart(4, '0')}`)}`}
+                  alt="QR"
+                  className="size-48"
+                />
+                {showQRModal.logoUrl && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="size-12 bg-white p-1 rounded-lg shadow-lg border border-slate-100 overflow-hidden">
+                      <img src={showQRModal.logoUrl} alt="L" className="size-full object-cover rounded" />
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            <div className="space-y-4">
-              <button onClick={() => window.print()} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-lg flex items-center justify-center gap-3">
-                <span className="material-symbols-outlined">print</span> Imprimir Pack QR
-              </button>
-              <button onClick={() => setShowQRModal(null)} className="w-full h-12 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900">Fechar Janela</button>
+              <div className="space-y-4">
+                <button onClick={() => window.print()} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-lg flex items-center justify-center gap-3">
+                  <span className="material-symbols-outlined">print</span> Imprimir Pack QR
+                </button>
+                <button onClick={() => setShowQRModal(null)} className="w-full h-12 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900">Fechar Janela</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

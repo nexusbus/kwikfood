@@ -100,20 +100,35 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     const loadData = async () => {
       setLoadingProducts(true);
       try {
-        const { data: co } = await supabase.from('companies').select('*').eq('id', order.companyId).single();
-        if (co) {
+        let currentOrder = order;
+
+        // Recovery logic: if no items or default, check localStorage
+        if (!currentOrder.items || currentOrder.items.length === 0) {
+          const saved = localStorage.getItem('kwikfood_active_order');
+          if (saved) {
+            const { id } = JSON.parse(saved);
+            const { data: recoveredOrder } = await supabase.from('orders').select('*').eq('id', id).single();
+            if (recoveredOrder && recoveredOrder.status !== OrderStatus.DELIVERED && recoveredOrder.status !== OrderStatus.CANCELLED) {
+              currentOrder = recoveredOrder as Order;
+              setOrder(currentOrder);
+            }
+          }
+        }
+
+        const { data: companyData } = await supabase.from('companies').select('*').eq('id', currentOrder.companyId).single();
+        if (companyData) {
           setCompany({
-            ...co,
-            logoUrl: co.logo_url,
-            marketingEnabled: co.marketing_enabled,
-            isActive: co.is_active,
-            telegramChatId: co.telegram_chat_id,
-            telegramBotToken: co.telegram_bot_token
+            ...companyData,
+            logoUrl: companyData.logo_url,
+            marketingEnabled: companyData.marketing_enabled,
+            isActive: companyData.is_active,
+            telegramChatId: companyData.telegram_chat_id,
+            telegramBotToken: companyData.telegram_bot_token
           } as Company);
         }
 
-        const { data: prods } = await supabase.from('products').select('*').eq('company_id', order.companyId);
-        if (prods) setProducts(prods.map(p => ({ ...p, imageUrl: p.image_url })));
+        const { data: productData } = await supabase.from('products').select('*').eq('company_id', currentOrder.companyId).eq('is_available', true);
+        if (productData) setProducts(productData.map(p => ({ ...p, imageUrl: p.image_url })));
 
         const { data: latestOrder } = await supabase
           .from('orders')
@@ -377,7 +392,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               </div>
               <p className="text-lg font-black text-[#111111]">
                 {order.status === OrderStatus.PENDING ? 'Entrando' :
-                  order.status === OrderStatus.RECEIVED ? 'Sincronizado' :
+                  order.status === OrderStatus.RECEIVED ? 'Pendente' :
                     order.status === OrderStatus.PREPARING ? 'Preparando' :
                       order.status === OrderStatus.READY ? 'Pronto!' : 'Entregue'}
               </p>
@@ -430,8 +445,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           </div>
         </div>
 
-        {/* Shopping Section - Hide if NOT PENDING (e.g. RECEIVED, PREPARING, etc.) */}
-        {order.status === OrderStatus.PENDING && (
+        {/* Shopping Section - Allow adding products in PENDING OR RECEIVED status */}
+        {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
           <>
             <div className="space-y-8">
               <div className="flex items-center justify-between">
@@ -569,34 +584,67 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       </div>
 
                       {paymentMethod === 'TRANSFER' && (
-                        <div className="space-y-3 animate-fade-in">
-                          <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Comprovativo Transferência (PDF)</p>
-                          <div className="relative">
-                            <input
-                              type="file"
-                              accept=".pdf"
-                              onChange={handleUploadProof}
-                              className="hidden"
-                              id="proof-upload"
-                            />
-                            <label
-                              htmlFor="proof-upload"
-                              className={`w-full h-16 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 cursor-pointer transition-all ${paymentProofUrl ? 'border-green-500 bg-green-50 text-green-600' : 'border-[#E0E0E0] hover:border-primary/50 text-[#BBBBBB]'}`}
-                            >
-                              {uploadingProof ? (
-                                <div className="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                              ) : paymentProofUrl ? (
-                                <>
-                                  <span className="material-symbols-outlined">check_circle</span>
-                                  <span className="text-[11px] font-black uppercase tracking-widest">PDF CARREGADO</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="material-symbols-outlined">upload_file</span>
-                                  <span className="text-[11px] font-black uppercase tracking-widest">CARREGAR PDF</span>
-                                </>
+                        <div className="space-y-6 animate-fade-in mb-4">
+                          {/* Dados Bancários do Parceiro */}
+                          {(company?.iban || company?.expressNumber || company?.kwikNumber) && (
+                            <div className="bg-slate-900 rounded-[2rem] p-8 space-y-4 shadow-xl">
+                              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] font-sans">Dados Bancários para Pagamento</p>
+
+                              {company.iban && (
+                                <div className="space-y-1">
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">IBAN de Recebimento</p>
+                                  <p className="text-white font-black text-sm tracking-tight break-all font-mono bg-white/5 p-3 rounded-lg border border-white/10">{company.iban}</p>
+                                </div>
                               )}
-                            </label>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                {company.expressNumber && (
+                                  <div className="space-y-1">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Número Express</p>
+                                    <p className="text-white font-black text-sm tracking-tight font-mono bg-white/5 p-3 rounded-lg border border-white/10">{company.expressNumber}</p>
+                                  </div>
+                                )}
+                                {company.kwikNumber && (
+                                  <div className="space-y-1">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Número Kwik</p>
+                                    <p className="text-white font-black text-sm tracking-tight font-mono bg-white/5 p-3 rounded-lg border border-white/10">{company.kwikNumber}</p>
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-[9px] font-bold text-slate-400 mt-2 italic">* Após a transferência, carregue o comprovativo PDF abaixo.</p>
+                            </div>
+                          )}
+
+                          <div className="space-y-3">
+                            <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Comprovativo Transferência (PDF)</p>
+                            <div className="relative">
+                              <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={handleUploadProof}
+                                className="hidden"
+                                id="proof-upload"
+                                disabled={uploadingProof}
+                              />
+                              <label
+                                htmlFor="proof-upload"
+                                className={`w-full h-16 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 cursor-pointer transition-all ${paymentProofUrl ? 'border-green-500 bg-green-50 text-green-600' : 'border-[#E0E0E0] hover:border-primary/50 text-[#BBBBBB]'}`}
+                              >
+                                {uploadingProof ? (
+                                  <div className="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                                ) : paymentProofUrl ? (
+                                  <>
+                                    <span className="material-symbols-outlined">check_circle</span>
+                                    <span className="text-[11px] font-black uppercase tracking-widest">PDF CARREGADO</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="material-symbols-outlined">upload_file</span>
+                                    <span className="text-[11px] font-black uppercase tracking-widest">CARREGAR PDF</span>
+                                  </>
+                                )}
+                              </label>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -632,7 +680,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               </div>
               <div>
                 <h3 className="text-xl font-black text-[#111111] tracking-tight">Detalhes do Pedido</h3>
-                <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mt-1">Sincronizado</p>
+                <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mt-1">Pendente</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -677,7 +725,10 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
           {order.status === OrderStatus.DELIVERED && (
             <button
-              onClick={() => onNewOrder(company || undefined, order.customerPhone)}
+              onClick={() => {
+                localStorage.removeItem('kwikfood_active_order');
+                onNewOrder(company || undefined, order.customerPhone);
+              }}
               className="w-full h-16 bg-primary text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">add_circle</span>
@@ -685,13 +736,19 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             </button>
           )}
 
-          <button
-            onClick={() => onNewOrder()}
-            className="w-full h-10 flex items-center justify-center gap-2 text-[#E31B44] hover:opacity-80 transition-all font-black text-[13px]"
-          >
-            <span className="material-symbols-outlined text-lg">logout</span>
-            Encerrar Sessão
-          </button>
+          {/* Ocultar Encerrar Sessão se houver pedido ativo (não entregue e não cancelado) */}
+          {(order.status === OrderStatus.DELIVERED || order.status === OrderStatus.CANCELLED) && (
+            <button
+              onClick={() => {
+                localStorage.removeItem('kwikfood_active_order');
+                onNewOrder();
+              }}
+              className="w-full h-10 flex items-center justify-center gap-2 text-[#E31B44] hover:opacity-80 transition-all font-black text-[13px]"
+            >
+              <span className="material-symbols-outlined text-lg">logout</span>
+              Encerrar Sessão
+            </button>
+          )}
         </div>
 
         <div className="text-center space-y-2 pt-10">
@@ -723,7 +780,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           </button>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

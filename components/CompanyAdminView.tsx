@@ -566,6 +566,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         <nav className="flex flex-col gap-4">
           <button
             onClick={() => setActiveTab('FILA')}
+            title="Ver fila de pedidos em tempo real"
             className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'FILA' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
           >
             <span className="material-symbols-outlined text-2xl">view_list</span>
@@ -574,6 +575,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           </button>
           <button
             onClick={() => setActiveTab('PRODUTOS')}
+            title="Gerir menu de produtos e categorias"
             className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'PRODUTOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
           >
             <span className="material-symbols-outlined text-2xl">inventory_2</span>
@@ -591,6 +593,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   setMarketingPasswordPrompt('');
                 }
               }}
+              title="Campanhas de marketing e SMS"
               className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'MARKETING' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
             >
               <span className="material-symbols-outlined text-2xl">campaign</span>
@@ -601,6 +604,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
           <button
             onClick={() => setActiveTab('RELATORIOS')}
+            title="Relatórios de vendas e auditoria"
             className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'RELATORIOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
           >
             <span className="material-symbols-outlined text-2xl">analytics</span>
@@ -611,7 +615,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           <div className="mt-8">
             <button
               onClick={() => setShowQRModal(true)}
-              className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.5rem] bg-primary/10 text-primary border border-primary/20 transition-all font-black text-[12px] uppercase tracking-widest hover:bg-primary hover:text-white"
+              title="Exibir e imprimir QR Code do local"
+              className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.5rem] bg-primary/10 text-primary border border-primary/20 transition-all font-black text-[12px] uppercase tracking-widest hover:bg-primary hover:text-white no-print"
             >
               <span className="material-symbols-outlined text-2xl">qr_code_2</span>
               Meu QR Code
@@ -1452,8 +1457,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       {
         showQRModal && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500">
-            <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-8 bg-secondary/80 backdrop-blur-3xl animate-in fade-in duration-500 no-print">
+            <div className="w-full max-w-xl bg-surface rounded-[4.5rem] p-16 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300 print:shadow-none print:rounded-none print:p-0 print:border-none">
               <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
 
               <div className="text-center mb-12">
@@ -1467,16 +1472,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               </div>
 
               <div className="flex flex-col items-center gap-10">
-                <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group" style={{ filter: 'sharp-edges' }}>
+                <div className="bg-white p-8 rounded-[3rem] shadow-premium border-2 border-border/20 relative group print:border-none print:shadow-none" style={{ filter: 'sharp-edges' }}>
                   <div className="relative">
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://kwikfood.vercel.app?code=${company.id.toString().padStart(4, '0')}`)}`}
                       alt="QR Code"
-                      className="size-64"
+                      className="size-64 print:size-[500px]"
                     />
                     {company.logoUrl && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden">
+                        <div className="size-16 bg-white p-1 rounded-xl shadow-lg border border-border/20 overflow-hidden print:size-32">
                           <img src={company.logoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
                         </div>
                       </div>
@@ -1484,7 +1489,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   </div>
                 </div>
 
-                <div className="w-full space-y-4">
+                <div className="w-full space-y-4 no-print">
                   <button
                     onClick={() => window.print()}
                     className="w-full h-24 bg-primary text-white rounded-[2rem] font-black text-sm tracking-[0.4em] shadow-premium hover:bg-secondary transition-all flex items-center justify-center gap-4"
