@@ -26,6 +26,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
   const [uploadingProof, setUploadingProof] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1);
+  const [productFilter, setProductFilter] = useState('Todos');
+  const categories = ['Todos', 'Hambúrgueres', 'Comida', 'Bebidas', 'Acompanhamentos'];
   const lastStatusRef = useRef<OrderStatus>(initialOrder.status);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -464,32 +466,57 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
           <>
             <div className="space-y-8">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-black text-[#111111] tracking-tight">O que deseja comprar?</h2>
-                <button className="text-[#BBBBBB] hover:text-primary transition-colors">
-                  <span className="material-symbols-outlined">filter_list</span>
-                </button>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-black text-[#111111] tracking-tight">O que deseja comprar?</h2>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-xl text-[10px] font-black text-secondary/60 uppercase tracking-widest">
+                    <span className="material-symbols-outlined text-sm">filter_list</span>
+                    Filtrar
+                  </div>
+                </div>
+
+                {/* Categories Filter Bar */}
+                <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-6 px-6">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setProductFilter(cat)}
+                      className={`px-6 py-3 rounded-2xl whitespace-nowrap text-[11px] font-black uppercase tracking-widest transition-all ${productFilter === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white border border-[#EEEEEE] text-[#BBBBBB] hover:border-primary/20 hover:text-primary'}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-4">
-                {products.map(p => (
-                  <div key={p.id} className="bg-white p-4 rounded-[2rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F8F9FA] flex items-center gap-4 group hover:border-primary/20 transition-all">
-                    <div className="size-20 rounded-2xl overflow-hidden bg-[#F8F9FA] shrink-0">
-                      <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
+                {products
+                  .filter(p => productFilter === 'Todos' || p.category === productFilter)
+                  .map(p => (
+                    <div key={p.id} className="bg-white p-4 rounded-[2rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F8F9FA] flex items-center gap-4 group hover:border-primary/20 transition-all">
+                      <div className="size-20 rounded-2xl overflow-hidden bg-[#F8F9FA] shrink-0">
+                        <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-black text-[#111111] leading-snug mb-1">{p.name}</h3>
+                        <p className="text-primary font-black text-base">Kz {p.price.toLocaleString()}</p>
+                      </div>
+                      <button
+                        onClick={() => addToCart(p)}
+                        disabled={checkoutStep === 2}
+                        className={`size-12 rounded-2xl shadow-lg transition-all flex items-center justify-center ${checkoutStep === 2 ? 'bg-[#EEEEEE] text-[#BBBBBB] cursor-not-allowed' : 'bg-primary text-white shadow-primary/20 hover:bg-primary/90 active:scale-95'}`}
+                      >
+                        <span className="material-symbols-outlined text-2xl">add</span>
+                      </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-black text-[#111111] leading-snug mb-1">{p.name}</h3>
-                      <p className="text-primary font-black text-base">Kz {p.price.toLocaleString()}</p>
-                    </div>
-                    <button
-                      onClick={() => addToCart(p)}
-                      disabled={checkoutStep === 2}
-                      className={`size-12 rounded-2xl shadow-lg transition-all flex items-center justify-center ${checkoutStep === 2 ? 'bg-[#EEEEEE] text-[#BBBBBB] cursor-not-allowed' : 'bg-primary text-white shadow-primary/20 hover:bg-primary/90 active:scale-95'}`}
-                    >
-                      <span className="material-symbols-outlined text-2xl">add</span>
-                    </button>
+                  ))}
+
+                {products.filter(p => productFilter === 'Todos' || p.category === productFilter).length === 0 && (
+                  <div className="py-12 text-center bg-white rounded-[2rem] border-2 border-dashed border-slate-100">
+                    <span className="material-symbols-outlined text-4xl text-slate-200 mb-3">inventory_2</span>
+                    <p className="text-[11px] font-black text-[#BBBBBB] uppercase tracking-widest">Nenhum produto nesta categoria</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
