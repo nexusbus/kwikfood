@@ -93,7 +93,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   }, []);
 
   const calculateElapsed = (accumulated: number, lastStarted: string | undefined, status: OrderStatus) => {
-    if (status === OrderStatus.READY || status === OrderStatus.DELIVERED || !lastStarted) {
+    if (status !== OrderStatus.PREPARING || !lastStarted) {
       setElapsedSeconds(accumulated);
     } else {
       const start = new Date(lastStarted).getTime();
@@ -277,12 +277,12 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
   useEffect(() => {
     let interval: any;
-    if (order.status !== OrderStatus.READY && order.status !== OrderStatus.DELIVERED && order.timerLastStartedAt) {
+    if (order.status === OrderStatus.PREPARING && order.timerLastStartedAt) {
       interval = setInterval(() => {
         calculateElapsed(order.timerAccumulatedSeconds, order.timerLastStartedAt, order.status);
       }, 1000);
     } else {
-      setElapsedSeconds(order.timerAccumulatedSeconds);
+      setElapsedSeconds(order.timerAccumulatedSeconds || 0);
     }
     return () => clearInterval(interval);
   }, [order.status, order.timerAccumulatedSeconds, order.timerLastStartedAt]);
