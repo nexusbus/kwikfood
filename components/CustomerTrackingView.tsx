@@ -736,19 +736,20 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             </button>
           )}
 
-          {/* Ocultar Encerrar Sessão se houver pedido ativo (não entregue e não cancelado) */}
-          {(order.status === OrderStatus.DELIVERED || order.status === OrderStatus.CANCELLED) && (
-            <button
-              onClick={() => {
-                localStorage.removeItem('kwikfood_active_order');
-                onNewOrder();
-              }}
-              className="w-full h-10 flex items-center justify-center gap-2 text-[#E31B44] hover:opacity-80 transition-all font-black text-[13px]"
-            >
-              <span className="material-symbols-outlined text-lg">logout</span>
-              Encerrar Sessão
-            </button>
-          )}
+          {/* Botão Encerrar Sessão sempre visível */}
+          <button
+            onClick={() => {
+              if (order.status !== OrderStatus.DELIVERED && order.status !== OrderStatus.CANCELLED) {
+                if (!confirm('Você tem um pedido ativo em andamento. Deseja realmente encerrar a sessão e sair da fila?')) return;
+              }
+              localStorage.removeItem('kwikfood_active_order');
+              onNewOrder();
+            }}
+            className="w-full h-10 flex items-center justify-center gap-2 text-[#E31B44] hover:opacity-80 transition-all font-black text-[13px]"
+          >
+            <span className="material-symbols-outlined text-lg">logout</span>
+            Encerrar Sessão
+          </button>
         </div>
 
         <div className="text-center space-y-2 pt-10">

@@ -623,10 +623,14 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             </button>
           </div>
 
-          <div className="mt-4 pt-8 border-t border-border/50">
-            <button onClick={onLogout} className="w-full flex items-center justify-between px-8 py-5 rounded-[1.5rem] text-primary font-black text-[12px] uppercase tracking-widest hover:bg-primary-soft transition-all group">
+          <div className="mt-8 pt-8 border-t border-border/50">
+            <button
+              onClick={onLogout}
+              title="Sair do painel administrativo"
+              className="w-full flex items-center justify-between px-8 py-5 rounded-[1.5rem] bg-primary/5 text-primary font-black text-[12px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all group shadow-sm"
+            >
               <span className="flex items-center gap-5">
-                <span className="material-symbols-outlined text-2xl">logout</span>
+                <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">logout</span>
                 Sair
               </span>
               <span className="material-symbols-outlined text-xl opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all">arrow_forward</span>

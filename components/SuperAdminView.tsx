@@ -379,8 +379,13 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
       <header className="glass sticky top-0 z-[60] px-6 lg:px-12 py-6 flex flex-col lg:flex-row items-center justify-between gap-6 border-b border-border/30 animate-fade-in no-print bg-white/80 backdrop-blur-xl">
         <div className="flex items-center gap-6">
-          <button onClick={onBack} className="group flex items-center justify-center size-14 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-primary hover:text-white transition-all active:scale-95">
-            <span className="material-symbols-outlined text-2xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
+          <button
+            onClick={onBack}
+            title="Encerrar Sessão e Sair"
+            className="group flex items-center justify-center gap-3 h-14 px-6 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm"
+          >
+            <span className="material-symbols-outlined text-2xl group-hover:-translate-x-1 transition-transform">logout</span>
+            <span className="text-[11px] font-black uppercase tracking-widest hidden sm:block">Sair</span>
           </button>
           <div className="flex items-center gap-4">
             <Logo variant="icon" size={44} color="primary" className="transform hover:rotate-12 transition-transform duration-500" />
