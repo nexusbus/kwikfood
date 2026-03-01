@@ -107,10 +107,11 @@ export const formatOrderNotification = (order: any, type: 'NEW' | 'STATUS_CHANGE
     const statusText: Record<string, string> = {
         'RECEIVED': 'RECEBIDO',
         'PREPARING': 'em PREPARAÇÃO',
-        'READY': 'PRONTO para levantamento',
+        'READY': order.orderType === 'DELIVERY' ? 'A CAMINHO 🛵' : 'PRONTO para levantamento',
         'DELIVERED': 'ENTREGUE',
         'CANCELLED': 'CANCELADO'
     };
+
 
     const safeName = escapeHtml(order.customerName || 'Cliente');
     const safePhone = order.customerPhone || 'N/A';

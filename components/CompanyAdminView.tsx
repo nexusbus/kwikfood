@@ -774,7 +774,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         </div>
 
                         {order.status === OrderStatus.READY && (
-                          <span className="px-3 py-1 bg-green-50 text-green-600 rounded-none text-[10px] font-black uppercase tracking-widest">PRONTO</span>
+                          <span className="px-3 py-1 bg-green-50 text-green-600 rounded-none text-[10px] font-black uppercase tracking-widest">
+                            {order.orderType === OrderType.DELIVERY ? 'A CAMINHO' : 'PRONTO'}
+                          </span>
                         )}
                         <div className="flex flex-wrap gap-2 mt-2">
                           <span className={`px-3 py-1 rounded-none text-[10px] font-black uppercase tracking-widest ${order.paymentMethod === 'TRANSFER' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'}`}>
