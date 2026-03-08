@@ -561,16 +561,27 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
                     <div className="col-span-full grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100">
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">IBAN de Recebimento</label>
+                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">IBAN de Recebimento (Opcional)</label>
                         <input type="text" value={iban} onChange={e => setIban(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="AO06 0000 0000 ..." />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Número Express</label>
+                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Número Express (Opcional)</label>
                         <input type="text" value={expressNumber} onChange={e => setExpressNumber(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="9XXXXXXXX" />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Número Kwik</label>
+                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Número Kwik (Opcional)</label>
                         <input type="text" value={kwikNumber} onChange={e => setKwikNumber(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="9XXXXXXXX" />
+                      </div>
+                    </div>
+
+                    <div className="col-span-full grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Telegram Chat ID (Opcional)</label>
+                        <input type="text" value={telegramChatId} onChange={e => setTelegramChatId(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: -100123456789" />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Telegram Bot Token (Opcional)</label>
+                        <input type="text" value={telegramBotToken} onChange={e => setTelegramBotToken(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: 123456789:ABC..." />
                       </div>
                     </div>
 
