@@ -20,6 +20,12 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [serverTimeOffset, setServerTimeOffset] = useState<number>(0);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
@@ -92,15 +98,15 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     };
   }, []);
 
-  const calculateElapsed = (accumulated: number, lastStarted: string | undefined, status: OrderStatus) => {
-    if (status !== OrderStatus.PREPARING || !lastStarted) {
-      setElapsedSeconds(accumulated);
-    } else {
-      const start = new Date(lastStarted).getTime();
-      const now = Date.now() + serverTimeOffset;
-      const elapsed = accumulated + Math.floor((now - start) / 1000);
-      setElapsedSeconds(elapsed > 0 ? elapsed : 0);
+  const getDynamicElapsed = () => {
+    const accumulated = order.timerAccumulatedSeconds || 0;
+    if (order.status !== OrderStatus.PREPARING || !order.timerLastStartedAt) {
+      return accumulated;
     }
+    const start = new Date(order.timerLastStartedAt).getTime();
+    const current = now.getTime() + serverTimeOffset;
+    const elapsed = accumulated + Math.floor((current - start) / 1000);
+    return elapsed > 0 ? elapsed : 0;
   };
 
 
@@ -211,17 +217,6 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             companyId: latestOrder.company_id // Garantir que temos o ID da empresa para carregar os produtos
           });
 
-          calculateElapsed(latestOrder.timer_accumulated_seconds || 0, latestOrder.timer_last_started_at, latestOrder.status as OrderStatus);
-
-          // Sincronização do Cronómetro: Calcular offset se o pedido tiver acabado de ser criado
-          // Se o pedido foi criado nos últimos 30 segundos, assumimos que 'created_at' é o nosso 'agora' do servidor
-          const createdAt = new Date(latestOrder.created_at).getTime();
-          const localNow = Date.now();
-          if (Math.abs(localNow - createdAt) < 300000) { // 5 minutos de tolerância para sincronização inicial
-            setServerTimeOffset(createdAt - localNow);
-          }
-
-
           const { count: posCount } = await supabase
             .from('orders')
             .select('id', { count: 'exact', head: true })
@@ -276,16 +271,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   }, [order.id, order.companyId]);
 
   useEffect(() => {
-    let interval: any;
-    if (order.status === OrderStatus.PREPARING && order.timerLastStartedAt) {
-      interval = setInterval(() => {
-        calculateElapsed(order.timerAccumulatedSeconds, order.timerLastStartedAt, order.status);
-      }, 1000);
-    } else {
-      setElapsedSeconds(order.timerAccumulatedSeconds || 0);
-    }
-    return () => clearInterval(interval);
-  }, [order.status, order.timerAccumulatedSeconds, order.timerLastStartedAt]);
+    setElapsedSeconds(getDynamicElapsed());
+  }, [now, order.status, order.timerAccumulatedSeconds, order.timerLastStartedAt]);
 
   const addToCart = (p: Product) => {
     if (paymentMethod) return; // Bloquear se houver pagamento selecionado
