@@ -62,6 +62,9 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [totalClientCount, setTotalClientCount] = useState(0);
   const [dailySmsCount, setDailySmsCount] = useState(0);
   const [dailyRevenue, setDailyRevenue] = useState(0);
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditLimit, setAuditLimit] = useState(25);
+  const [auditTotal, setAuditTotal] = useState(0);
 
   const loadData = async () => {
     const cData = await fetchCompanies();
@@ -81,11 +84,13 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     }
 
     // Load Daily Stats
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+
     const { data: todayOrders } = await supabase.from('orders').select('total, customer_phone').gte('created_at', today);
     if (todayOrders) {
       setTotalClientCount(new Set(todayOrders.map(o => o.customer_phone)).size);
-      setDailyRevenue(todayOrders.reduce((acc, o) => acc + (o.total || 0), 0), 0);
+      setDailyRevenue(todayOrders.reduce((acc, o) => acc + (o.total || 0), 0));
     }
 
     const { count: todaySms } = await supabase.from('sms_logs').select('*', { count: 'exact', head: true }).gte('created_at', today);
@@ -102,6 +107,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       })
       .subscribe();
 
+    if (activeView === 'AUDITORIA') {
+      loadAuditData();
+    }
+
     return () => {
       supabase.removeChannel(channel);
     };
@@ -110,19 +119,27 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const loadAuditData = async () => {
     setAuditLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('orders')
-        .select('*, companies(name)')
-        .order('created_at', { ascending: false });
+        .select('*, companies(name)', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range((auditPage - 1) * auditLimit, auditPage * auditLimit - 1);
 
       if (error) throw error;
       setAuditOrders(data || []);
+      setAuditTotal(count || 0);
     } catch (err) {
       console.error(err);
     } finally {
       setAuditLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (activeView === 'AUDITORIA') {
+      loadAuditData();
+    }
+  }, [auditPage, auditLimit, activeView]);
 
   const handleExportAudit = () => {
     const headers = ['Ticket', 'Local', 'Cliente', 'Contacto', 'Duração', 'Status', 'Data/Hora'];
@@ -751,6 +768,41 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Paginação Audit */}
+              <div className="px-10 py-8 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-8 no-print">
+                <div className="flex items-center gap-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mostrar</p>
+                  <select
+                    value={auditLimit}
+                    onChange={(e) => { setAuditLimit(Number(e.target.value)); setAuditPage(1); }}
+                    className="h-12 px-4 bg-white border border-slate-200 rounded-xl font-black text-xs text-slate-700 outline-none focus:border-primary transition-all"
+                  >
+                    {[10, 25, 50, 100].map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">registos de {auditTotal}</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setAuditPage(prev => Math.max(1, prev - 1))}
+                    disabled={auditPage === 1}
+                    className="size-12 flex items-center justify-center bg-white border border-slate-200 rounded-[1rem] text-slate-900 hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none shadow-sm"
+                  >
+                    <span className="material-symbols-outlined text-2xl">chevron_left</span>
+                  </button>
+                  <div className="h-12 px-8 flex items-center bg-white border border-slate-200 rounded-[1rem] shadow-sm">
+                    <span className="text-xs font-black text-slate-900">Página {auditPage} de {Math.max(1, Math.ceil(auditTotal / auditLimit))}</span>
+                  </div>
+                  <button
+                    onClick={() => setAuditPage(prev => prev + 1)}
+                    disabled={auditPage >= Math.ceil(auditTotal / auditLimit)}
+                    className="size-12 flex items-center justify-center bg-white border border-slate-200 rounded-[1rem] text-slate-900 hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none shadow-sm"
+                  >
+                    <span className="material-symbols-outlined text-2xl">chevron_right</span>
+                  </button>
+                </div>
               </div>
             </div>
           </section>

@@ -66,6 +66,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [hEndDate, setHEndDate] = useState('');
   const [hStatusFilter, setHStatusFilter] = useState('Todos');
   const [hContactFilter, setHContactFilter] = useState('');
+  const [hLimit, setHLimit] = useState(25);
+  const [hPage, setHPage] = useState(1);
 
   // Marketing state
   const [contacts, setContacts] = useState<string[]>([]);
@@ -471,7 +473,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     return matchesTicket || matchesPhone || matchesStatus || matchesItems;
   });
 
-  const filteredHistory = historyOrders.filter(o => {
+  const allFilteredHistory = historyOrders.filter(o => {
     const matchesStatus = hStatusFilter === 'Todos' || o.status === hStatusFilter;
     const matchesContact = hContactFilter === '' || o.customerPhone.includes(hContactFilter);
 
@@ -491,11 +493,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     return matchesStatus && matchesContact && matchesDate;
   });
 
-  const totalRevenue = filteredHistory.reduce((acc, o) => acc + (o.status === OrderStatus.DELIVERED ? (o.total || 0) : 0), 0);
+  const filteredHistory = allFilteredHistory.slice((hPage - 1) * hLimit, hPage * hLimit);
+
+  const totalRevenue = allFilteredHistory.reduce((acc, o) => acc + (o.status === OrderStatus.DELIVERED ? (o.total || 0) : 0), 0);
 
   const handleExportCSV = () => {
     const headers = ['Data', 'Ticket', 'Status', 'Itens', 'Total (Kz)', 'Telefone', 'Pagamento'];
-    const rows = filteredHistory.map(o => [
+    const rows = allFilteredHistory.map(o => [
       o.timestamp,
       `#${o.ticketCode}`,
       o.status,
@@ -572,7 +576,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         <nav className="flex flex-col gap-4">
           <button
-            onClick={() => setActiveTab('FILA')}
+            onClick={() => { setActiveTab('FILA'); setShowSidebar(false); }}
             title="Ver fila de pedidos em tempo real"
             className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'FILA' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
           >
@@ -581,7 +585,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             {activeTab === 'FILA' && <div className="absolute right-6 size-2 bg-primary rounded-full animate-pulse"></div>}
           </button>
           <button
-            onClick={() => setActiveTab('PRODUTOS')}
+            onClick={() => { setActiveTab('PRODUTOS'); setShowSidebar(false); }}
             title="Gerir menu de produtos e categorias"
             className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'PRODUTOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
           >
@@ -594,6 +598,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               onClick={() => {
                 if (isMarketingUnlocked) {
                   setActiveTab('MARKETING');
+                  setShowSidebar(false);
                 } else {
                   setShowMarketingAuthModal(true);
                   setMarketingAuthError(false);
@@ -610,7 +615,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           )}
 
           <button
-            onClick={() => setActiveTab('RELATORIOS')}
+            onClick={() => { setActiveTab('RELATORIOS'); setShowSidebar(false); }}
             title="Relatórios de vendas e auditoria"
             className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'RELATORIOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
           >
@@ -664,61 +669,72 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             {!isKitchenMonitor && (
               <button
                 onClick={() => setShowSidebar(!showSidebar)}
-                className="group flex items-center justify-center p-2 rounded-xl hover:bg-slate-100 transition-all active:scale-90"
+                className="group flex items-center justify-center size-14 rounded-2xl bg-white border border-border/20 shadow-sm hover:bg-slate-50 transition-all active:scale-95"
               >
-                <Logo variant="icon" size={44} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
+                <span className="material-symbols-outlined text-3xl font-black text-secondary">menu</span>
               </button>
             )}
             <div>
-              <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mb-1">Painel Administrativo</p>
-              <h2 className={`font-black tracking-tight text-slate-900 ${isKitchenMonitor ? 'text-3xl' : 'text-2xl lg:text-3xl'}`}>
-                {activeTab === 'FILA' ? 'A Cozinha' : activeTab === 'PRODUTOS' ? 'O Menu' : activeTab === 'MARKETING' ? 'Marketing' : 'Relatórios'}
+              <h2 className={`font-black tracking-tight text-primary italic ${isKitchenMonitor ? 'text-4xl' : 'text-3xl lg:text-4xl'}`}>
+                A cozinha
               </h2>
             </div>
           </div>
 
           <div className="flex flex-wrap justify-center items-center gap-4">
             {activeTab === 'FILA' && (
-              <>
-                <button
-                  onClick={async () => {
-                    const res = await sendTelegramMessage(
-                      company.telegramBotToken || '',
-                      company.telegramChatId || '',
-                      `🧪 <b>TESTE DE CONECTIVIDADE</b>\nO seu terminal administrativo está correctamente ligado ao Telegram! 🚀`
-                    );
-                    if (res?.success) alert('Mensagem de teste enviada com sucesso! Verifique o seu grupo no Telegram.');
-                    else alert(`FALHA NO TELEGRAM: ${res?.error || 'Erro desconhecido'}`);
-                  }}
-                  className="h-16 px-6 bg-white border border-[#F5F5F5] text-secondary rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:border-primary/20 hover:text-primary transition-all flex items-center gap-2 active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-xl">send_and_archive</span>
-                  TESTAR TELEGRAM
-                </button>
-
-                <div className="grid grid-cols-2 gap-3 lg:gap-4 shrink-0">
+              <div className="flex flex-col lg:flex-row items-center gap-8 w-full lg:w-auto">
+                {/* Indicadores Lado a Lado */}
+                <div className="flex items-center gap-4">
                   <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
                     <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5 flex items-center gap-2">
                       Pedidos Atuais
                     </p>
                     <div className="flex items-baseline gap-2">
                       <p className="text-4xl font-black text-[#111111]">{orders.length}</p>
-                      <span className="text-[10px] font-black text-green-500 flex items-center gap-0.5">
-                        <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                        20%
+                      <span className={`text-[10px] font-black flex items-center gap-0.5 ${orders.length > 5 ? 'text-red-500' : 'text-green-500'}`}>
+                        <span className="material-symbols-outlined text-[14px]">{orders.length > 5 ? 'trending_up' : 'trending_down'}</span>
+                        {orders.length > 0 ? `${Math.round((orders.length / products.length) * 100)}%` : '0%'}
                       </span>
                     </div>
                   </div>
                   <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
-                    <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5">Tempo Médio</p>
+                    <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5">Tempo Médio (Hoje)</p>
                     <div className="flex items-baseline gap-1">
-                      <p className="text-4xl font-black text-[#111111]">12'</p>
+                      <p className="text-4xl font-black text-[#111111]">
+                        {(() => {
+                          const today = new Date().toISOString().split('T')[0];
+                          const todayOrders = historyOrders.filter(o => o.timestamp.includes(today));
+                          if (todayOrders.length === 0) return 0;
+                          const avg = todayOrders.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / todayOrders.length / 60;
+                          return Math.round(avg);
+                        })()}
+                      </p>
                       <p className="text-[11px] font-black text-[#BBBBBB] uppercase">min</p>
+                      {(() => {
+                        const today = new Date().toISOString().split('T')[0];
+                        const todayOrders = historyOrders.filter(o => o.timestamp.includes(today));
+                        const prevOrders = historyOrders.filter(o => !o.timestamp.includes(today));
+
+                        if (todayOrders.length === 0 || prevOrders.length === 0) return null;
+
+                        const todayAvg = todayOrders.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / todayOrders.length;
+                        const prevAvg = prevOrders.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / prevOrders.length;
+                        const diff = ((todayAvg - prevAvg) / prevAvg) * 100;
+
+                        return (
+                          <span className={`text-[10px] font-black flex items-center gap-0.5 ml-2 ${diff > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                            <span className="material-symbols-outlined text-[14px]">{diff > 0 ? 'trending_up' : 'trending_down'}</span>
+                            {Math.abs(Math.round(diff))}%
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
 
-                <div className="relative group ml-0 lg:ml-2">
+                {/* Busca Posicionada no Canto Superior Direito */}
+                <div className="relative group lg:ml-auto">
                   <input
                     type="text"
                     placeholder="Buscar ticket ou telefone..."
@@ -728,7 +744,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   />
                   <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-[#BBBBBB]">search</span>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </header>
@@ -1228,7 +1244,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         {filteredHistory.map((hOrder) => (
                           <tr key={hOrder.id} className="group hover:bg-slate-50 transition-all">
                             <td className="px-6 py-4">
-                              <div className="h-10 w-12 bg-white text-slate-900 border border-slate-200 rounded-lg flex items-center justify-center font-black text-[11px] group-hover:border-primary group-hover:text-primary transition-all shadow-sm">
+                              <div className="font-black text-lg text-slate-900 group-hover:text-primary transition-all">
                                 #{hOrder.ticketCode}
                               </div>
                             </td>
@@ -1284,6 +1300,41 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         ))}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Paginação */}
+                  <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-6 no-print">
+                    <div className="flex items-center gap-4">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mostrar</p>
+                      <select
+                        value={hLimit}
+                        onChange={(e) => { setHLimit(Number(e.target.value)); setHPage(1); }}
+                        className="h-10 px-3 bg-white border border-slate-200 rounded-xl font-black text-xs text-secondary outline-none focus:border-primary transition-all"
+                      >
+                        {[10, 25, 50, 100].map(v => <option key={v} value={v}>{v}</option>)}
+                      </select>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">registos</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setHPage(prev => Math.max(1, prev - 1))}
+                        disabled={hPage === 1}
+                        className="size-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-secondary hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none"
+                      >
+                        <span className="material-symbols-outlined text-xl">chevron_left</span>
+                      </button>
+                      <div className="h-10 px-6 flex items-center bg-white border border-slate-200 rounded-xl">
+                        <span className="text-xs font-black text-secondary">Página {hPage}</span>
+                      </div>
+                      <button
+                        onClick={() => setHPage(prev => prev + 1)}
+                        disabled={filteredHistory.length < hLimit}
+                        className="size-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-secondary hover:border-primary hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none"
+                      >
+                        <span className="material-symbols-outlined text-xl">chevron_right</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div className="hidden print:block mt-12 text-center border-t border-border pt-8">
