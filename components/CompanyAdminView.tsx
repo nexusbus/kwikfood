@@ -549,7 +549,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         />
       )}
       {/* Premium Sidebar - Collapsible */}
-      <aside className={`fixed lg:static inset-y-0 left-0 w-80 bg-white/95 lg:bg-white backdrop-blur-xl lg:backdrop-blur-none border-r border-white/50 lg:border-border/30 p-8 flex flex-col gap-10 z-[200] transition-all duration-500 ease-in-out shadow-2xl lg:shadow-none overflow-y-auto custom-scrollbar ${isKitchenMonitor ? '-translate-x-full absolute' : (showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')}`}>
+      <aside className={`fixed inset-y-0 left-0 w-80 bg-white shadow-2xl border-r border-border/30 p-8 flex flex-col gap-10 z-[200] transition-all duration-500 ease-in-out overflow-y-auto custom-scrollbar ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col items-center text-center gap-6 py-4">
           {company.logoUrl && (
             <div className="size-28 bg-white rounded-[2.5rem] shadow-premium border-2 border-primary/5 overflow-hidden group/logo">
@@ -666,17 +666,20 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         <header className={`mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-center gap-6 relative z-10 animate-fade-in no-print ${isKitchenMonitor ? 'bg-white rounded-[2rem] p-6 shadow-premium border border-border/20 mb-8' : ''}`}>
           <div className="flex items-center gap-4">
-            {!isKitchenMonitor && (
+            {!showSidebar && (
               <button
-                onClick={() => setShowSidebar(!showSidebar)}
+                onClick={() => setShowSidebar(true)}
                 className="group flex items-center justify-center size-14 rounded-2xl bg-white border border-border/20 shadow-sm hover:bg-slate-50 transition-all active:scale-95"
               >
                 <span className="material-symbols-outlined text-3xl font-black text-secondary">menu</span>
               </button>
             )}
             <div>
-              <h2 className={`font-black tracking-tight text-primary italic ${isKitchenMonitor ? 'text-4xl' : 'text-3xl lg:text-4xl'}`}>
-                A cozinha
+              <h2 className={`font-black tracking-tight text-primary italic ${isKitchenMonitor ? 'text-2xl' : 'text-2xl lg:text-3xl'}`}>
+                {activeTab === 'FILA' ? 'A cozinha' :
+                  activeTab === 'PRODUTOS' ? 'Menu Digital' :
+                    activeTab === 'MARKETING' ? 'Marketing & Fidelização' :
+                      activeTab === 'RELATORIOS' ? 'Auditoria & Relatórios' : 'Painel Administrativo'}
               </h2>
             </div>
           </div>
@@ -685,23 +688,23 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             {activeTab === 'FILA' && (
               <div className="flex flex-col lg:flex-row items-center gap-8 w-full lg:w-auto">
                 {/* Indicadores Lado a Lado */}
-                <div className="flex items-center gap-4">
-                  <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
-                    <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white px-5 py-3 rounded-[1.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[130px] group hover:border-primary/20 transition-all">
+                    <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1 flex items-center gap-2">
                       Pedidos Atuais
                     </p>
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-4xl font-black text-[#111111]">{orders.length}</p>
-                      <span className={`text-[10px] font-black flex items-center gap-0.5 ${orders.length > 5 ? 'text-red-500' : 'text-green-500'}`}>
-                        <span className="material-symbols-outlined text-[14px]">{orders.length > 5 ? 'trending_up' : 'trending_down'}</span>
+                    <div className="flex items-baseline gap-1.5">
+                      <p className="text-2xl font-black text-[#111111]">{orders.length}</p>
+                      <span className={`text-[9px] font-black flex items-center gap-0.5 ${orders.length > 5 ? 'text-red-500' : 'text-green-500'}`}>
+                        <span className="material-symbols-outlined text-[12px]">{orders.length > 5 ? 'trending_up' : 'trending_down'}</span>
                         {orders.length > 0 ? `${Math.round((orders.length / products.length) * 100)}%` : '0%'}
                       </span>
                     </div>
                   </div>
-                  <div className="bg-white px-8 py-5 rounded-[2.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[160px] group hover:border-primary/20 transition-all">
-                    <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1.5">Tempo Médio (Hoje)</p>
+                  <div className="bg-white px-5 py-3 rounded-[1.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[130px] group hover:border-primary/20 transition-all">
+                    <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1">Tempo Médio (Hoje)</p>
                     <div className="flex items-baseline gap-1">
-                      <p className="text-4xl font-black text-[#111111]">
+                      <p className="text-2xl font-black text-[#111111]">
                         {(() => {
                           const today = new Date().toISOString().split('T')[0];
                           const todayOrders = historyOrders.filter(o => o.timestamp.includes(today));
@@ -710,7 +713,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           return Math.round(avg);
                         })()}
                       </p>
-                      <p className="text-[11px] font-black text-[#BBBBBB] uppercase">min</p>
+                      <p className="text-[9px] font-black text-[#BBBBBB] uppercase">min</p>
                       {(() => {
                         const today = new Date().toISOString().split('T')[0];
                         const todayOrders = historyOrders.filter(o => o.timestamp.includes(today));
@@ -723,8 +726,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         const diff = ((todayAvg - prevAvg) / prevAvg) * 100;
 
                         return (
-                          <span className={`text-[10px] font-black flex items-center gap-0.5 ml-2 ${diff > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                            <span className="material-symbols-outlined text-[14px]">{diff > 0 ? 'trending_up' : 'trending_down'}</span>
+                          <span className={`text-[9px] font-black flex items-center gap-0.5 ml-1.5 ${diff > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                            <span className="material-symbols-outlined text-[12px]">{diff > 0 ? 'trending_up' : 'trending_down'}</span>
                             {Math.abs(Math.round(diff))}%
                           </span>
                         );
@@ -740,9 +743,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     placeholder="Buscar ticket ou telefone..."
                     value={ticketSearch}
                     onChange={(e) => setTicketSearch(e.target.value.toUpperCase())}
-                    className="w-80 h-16 bg-white border border-[#F5F5F5] rounded-[2rem] px-14 font-bold text-base text-[#111111] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] focus:border-primary transition-all outline-none placeholder:text-[#BBBBBB]/60"
+                    className="w-64 h-12 bg-white border border-[#F5F5F5] rounded-[1.5rem] px-12 font-bold text-sm text-[#111111] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] focus:border-primary transition-all outline-none placeholder:text-[#BBBBBB]/60"
                   />
-                  <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-[#BBBBBB]">search</span>
+                  <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-[#BBBBBB] text-xl">search</span>
                 </div>
               </div>
             )}
