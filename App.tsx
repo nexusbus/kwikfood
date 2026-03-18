@@ -9,7 +9,7 @@ import CustomerEntryView from './components/CustomerEntryView';
 import CustomerTrackingView from './components/CustomerTrackingView';
 import AdminAuthView from './components/AdminAuthView';
 import LegalTermsView from './components/LegalTermsView';
-import AboutUsView from './components/AboutUsView.tsx';
+import AboutUsView from './components/AboutUsView';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(() => {
