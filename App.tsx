@@ -9,6 +9,7 @@ import CustomerEntryView from './components/CustomerEntryView';
 import CustomerTrackingView from './components/CustomerTrackingView';
 import AdminAuthView from './components/AdminAuthView';
 import LegalTermsView from './components/LegalTermsView';
+import AboutUsView from './components/AboutUsView';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(() => {
@@ -122,6 +123,7 @@ const App: React.FC = () => {
             setCurrentView('ADMIN_AUTH');
           }}
           onShowTerms={() => setCurrentView('LEGAL_TERMS')}
+          onShowAboutUs={() => setCurrentView('ABOUT_US')}
         />;
       case 'ADMIN_AUTH':
         return <AdminAuthView
@@ -139,6 +141,8 @@ const App: React.FC = () => {
         />;
       case 'LEGAL_TERMS':
         return <LegalTermsView onBack={() => setCurrentView('CUSTOMER_ENTRY')} />;
+      case 'ABOUT_US':
+        return <AboutUsView onBack={() => setCurrentView('CUSTOMER_ENTRY')} />;
     }
   };
 

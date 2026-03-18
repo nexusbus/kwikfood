@@ -85,4 +85,4 @@ export interface SuperAdmin {
   email: string;
 }
 
-export type AppView = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'CUSTOMER_ENTRY' | 'CUSTOMER_TRACKING' | 'ADMIN_AUTH' | 'LEGAL_TERMS';
+export type AppView = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'CUSTOMER_ENTRY' | 'CUSTOMER_TRACKING' | 'ADMIN_AUTH' | 'LEGAL_TERMS' | 'ABOUT_US';

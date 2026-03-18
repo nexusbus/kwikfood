@@ -147,63 +147,44 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     const loadData = async () => {
       setLoadingProducts(true);
       try {
-        let currentOrder = order;
+        // First, handle company and products which don't depend on live order state
+        const { data: initialOrderData } = await supabase.from('orders').select('company_id').eq('id', order.id).single();
+        const effectiveCompanyId = initialOrderData?.company_id || order.companyId;
 
-        // Recovery logic: if no items or default, check localStorage
-        if (!currentOrder.items || currentOrder.items.length === 0) {
-          const saved = localStorage.getItem('kwikfood_active_order');
-          if (saved) {
-            const { id } = JSON.parse(saved);
-            const { data: recoveredOrder } = await supabase.from('orders').select('*').eq('id', id).single();
-            if (recoveredOrder && recoveredOrder.status !== OrderStatus.DELIVERED && recoveredOrder.status !== OrderStatus.CANCELLED) {
-              currentOrder = {
-                ...recoveredOrder,
-                id: recoveredOrder.id,
-                companyId: Number(recoveredOrder.company_id),
-                customerPhone: recoveredOrder.customer_phone,
-                ticketCode: recoveredOrder.ticket_code,
-                ticketNumber: recoveredOrder.ticket_number,
-                queuePosition: recoveredOrder.queue_position,
-                estimatedMinutes: recoveredOrder.estimated_minutes,
-                orderType: recoveredOrder.order_type as OrderType,
-                items: recoveredOrder.items || [],
-                total: recoveredOrder.total || 0,
-                timerAccumulatedSeconds: recoveredOrder.timer_accumulated_seconds || 0,
-                timerLastStartedAt: recoveredOrder.timer_last_started_at,
-                timestamp: recoveredOrder.created_at
-              } as Order;
-              setOrder(currentOrder);
-            }
+        if (effectiveCompanyId) {
+          const { data: companyData } = await supabase.from('companies').select('*').eq('id', effectiveCompanyId).single();
+          if (companyData) {
+            setCompany({
+              ...companyData,
+              logoUrl: companyData.logo_url,
+              marketingEnabled: companyData.marketing_enabled,
+              isActive: companyData.is_active,
+              telegramChatId: companyData.telegram_chat_id,
+              telegramBotToken: companyData.telegram_bot_token
+            } as Company);
           }
+
+          const { data: productData } = await supabase.from('products').select('*').eq('company_id', effectiveCompanyId);
+          if (productData) setProducts(productData.map(p => ({ ...p, imageUrl: p.image_url })));
         }
 
-        const { data: companyData } = await supabase.from('companies').select('*').eq('id', currentOrder.companyId).single();
-        if (companyData) {
-          setCompany({
-            ...companyData,
-            logoUrl: companyData.logo_url,
-            marketingEnabled: companyData.marketing_enabled,
-            isActive: companyData.is_active,
-            telegramChatId: companyData.telegram_chat_id,
-            telegramBotToken: companyData.telegram_bot_token
-          } as Company);
-        }
+        // Now load/sync the order data using functional updates to avoid stale closures
+        const { data: latestOrder } = await supabase.from('orders').select('*').eq('id', order.id).single();
 
-        const { data: productData } = await supabase.from('products').select('*').eq('company_id', currentOrder.companyId);
-        if (productData) setProducts(productData.map(p => ({ ...p, imageUrl: p.image_url })));
-
-        const { data: latestOrder } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('id', order.id)
-          .single();
         if (latestOrder) {
-          setOrder({
-            ...order,
+          const { count: posCount } = await supabase
+            .from('orders')
+            .select('id', { count: 'exact', head: true })
+            .eq('company_id', latestOrder.company_id)
+            .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
+            .lt('created_at', latestOrder.created_at);
+
+          setOrder(prev => ({
+            ...prev,
             status: latestOrder.status as OrderStatus,
             ticketCode: latestOrder.ticket_code,
             ticketNumber: latestOrder.ticket_number,
-            queuePosition: latestOrder.queue_position,
+            queuePosition: (posCount || 0) + 1,
             estimatedMinutes: latestOrder.estimated_minutes,
             timerAccumulatedSeconds: latestOrder.timer_accumulated_seconds || 0,
             timerLastStartedAt: latestOrder.timer_last_started_at,
@@ -214,17 +195,9 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             timestamp: latestOrder.created_at,
             deliveryAddress: latestOrder.delivery_address,
             deliveryCoords: latestOrder.delivery_coords,
-            companyId: latestOrder.company_id // Garantir que temos o ID da empresa para carregar os produtos
-          });
-
-          const { count: posCount } = await supabase
-            .from('orders')
-            .select('id', { count: 'exact', head: true })
-            .eq('company_id', order.companyId)
-            .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
-            .lt('created_at', latestOrder.created_at);
-
-          setOrder(prev => ({ ...prev, queuePosition: (posCount || 0) + 1 }));
+            companyId: latestOrder.company_id,
+            orderType: latestOrder.order_type as OrderType // Crucial: was missing
+          }));
         }
       } catch (err) {
         console.error(err);
@@ -236,39 +209,50 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     loadData();
 
     const channel = supabase
-      .channel(`order-${order.id}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${order.id}` }, (payload) => {
-        const updatedOrder = payload.new as any;
+      .channel(`order-live-${order.id}`) // Distinguir canal
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `id=eq.${order.id}` }, (payload) => {
+        const updatedOrder = (payload.new || payload.old) as any;
         if (!updatedOrder) return;
+
+        // Trigger redundancy load
+        loadData();
+
         const nextStatus = updatedOrder.status as OrderStatus;
+
+        // Force notification logic
         if (nextStatus && nextStatus !== lastStatusRef.current) {
           if ([OrderStatus.PREPARING, OrderStatus.READY, OrderStatus.DELIVERED].includes(nextStatus)) {
             playNotificationSound();
           }
           if (nextStatus === OrderStatus.READY) {
-            const isDelivery = order.orderType === OrderType.DELIVERY;
-            showNotification(isDelivery ? 'Seu pedido está a caminho! 🛵' : 'Seu pedido está pronto! 🍔', {
-              body: isDelivery ? 'Prepare-se para receber a sua refeição.' : 'Pode levantar o seu pedido no balcão.'
+            setOrder(current => {
+              const isDelivery = current.orderType === OrderType.DELIVERY;
+              showNotification(isDelivery ? 'Seu pedido está a caminho! 🛵' : 'Seu pedido está pronto! 🍔', {
+                body: isDelivery ? 'Prepare-se para receber a sua refeição.' : 'Pode levantar o seu pedido no balcão.'
+              });
+              return current;
             });
           }
-
           lastStatusRef.current = nextStatus;
         }
-        setOrder(prev => ({
-          ...prev,
-          status: nextStatus || prev.status,
-          ticketCode: updatedOrder.ticket_code ?? prev.ticketCode,
-          ticketNumber: updatedOrder.ticket_number ?? prev.ticketNumber,
-          timerAccumulatedSeconds: updatedOrder.timer_accumulated_seconds ?? prev.timerAccumulatedSeconds,
-          timerLastStartedAt: updatedOrder.timer_last_started_at ?? prev.timerLastStartedAt,
-          items: updatedOrder.items ?? prev.items,
-          total: updatedOrder.total ?? prev.total
-        }));
-        loadData();
+
+        // Apply fields to state (Instant update)
+        setOrder(prev => {
+          const newStatus = nextStatus || prev.status;
+          const isFinished = [OrderStatus.READY, OrderStatus.DELIVERED, OrderStatus.CANCELLED].includes(newStatus);
+
+          return {
+            ...prev,
+            status: newStatus,
+            timerLastStartedAt: isFinished ? null : (updatedOrder.timer_last_started_at !== undefined ? updatedOrder.timer_last_started_at : prev.timerLastStartedAt),
+            orderType: updatedOrder.order_type !== undefined ? updatedOrder.order_type : prev.orderType,
+            queuePosition: updatedOrder.queue_position !== undefined ? updatedOrder.queue_position : prev.queuePosition
+          };
+        });
       }).subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [order.id, order.companyId]);
+  }, [order.id]);
 
   useEffect(() => {
     setElapsedSeconds(getDynamicElapsed());
