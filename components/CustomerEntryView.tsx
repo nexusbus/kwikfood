@@ -293,16 +293,16 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
           <Logo variant="icon" size={32} />
           <span className="text-xl font-black tracking-tight text-[#111111]">Kwikfood</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onShowAboutUs}
-            className="px-6 py-2 bg-primary rounded-2xl text-[11px] font-black text-white uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95"
+            className="px-3 sm:px-6 py-2 bg-primary rounded-2xl text-[9px] sm:text-[11px] font-black text-white uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-primary/20 active:scale-95"
           >
             Sobre Nós
           </button>
           <button
             onClick={onAdminAccess}
-            className="px-6 py-2 border-2 border-[#E31B44]/10 rounded-2xl text-[11px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 transition-all shadow-sm active:scale-95"
+            className="px-3 sm:px-6 py-2 border-2 border-[#E31B44]/10 rounded-2xl text-[9px] sm:text-[11px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 transition-all shadow-sm active:scale-95"
           >
             ADMIN
           </button>

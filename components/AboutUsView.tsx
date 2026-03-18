@@ -7,7 +7,7 @@ interface AboutUsViewProps {
 
 const AboutUsView: React.FC<AboutUsViewProps> = ({ onBack }) => {
   return (
-    <div className="min-h-screen bg-white font-sans text-[#0F172A] overflow-x-hidden">
+    <div className="min-h-screen bg-white font-sans text-[#0F172A] overflow-x-hidden scroll-smooth">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 glass border-b border-border/10 px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -56,7 +56,7 @@ const AboutUsView: React.FC<AboutUsViewProps> = ({ onBack }) => {
           <div className="relative animate-scale-in">
             <div className="absolute -inset-10 bg-primary/5 rounded-full blur-[100px] -z-10"></div>
             <div className="rounded-[40px] overflow-hidden shadow-2xl border-8 border-white">
-              <img src="/images/hero_burger.png" alt="Delicioso Burger" className="w-full h-auto object-cover" />
+              <img src="/images/luanda_queue_chaos.png" alt="Caos de Fila" className="w-full h-auto object-cover" />
             </div>
             <div className="absolute -bottom-10 -left-10 bg-white p-6 rounded-3xl shadow-xl flex items-center gap-4 border border-slate-50 max-w-[280px]">
               <div className="size-12 bg-primary/10 rounded-2xl flex items-center justify-center">
@@ -76,7 +76,7 @@ const AboutUsView: React.FC<AboutUsViewProps> = ({ onBack }) => {
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
           <div className="order-2 md:order-1">
              <div className="rounded-[40px] overflow-hidden shadow-2xl border-8 border-white">
-              <img src="/images/restaurant_interior.png" alt="Restaurante" className="w-full h-auto object-cover" />
+              <img src="/images/luanda_modern_restaurant.png" alt="Restaurante Moderno" className="w-full h-auto object-cover" />
             </div>
           </div>
           <div className="order-1 md:order-2 space-y-8">
@@ -216,7 +216,7 @@ const AboutUsView: React.FC<AboutUsViewProps> = ({ onBack }) => {
             <a href="#" className="hover:text-primary transition-colors">Sobre Nós</a>
           </div>
           <p className="text-[10px] text-slate-300 font-black uppercase tracking-[0.3em]">
-            © 2024 Kwikfood Angola. All rights reserved.
+            © 2026 Kwikfood Angola. All rights reserved.
           </p>
         </div>
       </footer>
