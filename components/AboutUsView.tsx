@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Logo from './Logo';
 
 interface AboutUsViewProps {
@@ -6,6 +6,31 @@ interface AboutUsViewProps {
 }
 
 const AboutUsView: React.FC<AboutUsViewProps> = ({ onBack }) => {
+  useEffect(() => {
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const href = target.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        e.preventDefault();
+        const id = href.substring(1);
+        const element = document.getElementById(id);
+        if (element) {
+          window.scrollTo({
+            top: element.offsetTop - 80, // Offset for fixed navbar
+            behavior: 'smooth'
+          });
+        }
+      }
+    };
+
+    const anchors = document.querySelectorAll('nav a');
+    anchors.forEach(anchor => anchor.addEventListener('click', handleAnchorClick as any));
+    
+    return () => {
+      anchors.forEach(anchor => anchor.removeEventListener('click', handleAnchorClick as any));
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-white font-sans text-[#0F172A] overflow-x-hidden scroll-smooth">
       {/* Navigation */}
