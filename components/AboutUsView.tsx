@@ -101,7 +101,7 @@ const AboutUsView: React.FC<AboutUsViewProps> = ({ onBack }) => {
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
           <div className="order-2 md:order-1">
              <div className="rounded-[40px] overflow-hidden shadow-2xl border-8 border-white">
-              <img src="/images/luanda_modern_restaurant.png" alt="Restaurante Moderno" className="w-full h-auto object-cover" />
+              <img src="/images/luanda_solucao_premium.jpg" alt="Solução Premium" className="w-full h-auto object-cover" />
             </div>
           </div>
           <div className="order-1 md:order-2 space-y-8">
