@@ -991,7 +991,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   ))}
                 </div>
               )}
-                        : activeTab === 'PRODUTOS' ? (
+            </div>
+          ) : activeTab === 'PRODUTOS' ? (
               <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-20">
                 {/* Quick Stats Bento Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1198,8 +1199,6 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   </div>
                 </section>
               </div>
-            )
-     </div>
             ) : activeTab === 'MARKETING' ? (
               <div className="space-y-12 animate-fade-in">
                 <div className="bg-surface rounded-[3.5rem] p-12 border border-border shell-premium shadow-premium">
