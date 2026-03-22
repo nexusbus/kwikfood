@@ -235,7 +235,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                   </div>
                   <div className="mt-4 flex items-center justify-between">
                     <span className="text-xl font-black text-secondary">
-                      <span className="text-[10px] text-zinc-300 mr-1">R$</span>
+                      <span className="text-[10px] text-zinc-300 mr-1">Kz</span>
                       {product.price.toLocaleString()}
                     </span>
                     <div className="size-10 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-primary group-hover:text-white transition-all transform group-hover:rotate-12">

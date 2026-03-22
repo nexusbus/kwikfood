@@ -1228,7 +1228,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                             </div>
                           </div>
                           <div className="mt-4 flex items-center justify-between">
-                            <span className="text-xl font-black text-secondary">R$ {p.price.toLocaleString()}</span>
+                            <span className="text-xl font-black text-secondary">Kz {p.price.toLocaleString()}</span>
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] font-bold text-zinc-400 uppercase">Status</span>
                               <div 
@@ -1290,7 +1290,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                                   <span className="text-sm font-medium">{item.name}</span>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                  <span className="text-sm font-bold">+ R$ {item.price.toLocaleString()}</span>
+                                  <span className="text-sm font-bold">+ Kz {item.price.toLocaleString()}</span>
                                   <button className="text-zinc-400 hover:text-red-500"><span className="material-symbols-outlined text-lg">delete</span></button>
                                 </div>
                               </div>
