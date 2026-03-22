@@ -467,6 +467,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   };
 
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isManageCategories, setIsManageCategories] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('🍔');
 
@@ -597,6 +598,32 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       if (error) throw error;
     } catch (err) {
       alert('Erro ao excluir produto.');
+    }
+  };
+
+  const handleDeleteCategory = async (categoryName: string) => {
+    const category = categories.find(c => c.name === categoryName);
+    if (!category) return;
+
+    const password = prompt(`Para excluir a categoria "${categoryName}", insira a senha do parceiro:`);
+    if (password !== company.password) {
+      alert('Senha incorreta.');
+      return;
+    }
+
+    if (!confirm('Tem certeza? Isso pode afetar a exibição dos produtos vinculados a esta categoria.')) return;
+    
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('categories').delete().eq('id', category.id);
+      if (error) throw error;
+      alert('Categoria excluída com sucesso!');
+      if (productFilter === categoryName) setProductFilter('Todos');
+    } catch (err: any) {
+      console.error('Error deleting category:', err);
+      alert(`Erro ao excluir categoria: ${err.message}`);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -1151,21 +1178,41 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   </div>
                 </div>
 
-                {/* Categories Pill Navigation */}
                 <section className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-extrabold tracking-tight">Categorias</h3>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-xl font-extrabold tracking-tight">Categorias</h3>
+                      <button 
+                        onClick={() => setIsManageCategories(!isManageCategories)}
+                        className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border transition-all ${isManageCategories ? 'bg-secondary text-white border-secondary' : 'text-zinc-400 border-zinc-200 hover:border-primary hover:text-primary'}`}
+                      >
+                        {isManageCategories ? 'Concluir' : 'Gerir'}
+                      </button>
+                    </div>
                     <button className="text-primary font-bold text-sm hover:underline">Ver todas</button>
                   </div>
                   <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                     {categoryOptions.map(cat => (
-                      <button
-                        key={cat}
-                        onClick={() => setProductFilter(cat)}
-                        className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${productFilter === cat ? 'bg-secondary text-white shadow-md' : 'bg-white text-zinc-600 border border-zinc-200 hover:border-primary hover:text-primary'}`}
-                      >
-                        {cat}
-                      </button>
+                      <div key={cat} className="relative flex-shrink-0">
+                        <button
+                          onClick={() => setProductFilter(cat)}
+                          className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${productFilter === cat ? 'bg-secondary text-white shadow-md' : 'bg-white text-zinc-600 border border-zinc-200 hover:border-primary hover:text-primary'}`}
+                        >
+                          {cat}
+                        </button>
+                        {isManageCategories && cat !== 'Todos' && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCategory(cat);
+                            }}
+                            className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-10"
+                            title="Excluir categoria"
+                          >
+                            <span className="material-symbols-outlined text-xs">close</span>
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </section>

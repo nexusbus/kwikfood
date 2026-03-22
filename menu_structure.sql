@@ -60,6 +60,13 @@ CREATE POLICY "Allow any accompaniment_items" ON public.accompaniment_items FOR 
 DROP POLICY IF EXISTS "Allow any product_to_accompaniment_groups" ON public.product_to_accompaniment_groups;
 CREATE POLICY "Allow any product_to_accompaniment_groups" ON public.product_to_accompaniment_groups FOR ALL USING (true) WITH CHECK (true);
 
+-- 6.5 Garante Identidade Completa (Necessário para DELETE no Realtime funcionar com filtros)
+ALTER TABLE public.categories REPLICA IDENTITY FULL;
+ALTER TABLE public.products REPLICA IDENTITY FULL;
+ALTER TABLE public.accompaniment_groups REPLICA IDENTITY FULL;
+ALTER TABLE public.accompaniment_items REPLICA IDENTITY FULL;
+ALTER TABLE public.product_to_accompaniment_groups REPLICA IDENTITY FULL;
+
 -- 6.1 Políticas para Produtos (Garantir que o parceiro possa gerir)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all for products" ON public.products;
