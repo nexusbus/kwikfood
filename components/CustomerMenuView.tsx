@@ -15,6 +15,11 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isCustomizing, setIsCustomizing] = useState(false);
+  const [customizationLoading, setCustomizationLoading] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedExtras, setSelectedExtras] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     const loadMenu = async () => {
@@ -60,6 +65,62 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
   });
 
   const categoryOptions = ['Todos', ...Array.from(new Set(products.map(p => p.category)))];
+
+  const handleOpenCustomization = async (product: Product) => {
+    setSelectedProduct(product);
+    setIsCustomizing(true);
+    setCustomizationLoading(true);
+    setQuantity(1);
+    setSelectedExtras({});
+
+    try {
+      // Fetch Accompaniment Groups for this specific product
+      const { data: groupsData } = await supabase
+        .from('product_to_accompaniment_groups')
+        .select(`
+          group_id,
+          accompaniment_groups (
+            id,
+            name,
+            isRequired,
+            minSelection,
+            maxSelection,
+            accompaniment_items (
+              id,
+              name,
+              price,
+              isActive
+            )
+          )
+        `)
+        .eq('product_id', product.id);
+
+      if (groupsData) {
+        const enrichedGroups = groupsData.map((g: any) => ({
+          ...g.accompaniment_groups,
+          items: g.accompaniment_groups.accompaniment_items.filter((i: any) => i.isActive)
+        }));
+        setSelectedProduct({ ...product, accompanimentGroups: enrichedGroups });
+      }
+    } catch (err) {
+      console.error('Error loading accompaniments:', err);
+    } finally {
+      setCustomizationLoading(false);
+    }
+  };
+
+  const calculateTotal = () => {
+    if (!selectedProduct) return 0;
+    let total = selectedProduct.price;
+    
+    // Add extras
+    Object.values(selectedExtras).flat().forEach(extraId => {
+      const item = selectedProduct.accompanimentGroups?.flatMap(g => g.items || []).find(i => i.id === extraId);
+      if (item) total += item.price;
+    });
+
+    return total * quantity;
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-primary/20">
@@ -128,7 +189,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
             {filteredProducts.map(product => (
               <button
                 key={product.id}
-                onClick={() => onSelectItem?.(product)}
+                onClick={() => handleOpenCustomization(product)}
                 className="group bg-white p-4 rounded-[2.5rem] border border-zinc-100 shadow-sm hover:shadow-xl hover:shadow-zinc-200/50 transition-all flex flex-col sm:flex-row gap-5 text-left"
               >
                 <div className="size-full sm:size-32 rounded-[2rem] overflow-hidden bg-zinc-50 flex-shrink-0">
@@ -170,6 +231,133 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
         <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.4em]">KwikFood Angola • Experiência Premium</p>
         <div className="size-2 bg-primary/20 rounded-full mx-auto"></div>
       </footer>
+
+      {/* Product Customization Modal */}
+      {isCustomizing && selectedProduct && (
+        <div className="fixed inset-0 z-[100] bg-secondary/90 backdrop-blur-3xl flex items-end sm:items-center justify-center p-0 sm:p-6 animate-in fade-in duration-500">
+          <div className="bg-white w-full max-w-2xl h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[3rem] sm:rounded-[3.5rem] overflow-hidden flex flex-col relative shadow-premium animate-in slide-in-from-bottom-20 duration-500">
+            {/* Header / Image Area */}
+            <div className="relative h-64 sm:h-80 w-full flex-shrink-0">
+              <img src={selectedProduct.imageUrl} className="size-full object-cover" alt={selectedProduct.name} />
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+              <button 
+                onClick={() => setIsCustomizing(false)}
+                className="absolute top-6 right-6 size-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white hover:bg-white hover:text-secondary transition-all"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto px-8 sm:px-12 pb-12 custom-scrollbar">
+              <div className="space-y-8 mt-2">
+                <header>
+                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">{selectedProduct.category}</span>
+                  <div className="flex justify-between items-start gap-4 mt-2">
+                    <h2 className="text-3xl font-black text-secondary tracking-tight">{selectedProduct.name}</h2>
+                    <span className="text-2xl font-black text-primary">{(selectedProduct.price).toLocaleString()} Kz</span>
+                  </div>
+                  <p className="text-zinc-500 font-medium text-lg mt-4 italic leading-relaxed">{selectedProduct.details}</p>
+                </header>
+
+                {/* Accompaniments Sections */}
+                {customizationLoading ? (
+                  <div className="py-10 flex flex-col items-center gap-4">
+                    <div className="size-8 border-4 border-primary/10 border-t-primary rounded-full animate-spin"></div>
+                    <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Carregando opções...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-10">
+                    {selectedProduct.accompanimentGroups?.map(group => (
+                      <section key={group.id} className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-sm font-black text-secondary tracking-widest uppercase">{group.name}</h4>
+                            <p className="text-zinc-400 text-[10px] font-bold mt-1">
+                              {group.isRequired ? `Obrigatório • Selecione pelo menos ${group.minSelection}` : `Opcional • Escolha até ${group.maxSelection}`}
+                            </p>
+                          </div>
+                          {group.isRequired && (
+                            <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[9px] font-black uppercase tracking-widest">Obrigatório</span>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          {group.items?.map(item => {
+                            const isSelected = selectedExtras[group.id]?.includes(item.id);
+                            return (
+                              <button
+                                key={item.id}
+                                onClick={() => {
+                                  setSelectedExtras(prev => {
+                                    const current = prev[group.id] || [];
+                                    if (isSelected) {
+                                      return { ...prev, [group.id]: current.filter(id => id !== item.id) };
+                                    } else {
+                                      // Check max selection
+                                      if (group.maxSelection === 1) {
+                                        return { ...prev, [group.id]: [item.id] };
+                                      }
+                                      if (current.length < group.maxSelection) {
+                                        return { ...prev, [group.id]: [...current, item.id] };
+                                      }
+                                      return prev;
+                                    }
+                                  });
+                                }}
+                                className={`w-full p-5 rounded-2xl border-2 flex items-center justify-between transition-all ${isSelected ? 'border-primary bg-rose-50' : 'border-zinc-50 bg-zinc-50 hover:border-zinc-200'}`}
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className={`size-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-primary bg-primary' : 'border-zinc-300 bg-white'}`}>
+                                    {isSelected && <span className="material-symbols-outlined text-white text-[12px] font-black">check</span>}
+                                  </div>
+                                  <span className={`font-bold text-sm ${isSelected ? 'text-primary' : 'text-zinc-700'}`}>{item.name}</span>
+                                </div>
+                                {item.price > 0 && (
+                                  <span className={`text-xs font-black ${isSelected ? 'text-primary' : 'text-zinc-400'}`}>+ {item.price.toLocaleString()} Kz</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Bar */}
+            <div className="p-8 sm:p-12 bg-white border-t border-zinc-100 flex flex-col sm:flex-row items-center gap-6">
+              <div className="flex items-center bg-zinc-50 p-2 rounded-2xl gap-4">
+                <button 
+                  onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+                  className="size-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-zinc-400 hover:text-primary transition-all active:scale-90"
+                >
+                  <span className="material-symbols-outlined">remove</span>
+                </button>
+                <span className="w-10 text-center font-black text-xl text-secondary">{quantity}</span>
+                <button 
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="size-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-zinc-400 hover:text-primary transition-all active:scale-90"
+                >
+                  <span className="material-symbols-outlined">add</span>
+                </button>
+              </div>
+              <button 
+                onClick={() => {
+                  // TODO: Add to cart logic integration
+                  alert(`Adicionado ao pedido: ${quantity}x ${selectedProduct.name}`);
+                  setIsCustomizing(false);
+                }}
+                className="flex-1 w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] flex items-center justify-between px-8 hover:bg-secondary transition-all shadow-xl shadow-rose-200"
+              >
+                <span>Adicionar ao Pedido</span>
+                <span>{calculateTotal().toLocaleString()} Kz</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

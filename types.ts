@@ -84,6 +84,7 @@ export interface Company {
 export interface CartItem extends Product {
   observation?: string;
   quantity: number;
+  selectedAccompaniments?: AccompanimentItem[];
 }
 
 export interface Order {
