@@ -441,7 +441,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         category: pCategory,
         category_id: selectedCat?.id,
         status: pStatus,
-        imageUrl: pImageUrl,
+        image_url: pImageUrl,
         details: pDetails
       };
 

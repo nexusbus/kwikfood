@@ -46,7 +46,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
         name: p.name,
         price: p.price,
         category: p.category,
-        imageUrl: p.imageUrl,
+        imageUrl: p.image_url,
         details: p.details,
         status: p.status as ProductStatus
       })));
