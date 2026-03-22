@@ -75,31 +75,38 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
 
     try {
       // Fetch Accompaniment Groups for this specific product
-      const { data: groupsData } = await supabase
+      const { data: groupsData, error: groupsError } = await supabase
         .from('product_to_accompaniment_groups')
         .select(`
           group_id,
           accompaniment_groups (
             id,
             name,
-            isRequired,
-            minSelection,
-            maxSelection,
+            isRequired:is_required,
+            minSelection:min_selection,
+            maxSelection:max_selection,
             accompaniment_items (
               id,
               name,
               price,
-              isActive
+              isActive:is_active
             )
           )
         `)
         .eq('product_id', product.id);
 
+      if (groupsError) throw groupsError;
+
       if (groupsData) {
-        const enrichedGroups = groupsData.map((g: any) => ({
-          ...g.accompaniment_groups,
-          items: g.accompaniment_groups.accompaniment_items.filter((i: any) => i.isActive)
-        }));
+        const enrichedGroups = groupsData.map((g: any) => {
+          const group = g.accompaniment_groups;
+          if (!group) return null;
+          return {
+            ...group,
+            items: (group.accompaniment_items || []).filter((i: any) => i.isActive)
+          };
+        }).filter(Boolean);
+        
         setSelectedProduct({ ...product, accompanimentGroups: enrichedGroups });
       }
     } catch (err) {
