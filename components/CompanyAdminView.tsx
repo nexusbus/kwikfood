@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Company, Product, ProductStatus, Order, OrderStatus, OrderType } from '../types';
+import { Company, Product, ProductStatus, Order, OrderStatus, OrderType, Category, AccompanimentGroup, AccompanimentItem } from '../types';
 import { fetchProducts } from '../constants';
 import { supabase } from '../src/lib/supabase';
 import { sendSMS } from '../src/services/smsService';
@@ -59,6 +59,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [pStatus, setPStatus] = useState<ProductStatus>(ProductStatus.ACTIVE);
   const [pImageUrl, setPImageUrl] = useState('');
   const [pDetails, setPDetails] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [accompanimentGroups, setAccompanimentGroups] = useState<AccompanimentGroup[]>([]);
   const [saving, setSaving] = useState(false);
 
   // History filters
@@ -178,6 +180,27 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         .from('sms_logs')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', company.id);
+
+      const { data: catData } = await supabase.from('categories').select('*').eq('company_id', company.id).order('sort_order', { ascending: true });
+      if (catData) setCategories(catData.map(c => ({ ...c, companyId: c.company_id, sortOrder: c.sort_order })));
+
+      const { data: groupsData } = await supabase
+        .from('accompaniment_groups')
+        .select('*, accompaniment_items(*)')
+        .eq('company_id', company.id);
+      
+      if (groupsData) setAccompanimentGroups(groupsData.map(g => ({
+        ...g,
+        companyId: g.company_id,
+        isRequired: g.is_required,
+        minSelection: g.min_selection,
+        maxSelection: g.max_selection,
+        items: g.accompaniment_items.map((i: any) => ({
+          ...i,
+          groupId: i.group_id,
+          isActive: i.is_active
+        }))
+      })));
 
       setSmsCount(sCount || 0);
 
@@ -381,20 +404,58 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pPrice === '') return;
     setSaving(true);
     try {
-      const productData = { name: pName, price: Number(pPrice), category: pCategory, status: pStatus, image_url: pImageUrl, details: pDetails, company_id: company.id };
-      if (modalMode === 'add') {
-        const { error } = await supabase.from('products').insert([productData]);
-        if (error) throw error;
-      } else if (selectedProduct) {
-        const { error } = await supabase.from('products').update(productData).eq('id', selectedProduct.id);
-        if (error) throw error;
+      const selectedCat = categories.find(c => c.name === pCategory);
+      // Ensure numeric price
+      const priceVal = typeof pPrice === 'string' ? parseFloat(pPrice.replace(',', '.')) : pPrice;
+      
+      const productData = {
+        company_id: company.id,
+        name: pName,
+        price: priceVal,
+        category: pCategory,
+        category_id: selectedCat?.id,
+        status: pStatus,
+        imageUrl: pImageUrl,
+        details: pDetails
+      };
+
+      if (modalMode === 'edit' && selectedProduct) {
+        await supabase.from('products').update(productData).eq('id', selectedProduct.id);
+      } else {
+        await supabase.from('products').insert([productData]);
       }
       setIsModalOpen(false);
-    } catch (err) {
+      loadData();
+    } catch (error) {
+      console.error('Error saving product:', error);
       alert('Erro ao guardar produto.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatIcon, setNewCatIcon] = useState('🍔');
+
+  const handleSaveCategory = async () => {
+    if (!newCatName) return;
+    setSaving(true);
+    try {
+      await supabase.from('categories').insert([{
+        company_id: company.id,
+        name: newCatName,
+        icon: newCatIcon,
+        sort_order: categories.length
+      }]);
+      setIsCategoryModalOpen(false);
+      setNewCatName('');
+      loadData();
+    } catch (error) {
+      console.error('Error saving category:', error);
+      alert('Erro ao guardar categoria.'); // Added alert for user feedback
     } finally {
       setSaving(false);
     }
@@ -457,7 +518,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     setIsModalOpen(true);
   };
 
-  const categories = ['Todos', 'Hambúrgueres', 'Comida', 'Bebidas', 'Acompanhamentos'];
+  const categoryOptions = ['Todos', ...categories.map(c => c.name)];
   const filteredProducts = productFilter === 'Todos' ? products : products.filter(p => p.category === productFilter);
 
   const filteredOrders = orders.filter(o => {
@@ -930,89 +991,215 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   ))}
                 </div>
               )}
-            </div>
-          )
-            : activeTab === 'PRODUTOS' ? (
-              <div className="space-y-12 animate-fade-in pb-20">
-                {/* Cabeçalho da Seção de Produtos */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-8 bg-white p-8 sm:p-12 rounded-[3.5rem] border border-border/40 shadow-sm relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-2 h-full bg-primary"></div>
-                  <div>
-                    <h3 className="text-3xl font-black text-secondary tracking-tighter">Gestão de Cardápio</h3>
-                    <p className="text-text-muted text-sm font-medium mt-1">Organize os seus produtos e categorias com um clique.</p>
+                        : activeTab === 'PRODUTOS' ? (
+              <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-20">
+                {/* Quick Stats Bento Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="col-span-1 md:col-span-2 bg-primary text-white p-6 rounded-xl shadow-lg shadow-rose-200 flex flex-col justify-between relative overflow-hidden">
+                    <div className="relative z-10">
+                      <p className="text-rose-100 text-sm font-medium">Categorias Ativas</p>
+                      <h3 className="text-4xl font-black mt-1">{categories.length}</h3>
+                    </div>
+                    <div className="mt-4 relative z-10">
+                      <button onClick={() => setIsCategoryModalOpen(true)} className="bg-white/20 hover:bg-white/30 transition-colors px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">add_circle</span>
+                        Nova Categoria
+                      </button>
+                    </div>
+                    <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl opacity-10">category</span>
                   </div>
-                  <button
-                    onClick={() => openModal('add')}
-                    className="w-full sm:w-auto h-20 px-10 bg-primary text-white rounded-[1.8rem] font-black text-xs uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:bg-secondary transition-all flex items-center justify-center gap-4 active:scale-95 group/add"
-                  >
-                    <span className="material-symbols-outlined text-2xl group-hover/add:rotate-90 transition-transform">add_circle</span>
-                    NOVO PRODUTO
-                  </button>
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-100 flex flex-col justify-between">
+                    <div>
+                      <p className="text-zinc-500 text-sm font-medium">Total de Produtos</p>
+                      <h3 className="text-3xl font-bold mt-1 text-zinc-900">{products.length}</h3>
+                    </div>
+                    <div className="text-emerald-600 text-sm font-bold flex items-center gap-1 mt-2">
+                      <span className="material-symbols-outlined text-xs">trending_up</span> +{products.filter(p => new Date(p.id).getTime() > Date.now() - 30*24*60*60*1000).length} este mês
+                    </div>
+                  </div>
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-100 flex flex-col justify-between">
+                    <div>
+                      <p className="text-zinc-500 text-sm font-medium">Grupos de Acompanhamentos</p>
+                      <h3 className="text-3xl font-bold mt-1 text-zinc-900">{accompanimentGroups.length}</h3>
+                    </div>
+                    <div className="text-zinc-400 text-sm font-medium mt-2">Vinculados a {products.filter(p => p.accompanimentGroups?.length).length} itens</div>
+                  </div>
                 </div>
 
-                {/* Filtros de Categoria */}
-                <div className="flex items-center gap-4 overflow-x-auto pb-4 custom-scrollbar no-scrollbar scroll-smooth">
-                  {categories.map(cat => (
-                    <button
-                      key={cat} onClick={() => setProductFilter(cat)}
-                      className={`px-10 py-5 rounded-3xl font-black text-[10px] uppercase tracking-widest transition-all flex-shrink-0 border-2 ${productFilter === cat ? 'bg-secondary border-secondary text-white shadow-premium scale-105' : 'bg-white border-slate-100 text-slate-400 hover:border-primary/20 hover:text-secondary'}`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
+                {/* Categories Pill Navigation */}
+                <section className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-extrabold tracking-tight">Categorias</h3>
+                    <button className="text-primary font-bold text-sm hover:underline">Ver todas</button>
+                  </div>
+                  <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                    {categoryOptions.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setProductFilter(cat)}
+                        className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${productFilter === cat ? 'bg-secondary text-white shadow-md' : 'bg-white text-zinc-600 border border-zinc-200 hover:border-primary hover:text-primary'}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </section>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-10">
-                  {filteredProducts.map(p => (
-                    <div key={p.id} className="bg-surface rounded-[3.5rem] overflow-hidden border border-border shadow-md hover:shadow-premium transition-all duration-700 group flex flex-col animate-scale-in">
-                      <div className="relative h-72 bg-background overflow-hidden">
-                        <img src={p.imageUrl} alt={p.name} className="size-full object-cover group-hover:scale-110 transition-all duration-1000" />
-                        <div className="absolute top-8 right-8">
-                          <span className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-premium ${p.status === ProductStatus.ACTIVE ? 'bg-green-500' : 'bg-red-500'}`}>
-                            {p.status}
-                          </span>
+                {/* Products Grid Control */}
+                <section className="space-y-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="relative flex-1 max-w-md">
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">search</span>
+                      <input 
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-zinc-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none" 
+                        placeholder="Buscar produto..." 
+                        type="text"
+                        onChange={(e) => setTicketSearch(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={() => {/* TODO: Vincular */}} className="flex-1 md:flex-none px-5 py-2.5 border-2 border-primary text-primary rounded-xl font-bold hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-xl">link</span>
+                        Vincular Acompanhamento
+                      </button>
+                      <button onClick={() => openModal('add')} className="flex-1 md:flex-none px-5 py-2.5 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:shadow-rose-200 transition-all flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-xl">add</span>
+                        Adicionar Produto
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {filteredProducts.filter(p => p.name.toLowerCase().includes(ticketSearch.toLowerCase())).map(p => (
+                      <div key={p.id} className="group bg-white p-4 rounded-2xl border border-zinc-100 hover:border-rose-100 hover:shadow-xl hover:shadow-zinc-200/50 transition-all flex flex-col sm:flex-row gap-4">
+                        <div className="w-full sm:w-32 h-32 rounded-xl overflow-hidden bg-zinc-100 flex-shrink-0 relative">
+                          <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={p.imageUrl} alt={p.name} />
+                          <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-zinc-800 uppercase">{p.category}</div>
                         </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-secondary/40 to-transparent"></div>
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-start">
+                              <h4 className="text-lg font-bold text-zinc-900 group-hover:text-primary transition-colors">{p.name}</h4>
+                              <div className="flex gap-1">
+                                <button onClick={() => openModal('edit', p)} className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors">
+                                  <span className="material-symbols-outlined text-zinc-400 text-lg">edit</span>
+                                </button>
+                                <button onClick={() => handleDeleteProduct(p.id)} className="p-1.5 hover:bg-zinc-100 rounded-lg transition-colors">
+                                  <span className="material-symbols-outlined text-zinc-400 text-lg">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-zinc-500 text-xs mt-1 line-clamp-2">{p.details}</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {p.accompanimentGroups?.length ? (
+                                <span className="px-2 py-1 bg-zinc-100 rounded-md text-[10px] font-bold text-zinc-600 flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[12px]">check_circle</span> {p.accompanimentGroups.length} Grupos
+                                </span>
+                              ) : (
+                                <button className="px-2 py-1 bg-primary/10 rounded-md text-[10px] font-bold text-primary flex items-center gap-1 hover:bg-primary/20">
+                                  <span className="material-symbols-outlined text-[12px]">add</span> Vincular Extras
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="mt-4 flex items-center justify-between">
+                            <span className="text-xl font-black text-secondary">R$ {p.price.toLocaleString()}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold text-zinc-400 uppercase">Status</span>
+                              <div 
+                                onClick={async () => {
+                                  const newStatus = p.status === ProductStatus.ACTIVE ? ProductStatus.OUT_OF_STOCK : ProductStatus.ACTIVE;
+                                  await supabase.from('products').update({ status: newStatus }).eq('id', p.id);
+                                  loadData();
+                                }}
+                                className={`w-10 h-5 rounded-full relative flex items-center px-1 cursor-pointer transition-colors ${p.status === ProductStatus.ACTIVE ? 'bg-emerald-100' : 'bg-zinc-200'}`}
+                              >
+                                <div className={`w-3 h-3 rounded-full transition-all ${p.status === ProductStatus.ACTIVE ? 'bg-emerald-500 translate-x-5' : 'bg-zinc-400 translate-x-0'}`}></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="p-10 flex flex-col flex-1 justify-between gap-10 bg-white">
+                    ))}
+                  </div>
+                </section>
+
+                {/* Manage Accompaniments Section */}
+                <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6">
+                  <div className="lg:col-span-2 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-extrabold tracking-tight">Gerenciar Acompanhamentos</h3>
+                      <button className="text-primary font-bold text-sm flex items-center gap-1">
+                        <span className="material-symbols-outlined text-lg">add_box</span> Novo Grupo
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      {accompanimentGroups.map(group => (
+                        <div key={group.id} className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+                          <div className="p-4 bg-zinc-50 flex items-center justify-between border-b border-zinc-100">
+                            <div className="flex items-center gap-3">
+                              <span className="material-symbols-outlined text-zinc-400">reorder</span>
+                              <h5 className="font-bold text-sm">{group.name}</h5>
+                              {group.isRequired && <span className="text-[10px] bg-white border px-2 py-0.5 rounded text-zinc-500 font-medium">Obrigatório</span>}
+                            </div>
+                            <button className="text-zinc-400 hover:text-primary"><span className="material-symbols-outlined">settings</span></button>
+                          </div>
+                          <div className="p-4 space-y-3">
+                            {group.items?.map(item => (
+                              <div key={item.id} className="flex items-center justify-between p-3 bg-zinc-50/50 rounded-xl">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-2 h-2 rounded-full ${item.isActive ? 'bg-primary' : 'bg-zinc-300'}`}></div>
+                                  <span className="text-sm font-medium">{item.name}</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <span className="text-sm font-bold">+ R$ {item.price.toLocaleString()}</span>
+                                  <button className="text-zinc-400 hover:text-red-500"><span className="material-symbols-outlined text-lg">delete</span></button>
+                                </div>
+                              </div>
+                            ))}
+                            <button className="w-full py-3 border-2 border-dashed border-zinc-200 rounded-xl text-zinc-400 text-sm font-bold hover:border-primary hover:text-primary transition-all">
+                              + Adicionar Item neste Grupo
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Quick Link Side Panel */}
+                  <div className="lg:col-span-1">
+                    <div className="bg-secondary text-white p-6 rounded-3xl sticky top-24 shadow-xl">
+                      <h4 className="text-lg font-extrabold mb-2 text-white">Vincular Rápido</h4>
+                      <p className="text-zinc-400 text-sm mb-6">Conecte grupos de acompanhamentos a vários produtos de uma só vez.</p>
+                      <div className="space-y-6">
                         <div>
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em] bg-primary/5 px-4 py-1.5 rounded-full">{p.category}</span>
-                            <div className="h-[1px] flex-1 bg-slate-100"></div>
-                          </div>
-                          <h4 className="font-bold text-xl text-secondary tracking-tight mb-2 group-hover:text-primary transition-colors">{p.name}</h4>
-                          {p.details && <p className="text-[10px] font-medium text-slate-400 leading-relaxed mb-6 line-clamp-2 italic opacity-80">{p.details}</p>}
-
-                          <div className="flex items-center justify-between mt-4">
-                            <p className="text-secondary font-bold text-2xl tracking-tighter">
-                              <span className="text-[10px] text-slate-300 mr-2 uppercase tracking-widest font-black">Kz</span>
-                              {p.price.toLocaleString()}
-                            </p>
+                          <label className="text-[10px] font-black uppercase text-zinc-500 mb-2 block">Selecionar Grupo</label>
+                          <select className="w-full bg-zinc-800 border-none rounded-xl text-sm py-3 px-4 focus:ring-1 focus:ring-primary text-white">
+                            <option>Selecione um grupo...</option>
+                            {accompanimentGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black uppercase text-zinc-500 mb-2 block">Aplicar aos Produtos</label>
+                          <div className="bg-zinc-800 rounded-xl p-3 max-h-64 overflow-y-auto space-y-1 custom-scrollbar">
+                            {products.map(p => (
+                              <label key={p.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+                                <input className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary" type="checkbox" />
+                                <span className="text-xs font-medium text-zinc-300">{p.name}</span>
+                              </label>
+                            ))}
                           </div>
                         </div>
-
-                        <div className="flex gap-4">
-                          <button
-                            onClick={() => openModal('edit', p)}
-                            className="flex-1 h-16 bg-slate-50 hover:bg-secondary hover:text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 group/edit"
-                          >
-                            <span className="material-symbols-outlined text-2xl group-hover/edit:rotate-12 transition-transform">edit_square</span>
-                            EDITAR
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Excluir ${p.name}?`)) handleDeleteProduct(p.id);
-                            }}
-                            className="size-16 flex items-center justify-center bg-red-50 text-red-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-95"
-                          >
-                            <span className="material-symbols-outlined text-2xl">delete_sweep</span>
-                          </button>
-                        </div>
+                        <button className="w-full py-4 bg-primary text-white rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-rose-900/20">
+                          Confirmar Vinculação
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                </section>
               </div>
+            )
+     </div>
             ) : activeTab === 'MARKETING' ? (
               <div className="space-y-12 animate-fade-in">
                 <div className="bg-surface rounded-[3.5rem] p-12 border border-border shell-premium shadow-premium">
@@ -1405,8 +1592,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                         onChange={e => setPCategory(e.target.value)}
                         className="w-full h-20 bg-[#F8F9FA] border-2 border-transparent rounded-[1.8rem] pl-16 pr-12 font-black text-[11px] uppercase tracking-widest text-secondary focus:border-primary focus:bg-white transition-all outline-none appearance-none cursor-pointer"
                       >
-                        {categories.filter(c => c !== 'Todos').map(c => (
-                          <option key={c}>{c}</option>
+                        {categoryOptions.filter(c => c !== 'Todos').map(c => (
+                          <option key={c} value={c}>{c}</option>
                         ))}
                       </select>
                       <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
@@ -1581,6 +1768,55 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           </div>
         )
       }
+
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="w-full max-w-md bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
+            <div className="text-center mb-10">
+              <h3 className="text-2xl font-black tracking-tight text-secondary">Nova Categoria</h3>
+              <p className="text-zinc-500 text-sm font-medium mt-1">Crie uma nova seção para o seu cardápio.</p>
+            </div>
+            <div className="space-y-6">
+              <div>
+                <label className="text-[10px] font-black uppercase text-zinc-400 mb-2 block tracking-widest">Nome da Categoria</label>
+                <input 
+                  type="text" 
+                  value={newCatName} 
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  placeholder="Ex: Pizzas, Bebidas..."
+                  className="w-full h-16 bg-zinc-50 border-none rounded-2xl px-6 font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-zinc-400 mb-2 block tracking-widest">Emoji ou Ícone</label>
+                <input 
+                  type="text" 
+                  value={newCatIcon} 
+                  onChange={(e) => setNewCatIcon(e.target.value)}
+                  placeholder="Ex: 🍕"
+                  className="w-full h-16 bg-zinc-50 border-none rounded-2xl px-6 font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all text-center text-2xl"
+                />
+              </div>
+              <div className="flex flex-col gap-3 pt-4">
+                <button 
+                  onClick={handleSaveCategory}
+                  disabled={saving || !newCatName}
+                  className="w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-secondary transition-all disabled:opacity-50"
+                >
+                  {saving ? 'CRIANDO...' : 'CRIAR CATEGORIA'}
+                </button>
+                <button 
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="w-full py-4 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] hover:text-secondary transition-colors"
+                >
+                  CANCELAR
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {
         showMarketingAuthModal && (

@@ -11,9 +11,10 @@ interface CustomerEntryViewProps {
   onAdminAccess: () => void;
   onShowTerms: () => void;
   onShowAboutUs: () => void;
+  onShowMenu: () => void;
 }
 
-const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoinQueue, onAdminAccess, onShowTerms, onShowAboutUs }) => {
+const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoinQueue, onAdminAccess, onShowTerms, onShowAboutUs, onShowMenu }) => {
   const [code, setCode] = useState(['', '', '', '']);
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -350,6 +351,13 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               <span className="size-1.5 bg-green-500 rounded-full animate-pulse"></span>
               <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em]">Estabelecimento Conectado</span>
             </div>
+            <button 
+              onClick={onShowMenu}
+              className="mt-6 px-8 py-3 bg-white border-2 border-primary/20 text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/5 transition-all flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">restaurant_menu</span>
+              Ver Cardápio Completo
+            </button>
           </div>
         )}
 

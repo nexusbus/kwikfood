@@ -20,14 +20,42 @@ export enum ProductStatus {
   OUT_OF_STOCK = 'OUT_OF_STOCK'
 }
 
+export interface Category {
+  id: string;
+  companyId: number;
+  name: string;
+  icon?: string;
+  sortOrder: number;
+}
+
+export interface AccompanimentItem {
+  id: string;
+  groupId: string;
+  name: string;
+  price: number;
+  isActive: boolean;
+}
+
+export interface AccompanimentGroup {
+  id: string;
+  companyId: number;
+  name: string;
+  isRequired: boolean;
+  minSelection: number;
+  maxSelection: number;
+  items?: AccompanimentItem[];
+}
+
 export interface Product {
   id: string;
   name: string;
   price: number;
-  category: string;
+  category: string; // Keep for compatibility
+  category_id?: string; // New relational category
   status: ProductStatus;
   imageUrl: string;
   details?: string;
+  accompanimentGroups?: AccompanimentGroup[];
 }
 
 export interface Company {
@@ -85,4 +113,13 @@ export interface SuperAdmin {
   email: string;
 }
 
-export type AppView = 'SUPER_ADMIN' | 'COMPANY_ADMIN' | 'CUSTOMER_ENTRY' | 'CUSTOMER_TRACKING' | 'ADMIN_AUTH' | 'LEGAL_TERMS' | 'ABOUT_US';
+export enum AppView {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  COMPANY_ADMIN = 'COMPANY_ADMIN',
+  CUSTOMER_ENTRY = 'CUSTOMER_ENTRY',
+  CUSTOMER_TRACKING = 'CUSTOMER_TRACKING',
+  ADMIN_AUTH = 'ADMIN_AUTH',
+  LEGAL_TERMS = 'LEGAL_TERMS',
+  ABOUT_US = 'ABOUT_US',
+  CUSTOMER_MENU = 'CUSTOMER_MENU'
+}

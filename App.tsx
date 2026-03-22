@@ -7,6 +7,7 @@ import SuperAdminView from './components/SuperAdminView';
 import CompanyAdminView from './components/CompanyAdminView';
 import CustomerEntryView from './components/CustomerEntryView';
 import CustomerTrackingView from './components/CustomerTrackingView';
+import CustomerMenuView from './components/CustomerMenuView';
 import AdminAuthView from './components/AdminAuthView';
 import LegalTermsView from './components/LegalTermsView';
 import AboutUsView from './components/AboutUsView';
@@ -122,8 +123,9 @@ const App: React.FC = () => {
           onAdminAccess={() => {
             setCurrentView('ADMIN_AUTH');
           }}
-          onShowTerms={() => setCurrentView('LEGAL_TERMS')}
-          onShowAboutUs={() => setCurrentView('ABOUT_US')}
+          onShowTerms={() => setCurrentView(AppView.LEGAL_TERMS)}
+          onShowAboutUs={() => setCurrentView(AppView.ABOUT_US)}
+          onShowMenu={() => setCurrentView(AppView.CUSTOMER_MENU)}
         />;
       case 'ADMIN_AUTH':
         return <AdminAuthView
