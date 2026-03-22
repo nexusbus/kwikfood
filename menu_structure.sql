@@ -42,29 +42,51 @@ CREATE TABLE IF NOT EXISTS public.product_to_accompaniment_groups (
 -- 5. Atualizar Tabela de Produtos (referência opcional à categoria)
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL;
 
--- 6. Habilitar RLS e Políticas
+-- 6. Habilitar RLS e Políticas Permissivas para o Parceiro
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.accompaniment_groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.accompaniment_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.product_to_accompaniment_groups ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Allow public select categories" ON public.categories;
-CREATE POLICY "Allow public select categories" ON public.categories FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow any categories" ON public.categories;
+CREATE POLICY "Allow any categories" ON public.categories FOR ALL USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Allow public select accompaniment_groups" ON public.accompaniment_groups;
-CREATE POLICY "Allow public select accompaniment_groups" ON public.accompaniment_groups FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow any accompaniment_groups" ON public.accompaniment_groups;
+CREATE POLICY "Allow any accompaniment_groups" ON public.accompaniment_groups FOR ALL USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Allow public select accompaniment_items" ON public.accompaniment_items;
-CREATE POLICY "Allow public select accompaniment_items" ON public.accompaniment_items FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow any accompaniment_items" ON public.accompaniment_items;
+CREATE POLICY "Allow any accompaniment_items" ON public.accompaniment_items FOR ALL USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Allow public select product_to_accompaniment_groups" ON public.product_to_accompaniment_groups;
-CREATE POLICY "Allow public select product_to_accompaniment_groups" ON public.product_to_accompaniment_groups FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow any product_to_accompaniment_groups" ON public.product_to_accompaniment_groups;
+CREATE POLICY "Allow any product_to_accompaniment_groups" ON public.product_to_accompaniment_groups FOR ALL USING (true) WITH CHECK (true);
 
--- 7. Ativar Realtime para as novas tabelas
-ALTER PUBLICATION supabase_realtime ADD TABLE categories;
-ALTER PUBLICATION supabase_realtime ADD TABLE accompaniment_groups;
-ALTER PUBLICATION supabase_realtime ADD TABLE accompaniment_items;
-ALTER PUBLICATION supabase_realtime ADD TABLE product_to_accompaniment_groups;
+-- 6.1 Políticas para Produtos (Garantir que o parceiro possa gerir)
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all for products" ON public.products;
+CREATE POLICY "Allow all for products" ON public.products FOR ALL USING (true) WITH CHECK (true);
+-- 7. Ativar Realtime para todas as tabelas (de forma idempotente)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'categories') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE categories;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'accompaniment_groups') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE accompaniment_groups;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'accompaniment_items') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE accompaniment_items;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'product_to_accompaniment_groups') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE product_to_accompaniment_groups;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'products') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE products;
+    END IF;
+END $$;
 
 -- 8. Forçar recarga do PostgREST
 NOTIFY pgrst, 'reload schema';

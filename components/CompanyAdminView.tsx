@@ -445,11 +445,17 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         details: pDetails
       };
 
+      let error;
       if (modalMode === 'edit' && selectedProduct) {
-        await supabase.from('products').update(productData).eq('id', selectedProduct.id);
+        const result = await supabase.from('products').update(productData).eq('id', selectedProduct.id);
+        error = result.error;
       } else {
-        await supabase.from('products').insert([productData]);
+        const result = await supabase.from('products').insert([productData]);
+        error = result.error;
       }
+
+      if (error) throw error;
+
       setIsModalOpen(false);
       loadData();
     } catch (error) {
@@ -464,22 +470,116 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [newCatName, setNewCatName] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('🍔');
 
+  // Accompaniments Management States
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<AccompanimentGroup | null>(null);
+  const [gName, setGName] = useState('');
+  const [gIsRequired, setGIsRequired] = useState(false);
+  const [gMin, setGMin] = useState(0);
+  const [gMax, setGMax] = useState(1);
+  const [gItems, setGItems] = useState<{ name: string; price: number }[]>([]);
+
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [linkProductId, setLinkProductId] = useState('');
+  const [linkGroupId, setLinkGroupId] = useState('');
+
+  // Bulk Link State
+  const [bulkGroupId, setBulkGroupId] = useState('');
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
   const handleSaveCategory = async () => {
     if (!newCatName) return;
     setSaving(true);
     try {
-      await supabase.from('categories').insert([{
+      const { error } = await supabase.from('categories').insert([{
         company_id: company.id,
         name: newCatName,
         icon: newCatIcon,
         sort_order: categories.length
       }]);
+      
+      if (error) throw error;
+
       setIsCategoryModalOpen(false);
       setNewCatName('');
       loadData();
     } catch (error) {
       console.error('Error saving category:', error);
-      alert('Erro ao guardar categoria.'); // Added alert for user feedback
+      alert('Erro ao guardar categoria.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveGroup = async () => {
+    if (!gName) return;
+    setSaving(true);
+    try {
+      const groupData = {
+        company_id: company.id,
+        name: gName,
+        is_required: gIsRequired,
+        min_selection: gMin,
+        max_selection: gMax
+      };
+
+      let groupId: string;
+      if (editingGroup) {
+        const { error } = await supabase.from('accompaniment_groups').update(groupData).eq('id', editingGroup.id);
+        if (error) throw error;
+        groupId = editingGroup.id;
+        // Delete items and re-add for simplicity in this MVP
+        await supabase.from('accompaniment_items').delete().eq('group_id', groupId);
+      } else {
+        const { data, error } = await supabase.from('accompaniment_groups').insert([groupData]).select();
+        if (error) throw error;
+        groupId = data[0].id;
+      }
+
+      if (gItems.length > 0) {
+        const { error } = await supabase.from('accompaniment_items').insert(
+          gItems.map(item => ({
+            group_id: groupId,
+            name: item.name,
+            price: item.price,
+            is_active: true
+          }))
+        );
+        if (error) throw error;
+      }
+
+      setIsGroupModalOpen(false);
+      setEditingGroup(null);
+      setGName('');
+      setGItems([]);
+      loadData();
+      alert('Grupo de acompanhamentos salvo!');
+    } catch (error) {
+      console.error('Error saving group:', error);
+      alert('Erro ao guardar grupo.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLinkProduct = async () => {
+    if (!linkProductId || !linkGroupId) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('product_to_accompaniment_groups').insert([
+        { product_id: linkProductId, group_id: linkGroupId }
+      ]);
+      if (error) {
+        if (error.code === '23505') alert('Este vínculo já existe.');
+        else throw error;
+      } else {
+        setIsLinkModalOpen(false);
+        loadData();
+        alert('Vínculo criado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error linking product:', error);
+      alert('Erro ao criar vínculo.');
     } finally {
       setSaving(false);
     }
@@ -1083,7 +1183,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       />
                     </div>
                     <div className="flex gap-3">
-                      <button onClick={() => {/* TODO: Vincular */}} className="flex-1 md:flex-none px-5 py-2.5 border-2 border-primary text-primary rounded-xl font-bold hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
+                      <button onClick={() => setIsLinkModalOpen(true)} className="flex-1 md:flex-none px-5 py-2.5 border-2 border-primary text-primary rounded-xl font-bold hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
                         <span className="material-symbols-outlined text-xl">link</span>
                         Vincular Acompanhamento
                       </button>
@@ -1154,7 +1254,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   <div className="lg:col-span-2 space-y-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl font-extrabold tracking-tight">Gerenciar Acompanhamentos</h3>
-                      <button className="text-primary font-bold text-sm flex items-center gap-1">
+                      <button onClick={() => { setEditingGroup(null); setGName(''); setGIsRequired(false); setGMin(0); setGMax(1); setGItems([]); setIsGroupModalOpen(true); }} className="text-primary font-bold text-sm flex items-center gap-1">
                         <span className="material-symbols-outlined text-lg">add_box</span> Novo Grupo
                       </button>
                     </div>
@@ -1167,7 +1267,20 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                               <h5 className="font-bold text-sm">{group.name}</h5>
                               {group.isRequired && <span className="text-[10px] bg-white border px-2 py-0.5 rounded text-zinc-500 font-medium">Obrigatório</span>}
                             </div>
-                            <button className="text-zinc-400 hover:text-primary"><span className="material-symbols-outlined">settings</span></button>
+                            <button 
+                              onClick={() => {
+                                setEditingGroup(group);
+                                setGName(group.name);
+                                setGIsRequired(group.isRequired);
+                                setGMin(group.minSelection);
+                                setGMax(group.maxSelection);
+                                setGItems(group.items?.map(i => ({ name: i.name, price: i.price })) || []);
+                                setIsGroupModalOpen(true);
+                              }}
+                              className="text-zinc-400 hover:text-primary"
+                            >
+                              <span className="material-symbols-outlined">settings</span>
+                            </button>
                           </div>
                           <div className="p-4 space-y-3">
                             {group.items?.map(item => (
@@ -1199,8 +1312,12 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       <div className="space-y-6">
                         <div>
                           <label className="text-[10px] font-black uppercase text-zinc-500 mb-2 block">Selecionar Grupo</label>
-                          <select className="w-full bg-zinc-800 border-none rounded-xl text-sm py-3 px-4 focus:ring-1 focus:ring-primary text-white">
-                            <option>Selecione um grupo...</option>
+                          <select 
+                            value={bulkGroupId}
+                            onChange={(e) => setBulkGroupId(e.target.value)}
+                            className="w-full bg-zinc-800 border-none rounded-xl text-sm py-3 px-4 focus:ring-1 focus:ring-primary text-white"
+                          >
+                            <option value="">Selecione um grupo...</option>
                             {accompanimentGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                           </select>
                         </div>
@@ -1209,14 +1326,46 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           <div className="bg-zinc-800 rounded-xl p-3 max-h-64 overflow-y-auto space-y-1 custom-scrollbar">
                             {products.map(p => (
                               <label key={p.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
-                                <input className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary" type="checkbox" />
+                                <input 
+                                  className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary" 
+                                  type="checkbox"
+                                  checked={selectedProductIds.includes(p.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) setSelectedProductIds([...selectedProductIds, p.id]);
+                                    else setSelectedProductIds(selectedProductIds.filter(id => id !== p.id));
+                                  }}
+                                />
                                 <span className="text-xs font-medium text-zinc-300">{p.name}</span>
                               </label>
                             ))}
                           </div>
                         </div>
-                        <button className="w-full py-4 bg-primary text-white rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-rose-900/20">
-                          Confirmar Vinculação
+                        <button 
+                          onClick={async () => {
+                            if (!bulkGroupId || selectedProductIds.length === 0) return alert('Selecione um grupo e ao menos um produto.');
+                            setSaving(true);
+                            try {
+                              const links = selectedProductIds.map(pid => ({ product_id: pid, group_id: bulkGroupId }));
+                              const { error } = await supabase.from('product_to_accompaniment_groups').insert(links);
+                              if (error) {
+                                if (error.code === '23505') alert('Alguns vínculos já existem.');
+                                else throw error;
+                              }
+                              setBulkGroupId('');
+                              setSelectedProductIds([]);
+                              loadData();
+                              alert('Vínculos criados com sucesso!');
+                            } catch (err) {
+                              console.error(err);
+                              alert('Erro ao criar vínculos em massa.');
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                          disabled={saving || !bulkGroupId || selectedProductIds.length === 0}
+                          className="w-full py-4 bg-primary text-white rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-rose-900/20 disabled:opacity-50"
+                        >
+                          {saving ? 'PROCESSANDO...' : 'VINCULAR EM MASSA'}
                         </button>
                       </div>
                     </div>
@@ -1903,6 +2052,178 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           </div>
         )
       }
+
+      {isGroupModalOpen && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="w-full max-w-xl bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
+            <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-black tracking-tight text-secondary">
+                {editingGroup ? 'Editar Grupo' : 'Novo Grupo de Acompanhamentos'}
+              </h3>
+              <button 
+                onClick={() => setIsGroupModalOpen(false)}
+                className="size-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-8 pr-2 custom-scrollbar">
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Nome do Grupo</label>
+                <input
+                  type="text"
+                  value={gName}
+                  onChange={e => setGName(e.target.value)}
+                  placeholder="Ex: Extras do Hamburguer, Escolha a Bebida..."
+                  className="w-full h-16 bg-[#F8F9FA] border-2 border-transparent rounded-[1.5rem] px-6 font-bold text-lg text-secondary focus:border-primary focus:bg-white transition-all outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Mín. Seleção</label>
+                  <input
+                    type="number"
+                    value={gMin}
+                    onChange={e => setGMin(Number(e.target.value))}
+                    className="w-full h-16 bg-[#F8F9FA] border-2 border-transparent rounded-[1.5rem] px-6 font-bold text-lg text-secondary focus:border-primary focus:bg-white transition-all outline-none"
+                  />
+                </div>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Máx. Seleção</label>
+                  <input
+                    type="number"
+                    value={gMax}
+                    onChange={e => setGMax(Number(e.target.value))}
+                    className="w-full h-16 bg-[#F8F9FA] border-2 border-transparent rounded-[1.5rem] px-6 font-bold text-lg text-secondary focus:border-primary focus:bg-white transition-all outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 bg-zinc-50 p-4 rounded-2xl">
+                <input 
+                  type="checkbox" 
+                  checked={gIsRequired} 
+                  onChange={e => setGIsRequired(e.target.checked)} 
+                  className="size-6 text-primary focus:ring-primary border-zinc-300 rounded"
+                />
+                <span className="font-bold text-sm text-secondary">Seleção Obrigatória</span>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-zinc-100">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-black text-secondary tracking-widest uppercase">Itens do Grupo</h4>
+                  <button 
+                    type="button"
+                    onClick={() => setGItems([...gItems, { name: '', price: 0 }])}
+                    className="text-primary font-bold text-xs flex items-center gap-1 bg-rose-50 px-3 py-1.5 rounded-lg hover:bg-primary hover:text-white transition-all"
+                  >
+                    <span className="material-symbols-outlined text-sm">add</span> Adicionar Item
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {gItems.map((item, idx) => (
+                    <div key={idx} className="flex gap-3 items-center">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={e => {
+                          const newItems = [...gItems];
+                          newItems[idx].name = e.target.value;
+                          setGItems(newItems);
+                        }}
+                        placeholder="Nome do Item"
+                        className="flex-[2] h-12 bg-[#F8F9FA] border border-transparent rounded-xl px-4 text-sm font-bold focus:border-primary focus:bg-white transition-all outline-none"
+                      />
+                      <input
+                        type="number"
+                        value={item.price}
+                        onChange={e => {
+                          const newItems = [...gItems];
+                          newItems[idx].price = Number(e.target.value);
+                          setGItems(newItems);
+                        }}
+                        placeholder="Preço"
+                        className="flex-1 h-12 bg-[#F8F9FA] border border-transparent rounded-xl px-4 text-sm font-bold focus:border-primary focus:bg-white transition-all outline-none"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setGItems(gItems.filter((_, i) => i !== idx))}
+                        className="text-slate-300 hover:text-red-500"
+                      >
+                        <span className="material-symbols-outlined">delete</span>
+                      </button>
+                    </div>
+                  ))}
+                  {gItems.length === 0 && (
+                    <div className="text-center py-6 border-2 border-dashed border-zinc-100 rounded-2xl text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
+                      Nenhum item adicionado
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSaveGroup}
+              disabled={saving}
+              className="w-full h-16 mt-8 bg-primary hover:bg-secondary text-white rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] shadow-xl shadow-rose-200 transition-all disabled:opacity-50"
+            >
+              {saving ? 'GUARDANDO...' : 'SALVAR GRUPO'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="w-full max-w-lg bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
+            <div className="flex justify-between items-center mb-10">
+              <h3 className="text-2xl font-black tracking-tight text-secondary">Vincular Acompanhamento</h3>
+              <button onClick={() => setIsLinkModalOpen(false)} className="size-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Escolha o Produto</label>
+                <select 
+                  value={linkProductId} 
+                  onChange={e => setLinkProductId(e.target.value)}
+                  className="w-full h-16 bg-[#F8F9FA] border-2 border-transparent rounded-[1.5rem] px-6 font-bold text-secondary focus:border-primary focus:bg-white transition-all outline-none appearance-none"
+                >
+                  <option value="">Selecione um produto...</option>
+                  {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Escolha o Grupo</label>
+                <select 
+                  value={linkGroupId} 
+                  onChange={e => setLinkGroupId(e.target.value)}
+                  className="w-full h-16 bg-[#F8F9FA] border-2 border-transparent rounded-[1.5rem] px-6 font-bold text-secondary focus:border-primary focus:bg-white transition-all outline-none appearance-none"
+                >
+                  <option value="">Selecione um grupo...</option>
+                  {accompanimentGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                </select>
+              </div>
+
+              <button
+                onClick={handleLinkProduct}
+                disabled={saving || !linkProductId || !linkGroupId}
+                className="w-full h-16 bg-primary hover:bg-secondary text-white rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] shadow-xl shadow-rose-200 transition-all disabled:opacity-50"
+              >
+                {saving ? 'VINCULANDO...' : 'CRIAR VÍNCULO'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 };
