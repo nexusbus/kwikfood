@@ -227,10 +227,34 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `company_id=eq.${company.id}` }, () => loadData())
       .subscribe();
 
+    const cChannel = supabase
+      .channel(`categories-${company.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories', filter: `company_id=eq.${company.id}` }, () => loadData())
+      .subscribe();
+
+    const agChannel = supabase
+      .channel(`acc-groups-${company.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'accompaniment_groups', filter: `company_id=eq.${company.id}` }, () => loadData())
+      .subscribe();
+
+    const aiChannel = supabase
+      .channel(`acc-items-${company.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'accompaniment_items' }, () => loadData())
+      .subscribe();
+
+    const pagChannel = supabase
+      .channel(`prod-acc-${company.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'product_to_accompaniment_groups' }, () => loadData())
+      .subscribe();
+
     return () => {
       supabase.removeChannel(pChannel);
       supabase.removeChannel(oChannel);
       supabase.removeChannel(sChannel);
+      supabase.removeChannel(cChannel);
+      supabase.removeChannel(agChannel);
+      supabase.removeChannel(aiChannel);
+      supabase.removeChannel(pagChannel);
     };
   }, [company.id]);
 

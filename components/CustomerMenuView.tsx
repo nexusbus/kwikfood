@@ -55,6 +55,21 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
     };
 
     loadMenu();
+
+    const pChannel = supabase
+      .channel(`customer-prod-${company.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products', filter: `company_id=eq.${company.id}` }, () => loadMenu())
+      .subscribe();
+
+    const cChannel = supabase
+      .channel(`customer-cat-${company.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories', filter: `company_id=eq.${company.id}` }, () => loadMenu())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(pChannel);
+      supabase.removeChannel(cChannel);
+    };
   }, [company.id]);
 
   const filteredProducts = products.filter(p => {

@@ -60,5 +60,11 @@ CREATE POLICY "Allow public select accompaniment_items" ON public.accompaniment_
 DROP POLICY IF EXISTS "Allow public select product_to_accompaniment_groups" ON public.product_to_accompaniment_groups;
 CREATE POLICY "Allow public select product_to_accompaniment_groups" ON public.product_to_accompaniment_groups FOR SELECT USING (true);
 
--- 7. Forçar recarga do PostgREST
+-- 7. Ativar Realtime para as novas tabelas
+ALTER PUBLICATION supabase_realtime ADD TABLE categories;
+ALTER PUBLICATION supabase_realtime ADD TABLE accompaniment_groups;
+ALTER PUBLICATION supabase_realtime ADD TABLE accompaniment_items;
+ALTER PUBLICATION supabase_realtime ADD TABLE product_to_accompaniment_groups;
+
+-- 8. Forçar recarga do PostgREST
 NOTIFY pgrst, 'reload schema';
