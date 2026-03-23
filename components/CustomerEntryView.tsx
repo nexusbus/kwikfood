@@ -30,6 +30,9 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [companySearch, setCompanySearch] = useState('');
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationDenied, setLocationDenied] = useState(false);
+  const [distanceToStore, setDistanceToStore] = useState<number | null>(null);
   const codeRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
@@ -38,6 +41,22 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
     if (urlCode && urlCode.length === 4) {
       setCode(urlCode.split(''));
     }
+    
+    // Proactive high-accuracy location request
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setUserCoords(coords);
+          setLocationDenied(false);
+        },
+        (err) => {
+          console.warn("Location prompt err:", err);
+          if (err.code === 1) setLocationDenied(true);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
   }, []);
 
   useEffect(() => {
@@ -45,10 +64,16 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
     if (fullCode.length > 0) {
       const company = companies.find(c => c.id.toString().padStart(4, '0') === fullCode.padStart(4, '0'));
       setMatchedCompany(company || null);
+      if (company && userCoords) {
+        setDistanceToStore(calculateDistance(userCoords.lat, userCoords.lng, company.lat, company.lng));
+      } else {
+        setDistanceToStore(null);
+      }
     } else {
       setMatchedCompany(null);
+      setDistanceToStore(null);
     }
-  }, [code, companies]);
+  }, [code, companies, userCoords]);
 
   const handleCodeChange = (index: number, value: string) => {
     if (value.length > 1) value = value[0];
@@ -188,84 +213,82 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
     }
 
     setLoading(true);
+    const performJoin = async (lat: number, lng: number) => {
+      if (!company) return;
+      const dist = calculateDistance(lat, lng, company.lat, company.lng);
+
+      if (selectedOrderType !== OrderType.DELIVERY && dist > STORE_RADIUS_METERS && !fullCode.startsWith('TEST')) {
+        setError(`Acesso negado. Está a ${Math.round(dist)}m do local. Aproxime-se para entrar na fila (Raio máximo permitido: ${STORE_RADIUS_METERS}m).`);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: existingOrder } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('company_id', company.id)
+          .eq('customer_phone', phone)
+          .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
+          .maybeSingle();
+
+        if (existingOrder) {
+          onJoinQueue({
+            id: existingOrder.id,
+            companyId: existingOrder.company_id,
+            customerPhone: existingOrder.customer_phone,
+            status: existingOrder.status as OrderStatus,
+            queuePosition: existingOrder.queue_position,
+            estimatedMinutes: existingOrder.estimated_minutes,
+            ticketCode: existingOrder.ticket_code,
+            ticketNumber: existingOrder.ticket_number,
+            timestamp: existingOrder.created_at,
+            items: existingOrder.items || [],
+            total: existingOrder.total || 0,
+            customerName: existingOrder.customer_name,
+            timerAccumulatedSeconds: existingOrder.timer_accumulated_seconds || 0,
+            timerLastStartedAt: existingOrder.timer_last_started_at,
+            orderType: existingOrder.order_type as OrderType
+          });
+          return;
+        }
+
+        const newOrderData = await createOrder({
+          companyId: company.id,
+          customerPhone: phone,
+          customerName: customerName,
+          status: OrderStatus.PENDING,
+          queuePosition: 1,
+          estimatedMinutes: 5,
+          orderType: selectedOrderType as OrderType,
+          deliveryAddress: deliveryAddress,
+          deliveryCoords: deliveryCoords || undefined
+        });
+
+        if (isNewCustomer && customerName.trim()) {
+          await supabase.from('customers').upsert({ phone, name: customerName.trim() });
+        }
+
+        onJoinQueue(newOrderData);
+      } catch (err: any) {
+        setError(`Erro ao entrar: ${err.message || 'Falha na ligação'}`);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const dist = calculateDistance(
-            position.coords.latitude,
-            position.coords.longitude,
-            company.lat,
-            company.lng
-          );
-
-          if (selectedOrderType !== OrderType.DELIVERY && dist > STORE_RADIUS_METERS && !fullCode.startsWith('TEST')) {
-            setError(`Acesso negado. Está a ${Math.round(dist)}m do local. Aproxime-se para entrar na fila.`);
-            setLoading(false);
-            return;
-          }
-
-          try {
-            const { data: existingOrder } = await supabase
-              .from('orders')
-              .select('*')
-              .eq('company_id', company.id)
-              .eq('customer_phone', phone)
-              .in('status', [OrderStatus.RECEIVED, OrderStatus.PREPARING, OrderStatus.READY])
-              .maybeSingle();
-
-            if (existingOrder) {
-              onJoinQueue({
-                id: existingOrder.id,
-                companyId: existingOrder.company_id,
-                customerPhone: existingOrder.customer_phone,
-                status: existingOrder.status as OrderStatus,
-                queuePosition: existingOrder.queue_position,
-                estimatedMinutes: existingOrder.estimated_minutes,
-                ticketCode: existingOrder.ticket_code,
-                ticketNumber: existingOrder.ticket_number,
-                timestamp: existingOrder.created_at,
-                items: existingOrder.items || [],
-                total: existingOrder.total || 0,
-                customerName: existingOrder.customer_name,
-                timerAccumulatedSeconds: existingOrder.timer_accumulated_seconds || 0,
-                timerLastStartedAt: existingOrder.timer_last_started_at
-              });
-              return;
-            }
-
-            const newOrderData = await createOrder({
-              companyId: company.id,
-              customerPhone: phone,
-              customerName: customerName,
-              status: OrderStatus.PENDING,
-              queuePosition: 1,
-              estimatedMinutes: 5,
-              orderType: selectedOrderType as OrderType,
-              deliveryAddress: deliveryAddress,
-              deliveryCoords: deliveryCoords || undefined
-            });
-
-            // Save customer name if new
-            if (isNewCustomer && customerName.trim()) {
-              await supabase.from('customers').upsert({
-                phone: phone,
-                name: customerName.trim()
-              });
-            }
-
-            onJoinQueue(newOrderData);
-          } catch (err: any) {
-            setError(`Erro ao entrar: ${err.message || 'Falha na ligação'}`);
-          } finally {
-            setLoading(false);
-          }
-        },
+        (pos) => performJoin(pos.coords.latitude, pos.coords.longitude),
         () => {
-          setError('Permita o acesso à localização para confirmar sua presença no local.');
-          setLoading(false);
+          if (userCoords) {
+            performJoin(userCoords.lat, userCoords.lng);
+          } else {
+            setError('Permita o acesso à localização para confirmar sua presença no local.');
+            setLoading(false);
+          }
         },
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true, timeout: 5000 }
       );
     } else {
       setError('Geolocalização não suportada.');
@@ -442,27 +465,57 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
           {/* Order Type Selection - Moved immediately after user data */}
           <div className="space-y-4 pt-2">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-primary text-xl">restaurant_menu</span>
-              <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Como vai querer o seu pedido?</label>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">restaurant_menu</span>
+                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Como vai querer o seu pedido?</label>
+              </div>
+              {distanceToStore !== null && (
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-zinc-50 rounded-full border border-zinc-100">
+                  <span className="size-1.5 bg-primary rounded-full animate-pulse"></span>
+                  <span className="text-[9px] font-black text-secondary uppercase tracking-widest">{Math.round(distanceToStore)}m de distância</span>
+                </div>
+              )}
             </div>
+
+            {locationDenied && (
+              <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl mb-4 flex items-center gap-3">
+                <span className="material-symbols-outlined text-amber-500 text-lg">location_off</span>
+                <p className="text-[10px] font-bold text-amber-700 leading-tight uppercase">
+                  Localização desativada. Ative o GPS para permitir "Vou comer aqui" ou "Vou levar".
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
+                disabled={locationDenied || (distanceToStore !== null && distanceToStore > STORE_RADIUS_METERS)}
                 onClick={() => setSelectedOrderType(selectedOrderType === OrderType.EAT_IN ? null : OrderType.EAT_IN)}
-                className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border-2 transition-all group ${selectedOrderType === OrderType.EAT_IN ? 'bg-white border-primary shadow-lg shadow-primary/10 scale-[1.02]' : 'bg-white border-[#EEEEEE] text-[#111111] hover:bg-primary/5 hover:border-primary/30'}`}
+                className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border-2 transition-all group relative ${selectedOrderType === OrderType.EAT_IN ? 'bg-white border-primary shadow-lg shadow-primary/10 scale-[1.02]' : 'bg-white border-[#EEEEEE] text-[#111111] hover:bg-primary/5 hover:border-primary/30'} ${(locationDenied || (distanceToStore !== null && distanceToStore > STORE_RADIUS_METERS)) ? 'opacity-40 grayscale cursor-not-allowed border-dashed' : ''}`}
               >
                 <span className="material-symbols-outlined text-4xl mb-2 text-[#E11D48] font-light">restaurant</span>
                 <span className="text-[9px] font-black uppercase tracking-widest leading-tight text-center text-[#111111]">Vou comer<br />aqui</span>
+                {(distanceToStore !== null && distanceToStore > STORE_RADIUS_METERS) && (
+                  <span className="absolute -top-1 -right-1 size-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg">
+                    <span className="material-symbols-outlined text-[10px] font-black">block</span>
+                  </span>
+                )}
               </button>
 
               <button
                 type="button"
+                disabled={locationDenied || (distanceToStore !== null && distanceToStore > STORE_RADIUS_METERS)}
                 onClick={() => setSelectedOrderType(selectedOrderType === OrderType.TAKE_AWAY ? null : OrderType.TAKE_AWAY)}
-                className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border-2 transition-all group ${selectedOrderType === OrderType.TAKE_AWAY ? 'bg-white border-primary shadow-lg shadow-primary/10 scale-[1.02]' : 'bg-white border-[#EEEEEE] text-[#111111] hover:bg-primary/5 hover:border-primary/30'}`}
+                className={`flex flex-col items-center justify-center p-4 rounded-[1.5rem] border-2 transition-all group relative ${selectedOrderType === OrderType.TAKE_AWAY ? 'bg-white border-primary shadow-lg shadow-primary/10 scale-[1.02]' : 'bg-white border-[#EEEEEE] text-[#111111] hover:bg-primary/5 hover:border-primary/30'} ${(locationDenied || (distanceToStore !== null && distanceToStore > STORE_RADIUS_METERS)) ? 'opacity-40 grayscale cursor-not-allowed border-dashed' : ''}`}
               >
                 <span className="material-symbols-outlined text-4xl mb-2 text-[#E11D48] font-light">local_mall</span>
                 <span className="text-[9px] font-black uppercase tracking-widest leading-tight text-center text-[#111111]">Vou<br />levar</span>
+                {(distanceToStore !== null && distanceToStore > STORE_RADIUS_METERS) && (
+                  <span className="absolute -top-1 -right-1 size-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg">
+                    <span className="material-symbols-outlined text-[10px] font-black">block</span>
+                  </span>
+                )}
               </button>
 
               <button
@@ -474,6 +527,11 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
                 <span className="text-[9px] font-black uppercase tracking-widest leading-tight text-center text-[#111111]">Entrega-me</span>
               </button>
             </div>
+            {(distanceToStore !== null && distanceToStore > STORE_RADIUS_METERS) && (
+              <p className="text-[9px] font-bold text-primary text-center uppercase tracking-widest animate-pulse">
+                Estás a {Math.round(distanceToStore)}m. Precisas estar a menos de {STORE_RADIUS_METERS}m para pedir localmente.
+              </p>
+            )}
           </div>
 
           {/* Delivery Details */}
