@@ -15,6 +15,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [order, setOrder] = useState<Order>(initialOrder);
   const [company, setCompany] = useState<Company | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [submittingOrder, setSubmittingOrder] = useState(false);
@@ -35,7 +36,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [uploadingProof, setUploadingProof] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1);
   const [productFilter, setProductFilter] = useState('Todos');
-  const categories = ['Todos', 'Hambúrgueres', 'Comida', 'Bebidas', 'Acompanhamentos'];
+  const categoryOptions = ['Todos', ...categories.map(c => c.name)];
   const lastStatusRef = useRef<OrderStatus>(initialOrder.status);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -164,8 +165,11 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             } as Company);
           }
 
-          const { data: productData } = await supabase.from('products').select('*').eq('company_id', effectiveCompanyId);
-          if (productData) setProducts(productData.map(p => ({ ...p, imageUrl: p.image_url })));
+          const { data: productData } = await supabase.from('products').select('*').eq('company_id', effectiveCompanyId).eq('status', 'ACTIVE');
+          if (productData) setProducts(productData.map(p => ({ ...p, imageUrl: p.image_url, details: p.details })));
+
+          const { data: catData } = await supabase.from('categories').select('*').eq('company_id', effectiveCompanyId).order('sort_order');
+          if (catData) setCategories(catData);
         }
 
         // Now load/sync the order data using functional updates to avoid stale closures
@@ -249,7 +253,14 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
             queuePosition: updatedOrder.queue_position !== undefined ? updatedOrder.queue_position : prev.queuePosition
           };
         });
-      }).subscribe();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products', filter: `company_id=eq.${order.companyId}` }, () => {
+        loadData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories', filter: `company_id=eq.${order.companyId}` }, () => {
+        loadData();
+      })
+      .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [order.id]);
@@ -494,7 +505,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
                 {/* Categories Filter Bar */}
                 <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-6 px-6">
-                  {categories.map((cat) => (
+                  {categoryOptions.map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setProductFilter(cat)}
@@ -515,7 +526,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                         <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-black text-[#111111] leading-snug mb-1">{p.name}</h3>
+                        <h3 className="text-base font-black text-[#111111] leading-snug mb-0.5">{p.name}</h3>
+                        {p.details && <p className="text-[10px] font-medium text-slate-400 mb-2 line-clamp-1 italic">{p.details}</p>}
                         <p className="text-primary font-black text-base">Kz {p.price.toLocaleString()}</p>
                       </div>
                       <button

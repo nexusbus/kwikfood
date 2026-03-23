@@ -141,6 +141,15 @@ const App: React.FC = () => {
           }}
           onShowTerms={() => setCurrentView('LEGAL_TERMS')}
         />;
+      case 'CUSTOMER_MENU':
+        return <CustomerMenuView
+          company={activeCompany!}
+          onBack={() => setCurrentView('CUSTOMER_ENTRY')}
+          onJoinQueue={(order) => {
+            setActiveOrder(order);
+            setCurrentView('CUSTOMER_TRACKING');
+          }}
+        />;
       case 'LEGAL_TERMS':
         return <LegalTermsView onBack={() => setCurrentView('CUSTOMER_ENTRY')} />;
       case 'ABOUT_US':
