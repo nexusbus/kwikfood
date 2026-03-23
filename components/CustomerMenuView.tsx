@@ -24,34 +24,42 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
   useEffect(() => {
     const loadMenu = async () => {
       setLoading(true);
-      
-      // Load Categories
-      const { data: catData } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('company_id', company.id)
-        .order('sort_order', { ascending: true });
-      
-      if (catData) setCategories(catData.map(c => ({ ...c, companyId: c.company_id, sortOrder: c.sort_order })));
+      try {
+        // Load Categories
+        const { data: catData, error: catErr } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('company_id', Number(company.id))
+          .order('sort_order', { ascending: true });
+        
+        if (catErr) throw catErr;
+        if (catData) setCategories(catData.map(c => ({ ...c, companyId: c.company_id, sortOrder: c.sort_order })));
 
-      // Load Products
-      const { data: prodData } = await supabase
-        .from('products')
-        .select('*')
-        .eq('company_id', company.id)
-        .eq('status', ProductStatus.ACTIVE);
-      
-      if (prodData) setProducts(prodData.map(p => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        category: p.category,
-        imageUrl: p.image_url,
-        details: p.details,
-        status: p.status as ProductStatus
-      })));
-
-      setLoading(false);
+        // Load Products
+        const { data: prodData, error: prodErr } = await supabase
+          .from('products')
+          .select('*')
+          .eq('company_id', Number(company.id))
+          .eq('status', ProductStatus.ACTIVE);
+        
+        if (prodErr) throw prodErr;
+        if (prodData) {
+          setProducts(prodData.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            category: p.category,
+            category_id: p.category_id,
+            imageUrl: p.image_url,
+            details: p.details || '',
+            status: p.status as ProductStatus
+          })));
+        }
+      } catch (err) {
+        console.error('Error loading menu:', err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadMenu();
