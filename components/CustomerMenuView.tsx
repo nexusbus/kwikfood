@@ -85,7 +85,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
     return matchesSearch && matchesCategory;
   });
 
-  const categoryOptions = ['Todos', ...Array.from(new Set(products.map(p => p.category)))];
+  const categoryOptions = ['Todos', ...categories.map(c => c.name)];
 
   const handleOpenCustomization = async (product: Product) => {
     setSelectedProduct(product);
