@@ -64,6 +64,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [pPrepTime, setPPrepTime] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [accompanimentGroups, setAccompanimentGroups] = useState<AccompanimentGroup[]>([]);
+  const [productLinks, setProductLinks] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
 
   // History filters
@@ -206,6 +207,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       })));
 
       setSmsCount(sCount || 0);
+      
+      const { data: linksData } = await supabase
+        .from('product_to_accompaniment_groups')
+        .select('*, products(name), accompaniment_groups(name)');
+      
+      if (linksData) setProductLinks(linksData.map(l => ({
+        ...l,
+        productName: l.products?.name,
+        groupName: l.accompaniment_groups?.name
+      })));
 
     } catch (err) {
       console.error(err);
@@ -434,8 +445,15 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     setSaving(true);
     try {
       const selectedCat = categories.find(c => c.name === pCategory);
-      // Ensure numeric price
-      const priceVal = typeof pPrice === 'string' ? parseFloat(pPrice.replace(',', '.')) : pPrice;
+      // Ensure numeric price - safer conversion
+      let priceVal = 0;
+      if (typeof pPrice === 'number') {
+        priceVal = pPrice;
+      } else if (typeof pPrice === 'string' && pPrice.trim() !== '') {
+        priceVal = parseFloat(pPrice.replace(',', '.'));
+      }
+      
+      if (isNaN(priceVal)) priceVal = 0;
       
       const productData = {
         company_id: company.id,
@@ -587,6 +605,22 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     } catch (error) {
       console.error('Error linking product:', error);
       alert('Erro ao criar vínculo.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteLink = async (linkId: string) => {
+    if (!confirm('Tem certeza que deseja remover este vínculo?')) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('product_to_accompaniment_groups').delete().eq('id', linkId);
+      if (error) throw error;
+      loadData();
+      alert('Vínculo removido com sucesso!');
+    } catch (error: any) {
+      console.error('Error deleting link:', error);
+      alert('Erro ao remover vínculo: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -2316,48 +2350,101 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       )}
 
       {isLinkModalOpen && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="w-full max-w-lg bg-white rounded-[3.5rem] p-12 shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 left-0 w-full h-3 bg-primary"></div>
-            <div className="flex justify-between items-center mb-10">
-              <h3 className="text-2xl font-black tracking-tight text-secondary">Vincular Acompanhamento</h3>
-              <button onClick={() => setIsLinkModalOpen(false)} className="size-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Escolha o Produto</label>
-                <select 
-                  value={linkProductId} 
-                  onChange={e => setLinkProductId(e.target.value)}
-                  className="w-full h-16 bg-[#F8F9FA] border-2 border-transparent rounded-[1.5rem] px-6 font-bold text-secondary focus:border-primary focus:bg-white transition-all outline-none appearance-none"
-                >
-                  <option value="">Selecione um produto...</option>
-                  {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 sm:p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="w-full max-w-2xl bg-white rounded-[3rem] shadow-premium relative overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+            <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+            
+            <header className="p-8 border-b border-zinc-100 flex justify-between items-center bg-white sticky top-0 z-10">
+              <div>
+                <h3 className="text-2xl font-black tracking-tight text-secondary">Vínculos de Acompanhamentos</h3>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-zinc-400 mt-1">Gestão de Complementos</p>
               </div>
-
-              <div className="space-y-4">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Escolha o Grupo</label>
-                <select 
-                  value={linkGroupId} 
-                  onChange={e => setLinkGroupId(e.target.value)}
-                  className="w-full h-16 bg-[#F8F9FA] border-2 border-transparent rounded-[1.5rem] px-6 font-bold text-secondary focus:border-primary focus:bg-white transition-all outline-none appearance-none"
-                >
-                  <option value="">Selecione um grupo...</option>
-                  {accompanimentGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                </select>
-              </div>
-
-              <button
-                onClick={handleLinkProduct}
-                disabled={saving || !linkProductId || !linkGroupId}
-                className="w-full h-16 bg-primary hover:bg-secondary text-white rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] shadow-xl shadow-rose-200 transition-all disabled:opacity-50"
-              >
-                {saving ? 'VINCULANDO...' : 'CRIAR VÍNCULO'}
+              <button onClick={() => setIsLinkModalOpen(false)} className="size-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-primary hover:bg-zinc-100 transition-all">
+                <span className="material-symbols-outlined text-2xl">close</span>
               </button>
+            </header>
+
+            <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar bg-[#fcfcfd]">
+              {/* Form Section */}
+              <section className="bg-white p-6 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="w-1.5 h-5 bg-primary rounded-full"></span>
+                  <h4 className="font-bold text-secondary italic">Criar Novo Vínculo</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2">Produto</label>
+                    <select 
+                      value={linkProductId} 
+                      onChange={e => setLinkProductId(e.target.value)}
+                      className="w-full h-14 bg-zinc-50 border-none rounded-2xl px-5 font-bold text-secondary focus:ring-2 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="">Escolha um prato...</option>
+                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2">Grupo</label>
+                    <select 
+                      value={linkGroupId} 
+                      onChange={e => setLinkGroupId(e.target.value)}
+                      className="w-full h-14 bg-zinc-50 border-none rounded-2xl px-5 font-bold text-secondary focus:ring-2 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="">Escolha um grupo...</option>
+                      {accompanimentGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLinkProduct}
+                  disabled={saving || !linkProductId || !linkGroupId}
+                  className="w-full h-14 bg-primary hover:bg-secondary text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-rose-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {saving ? 'PROCESSANDO...' : <><span className="material-symbols-outlined text-sm">link</span> CRIAR VÍNCULO</>}
+                </button>
+              </section>
+
+              {/* Existing Links Table */}
+              <section className="space-y-4">
+                <div className="flex items-center justify-between px-2">
+                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Vínculos Atuais ({productLinks.length})</h4>
+                </div>
+                
+                <div className="space-y-3">
+                  {productLinks.length > 0 ? (
+                    productLinks.map((link) => (
+                      <div key={link.id} className="bg-white p-5 rounded-2xl border border-zinc-100 flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm">
+                        <div className="flex items-center gap-4">
+                          <div className="size-10 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400 group-hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-xl">inventory_2</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-black text-secondary">{link.productName || 'Produto Removido'}</span>
+                            <span className="text-[10px] text-primary font-bold uppercase tracking-widest flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[12px]">link</span> {link.groupName || 'Grupo Removido'}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteLink(link.id)}
+                          className="size-10 flex items-center justify-center text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                          title="Remover Vínculo"
+                        >
+                          <span className="material-symbols-outlined text-xl">delete_sweep</span>
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12 border-2 border-dashed border-zinc-100 rounded-[2.5rem]">
+                      <span className="material-symbols-outlined text-4xl text-zinc-200">link_off</span>
+                      <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest mt-4">Nenhum vínculo encontrado</p>
+                    </div>
+                  )}
+                </div>
+              </section>
             </div>
           </div>
         </div>
