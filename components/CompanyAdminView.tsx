@@ -59,6 +59,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [pStatus, setPStatus] = useState<ProductStatus>(ProductStatus.ACTIVE);
   const [pImageUrl, setPImageUrl] = useState('');
   const [pDetails, setPDetails] = useState('');
+  const [pSku, setPSku] = useState('');
+  const [pStock, setPStock] = useState('');
+  const [pPrepTime, setPPrepTime] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [accompanimentGroups, setAccompanimentGroups] = useState<AccompanimentGroup[]>([]);
   const [saving, setSaving] = useState(false);
@@ -124,7 +127,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const loadData = async () => {
     try {
       const { data: pData } = await supabase.from('products').select('*').eq('company_id', company.id).order('created_at', { ascending: false });
-      if (pData) setProducts(pData.map(p => ({ ...p, imageUrl: p.image_url, details: p.details })));
+      if (pData) setProducts(pData.map(p => ({ ...p, imageUrl: p.image_url, details: p.details, sku: p.sku, stock: p.stock, preparation_time: p.preparation_time })));
 
       const { data: oData } = await supabase
         .from('orders')
@@ -442,7 +445,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         category_id: selectedCat?.id,
         status: pStatus,
         image_url: pImageUrl,
-        details: pDetails
+        details: pDetails,
+        sku: pSku,
+        stock: pStock,
+        preparation_time: pPrepTime
       };
 
       let error;
@@ -662,9 +668,11 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
     if (mode === 'edit' && product) {
       setSelectedProduct(product);
       setPName(product.name); setPPrice(product.price); setPCategory(product.category); setPStatus(product.status); setPImageUrl(product.imageUrl); setPDetails(product.details || '');
+      setPSku(product.sku || ''); setPStock(product.stock || ''); setPPrepTime(product.preparation_time || '');
     } else {
       setSelectedProduct(null);
       setPName(''); setPPrice(''); setPCategory('Hambúrgueres'); setPStatus(ProductStatus.ACTIVE); setPImageUrl(''); setPDetails('');
+      setPSku(''); setPStock(''); setPPrepTime('');
     }
     setIsModalOpen(true);
   };
@@ -1539,18 +1547,14 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     <h4 className="text-primary text-[10px] font-black leading-normal tracking-[0.2em] uppercase">Monitor em Tempo Real</h4>
                     <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
                   </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="flex flex-col gap-1 rounded-2xl p-4 sm:p-6 bg-white border border-slate-200 shadow-sm group hover:border-primary/20 transition-all">
                       <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Faturamento Bruto</p>
                       <p className="text-slate-900 text-xl font-black tracking-tight">{totalRevenue.toLocaleString()} Kz</p>
                     </div>
-                    <div className="flex flex-col gap-1 rounded-2xl p-4 sm:p-6 bg-white border border-slate-200 shadow-sm group hover:border-primary/20 transition-all">
-                      <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Investimento SMS</p>
-                      <p className="text-slate-900 text-xl font-black tracking-tight">{(smsCount * 5).toLocaleString()} Kz</p>
-                    </div>
-                    <div className="flex flex-col gap-1 rounded-2xl p-4 sm:p-6 bg-white border border-slate-200 shadow-sm group hover:border-primary/20 transition-all border-l-4 border-l-primary">
+                    <div className="flex flex-col gap-1 rounded-2xl p-4 sm:p-6 bg-white border border-slate-200 shadow-sm group hover:border-primary/20 transition-all border-l-4 border-l-primary uppercase tracking-widest">
                       <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Faturamento Líquido</p>
-                      <p className="text-primary text-xl font-black tracking-tight">{(totalRevenue - (smsCount * 5)).toLocaleString()} Kz</p>
+                      <p className="text-primary text-xl font-black tracking-tight">{totalRevenue.toLocaleString()} Kz</p>
                     </div>
                     <div className="flex flex-col gap-1 rounded-2xl p-4 sm:p-6 bg-white border border-slate-200 shadow-sm group hover:border-primary/20 transition-all">
                       <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest">Tempo Preparo</p>
@@ -1756,176 +1760,263 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8 bg-secondary/90 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="bg-white rounded-[3.5rem] sm:rounded-[4.5rem] w-full max-w-2xl shadow-premium animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col max-h-[95vh]">
-            <div className="absolute top-0 left-0 w-full h-4 bg-primary"></div>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-zinc-950/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Top accent bar */}
+            <div className="h-1.5 w-full bg-[#b80035]"></div>
 
-            <header className="p-10 sm:p-14 border-b border-border/10 flex justify-between items-start">
-              <div>
-                <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-secondary">
-                  {modalMode === 'add' ? 'Adicionar Produto' : 'Editar Produto'}
-                </h3>
-                <p className="text-text-muted font-bold text-[9px] uppercase tracking-[0.2em] mt-1 opacity-50">Configuração de Item</p>
+            <header className="px-8 py-6 border-b border-zinc-100 flex justify-between items-center bg-white sticky top-0 z-10">
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-zinc-100 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-zinc-900">arrow_back</span>
+                </button>
+                <div>
+                  <h3 className="text-xl font-bold tracking-tight text-zinc-900">
+                    {modalMode === 'add' ? 'Novo Produto' : 'Editar Produto'}
+                  </h3>
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-[#b80035]/60 mt-0.5">Gestão de Cardápio</p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="size-14 bg-background rounded-2xl flex items-center justify-center text-text-muted hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-zinc-100 transition-colors"
               >
-                <span className="material-symbols-outlined text-3xl font-black">close</span>
+                <span className="material-symbols-outlined text-zinc-400">close</span>
               </button>
             </header>
 
-            <form onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-10 sm:p-14 space-y-12 custom-scrollbar">
-              {/* Basic Info */}
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Dados Principais</label>
-                <div className="space-y-6">
-                  <div className="relative group">
-                    <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">label</span>
-                    <input
-                      type="text"
-                      value={pName}
-                      onChange={e => setPName(e.target.value)}
-                      placeholder="Nome do Produto (Ex: Master Burger)"
-                      className="w-full h-20 bg-[#F8F9FA] border-2 border-transparent rounded-[1.8rem] pl-16 pr-8 font-black text-xl text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
-                      required
+            <form onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 custom-scrollbar bg-[#f9f9fa]">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Left Column: Media & Primary Details */}
+                <div className="lg:col-span-7 space-y-8">
+                  {/* Image Upload Section */}
+                  <section className="bg-white rounded-2xl p-8 text-center border-2 border-dashed border-zinc-200 relative group overflow-hidden transition-all hover:bg-zinc-50 shadow-sm">
+                    <input 
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleUpload} 
                     />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="relative group">
-                      <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">payments</span>
-                      <input
-                        type="number"
-                        value={pPrice}
-                        onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                        placeholder="Preço (Kz)"
-                        className="w-full h-20 bg-[#F8F9FA] border-2 border-transparent rounded-[1.8rem] pl-16 pr-8 font-black text-xl text-secondary focus:border-primary focus:bg-white transition-all outline-none shadow-sm"
-                        required
-                      />
-                    </div>
-                    <div className="relative group">
-                      <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none">category</span>
-                      <select
-                        value={pCategory}
-                        onChange={e => setPCategory(e.target.value)}
-                        className="w-full h-20 bg-[#F8F9FA] border-2 border-transparent rounded-[1.8rem] pl-16 pr-12 font-black text-[11px] uppercase tracking-widest text-secondary focus:border-primary focus:bg-white transition-all outline-none appearance-none cursor-pointer"
-                      >
-                        {categoryOptions.filter(c => c !== 'Todos').map(c => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                      <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Status Toggle */}
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Disponibilidade</label>
-                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-2 rounded-[2rem] border border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => setPStatus(ProductStatus.ACTIVE)}
-                    className={`h-16 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${pStatus === ProductStatus.ACTIVE ? 'bg-green-500 text-white shadow-lg' : 'text-slate-400 hover:text-secondary'}`}
-                  >
-                    <span className="material-symbols-outlined text-xl">check_circle</span>
-                    Disponível
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPStatus(ProductStatus.OUT_OF_STOCK)}
-                    className={`h-16 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${pStatus === ProductStatus.OUT_OF_STOCK ? 'bg-red-500 text-white shadow-lg' : 'text-slate-400 hover:text-secondary'}`}
-                  >
-                    <span className="material-symbols-outlined text-xl">block</span>
-                    Esgotado
-                  </button>
-                </div>
-              </div>
-
-              {/* Detailed Info */}
-              <div className="space-y-4">
-                <label className="text-[11px] font-black text-secondary uppercase tracking-[0.4em] ml-2 opacity-50">Descrição Detalhada</label>
-                <div className="relative group">
-                  <span className="material-symbols-outlined absolute left-6 top-8 text-slate-300 group-focus-within:text-primary transition-colors">notes</span>
-                  <textarea
-                    value={pDetails}
-                    onChange={e => setPDetails(e.target.value)}
-                    placeholder="Descreva os ingredientes, avisos ou detalhes do prato..."
-                    className="w-full h-40 bg-[#F8F9FA] border-2 border-transparent rounded-[1.8rem] pl-16 pr-8 py-7 font-medium text-lg text-secondary focus:border-primary focus:bg-white transition-all outline-none resize-none shadow-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Image Upload */}
-              <div className="space-y-4">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] ml-1">Fotografia</label>
-                <div className="flex flex-col sm:flex-row gap-6 items-center bg-slate-50/50 p-6 rounded-[2.5rem] border border-slate-100 group hover:border-primary/20 transition-all">
-                  <div className="relative size-32 bg-white rounded-3xl shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-100">
-                    {pImageUrl ? (
-                      <img src={pImageUrl} alt="Preview" className="size-full object-cover" />
-                    ) : (
-                      <span className="material-symbols-outlined text-slate-200 text-6xl">image</span>
-                    )}
-                    {uploading && (
-                      <div className="absolute inset-0 bg-secondary/80 flex items-center justify-center">
-                        <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <div className="w-20 h-20 rounded-full bg-zinc-50 flex items-center justify-center shadow-sm text-[#b80035] group-hover:scale-110 transition-transform overflow-hidden relative">
+                        {pImageUrl ? (
+                          <img src={pImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="material-symbols-outlined text-4xl">add_a_photo</span>
+                        )}
+                        {uploading && (
+                          <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                            <div className="w-6 h-6 border-2 border-[#b80035] border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left">
-                    <input type="file" accept="image/*" onChange={handleUpload} className="hidden" id="p-image-upload" />
-                    <label
-                      htmlFor="p-image-upload"
-                      className="inline-flex px-10 py-5 bg-secondary text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl cursor-pointer hover:bg-primary transition-all shadow-lg active:scale-95"
-                    >
-                      Alterar Foto
-                    </label>
-                    <p className="text-[10px] text-slate-400 mt-4 font-bold uppercase tracking-widest leading-relaxed">Formatos: JPG, PNG • Máx 5MB</p>
-                  </div>
+                      <div>
+                        <h3 className="font-bold text-zinc-900">Fotografia do Produto</h3>
+                        <p className="text-sm text-zinc-500 mt-1">Clique ou arraste para carregar (PNG, JPG até 5MB)</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Base Info Card */}
+                  <section className="bg-white rounded-2xl p-8 shadow-sm border border-zinc-100">
+                    <div className="flex items-center gap-3 mb-8">
+                      <span className="w-1.5 h-6 bg-[#b80035] rounded-full"></span>
+                      <h2 className="text-xl font-bold tracking-tight">Informação Geral</h2>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[0.6875rem] uppercase font-bold tracking-widest text-zinc-400 px-1">Nome do Item</label>
+                        <input
+                          type="text"
+                          value={pName}
+                          onChange={e => setPName(e.target.value)}
+                          placeholder="Ex: Burguer Artesanal Premium"
+                          className="w-full bg-zinc-50 border-none rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-[#b80035]/20 transition-all font-medium placeholder:text-zinc-400"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[0.6875rem] uppercase font-bold tracking-widest text-zinc-400 px-1">Descrição Detalhada</label>
+                        <textarea
+                          value={pDetails}
+                          onChange={e => setPDetails(e.target.value)}
+                          placeholder="Descreva os ingredientes, modo de preparo e o que torna este prato único..."
+                          rows={4}
+                          className="w-full bg-zinc-50 border-none rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-[#b80035]/20 transition-all font-medium placeholder:text-zinc-400 resize-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[0.6875rem] uppercase font-bold tracking-widest text-zinc-400 px-1">Preço Base (Kz)</label>
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-bold">Kz</span>
+                            <input
+                              type="number"
+                              value={pPrice}
+                              onChange={e => setPPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                              placeholder="0"
+                              className="w-full bg-zinc-50 border-none rounded-xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-[#b80035]/20 transition-all font-bold"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[0.6875rem] uppercase font-bold tracking-widest text-zinc-400 px-1">Categoria</label>
+                          <div className="relative">
+                            <select
+                              value={pCategory}
+                              onChange={e => setPCategory(e.target.value)}
+                              className="w-full bg-zinc-50 border-none rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-[#b80035]/20 transition-all appearance-none cursor-pointer font-bold pr-10"
+                            >
+                              {categoryOptions.filter(c => c !== 'Todos').map(c => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+                            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">expand_more</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+
+                {/* Right Column: Contextual Controls */}
+                <div className="lg:col-span-5 space-y-8">
+                  {/* Status & Availability */}
+                  <section className="bg-zinc-900 text-white rounded-2xl p-8 shadow-xl">
+                    <div className="flex items-center justify-between mb-8">
+                      <div>
+                        <h3 className="font-bold text-lg">Disponibilidade</h3>
+                        <p className="text-xs text-zinc-400">O item ficará visível no menu</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={pStatus === ProductStatus.ACTIVE}
+                          onChange={() => setPStatus(pStatus === ProductStatus.ACTIVE ? ProductStatus.OUT_OF_STOCK : ProductStatus.ACTIVE)}
+                          className="sr-only peer" 
+                        />
+                        <div className="w-14 h-7 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#b80035]"></div>
+                        <span className="sr-only">Ativo</span>
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-zinc-800 rounded-xl space-y-2">
+                        <p className="text-[0.6rem] uppercase tracking-widest text-zinc-500">Stock</p>
+                        <input
+                          type="text"
+                          value={pStock}
+                          onChange={e => setPStock(e.target.value)}
+                          placeholder="Ex: Ilimitado"
+                          className="w-full bg-transparent border-none p-0 text-xl font-bold focus:ring-0 placeholder:text-zinc-700 text-white"
+                        />
+                      </div>
+                      <div className="p-4 bg-zinc-800 rounded-xl space-y-2">
+                        <p className="text-[0.6rem] uppercase tracking-widest text-zinc-500">Tempo Prep.</p>
+                        <input
+                          type="text"
+                          value={pPrepTime}
+                          onChange={e => setPPrepTime(e.target.value)}
+                          placeholder="Ex: 15-20m"
+                          className="w-full bg-transparent border-none p-0 text-xl font-bold focus:ring-0 placeholder:text-zinc-700 text-white"
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Complementos Info Label (Since management is separate in this app) */}
+                  <section className="bg-white rounded-2xl p-8 shadow-sm border border-zinc-100">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <span className="w-1.5 h-6 bg-zinc-200 rounded-full"></span>
+                        <h2 className="text-lg font-bold tracking-tight">Complementos</h2>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100 text-center">
+                      <p className="text-xs text-zinc-500 font-medium">Os acompanhamentos são vinculados após a criação do produto através do botão principal no dashboard.</p>
+                      <button 
+                        type="button"
+                        onClick={() => { setIsModalOpen(false); setIsLinkModalOpen(true); }}
+                        className="mt-4 w-full py-2.5 bg-white border border-zinc-200 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-600 hover:bg-zinc-50 transition-all"
+                      >
+                        Vincular Agora
+                      </button>
+                    </div>
+                  </section>
+
+                  {/* Meta Data */}
+                  <section className="p-8 bg-zinc-50 rounded-2xl border border-zinc-100">
+                    <h4 className="text-[0.65rem] uppercase font-black tracking-[0.2em] text-zinc-400 mb-6">Informação Técnica</h4>
+                    <div className="space-y-4">
+                      <div className="space-y-1.5 text-sm">
+                        <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Referência SKU</span>
+                        <input
+                          type="text"
+                          value={pSku}
+                          onChange={e => setPSku(e.target.value)}
+                          placeholder="Ex: KWF-9921-PRD"
+                          className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 font-mono font-bold text-sm focus:ring-2 focus:ring-[#b80035]/10 outline-none transition-all"
+                        />
+                      </div>
+                      {modalMode === 'edit' && selectedProduct && (
+                        <div className="pt-2 space-y-2">
+                          <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest">
+                            <span className="text-zinc-400">ID Externo</span>
+                            <span className="text-zinc-900 truncate max-w-[120px]">{selectedProduct.id}</span>
+                          </div>
+                          <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest">
+                            <span className="text-zinc-400">Parceiro</span>
+                            <span className="text-zinc-900">{company.name}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </section>
                 </div>
               </div>
             </form>
 
-            <footer className="p-10 sm:p-14 bg-[#F8F9FA] border-t border-border/10 flex flex-col sm:flex-row gap-6">
-              {modalMode === 'edit' && selectedProduct && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (confirm(`Excluir ${selectedProduct.name}?`)) {
-                      handleDeleteProduct(selectedProduct.id);
-                      setIsModalOpen(false);
-                    }
-                  }}
-                  className="h-16 px-8 rounded-2xl bg-red-50 text-red-500 font-bold uppercase tracking-widest text-[10px] hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3 border border-red-100/50"
-                >
-                  <span className="material-symbols-outlined text-xl">delete</span>
-                  APAGAR
-                </button>
-              )}
-
-              <div className="flex-1 flex gap-4">
+            <footer className="px-8 py-6 bg-white border-t border-zinc-100 flex flex-col sm:flex-row gap-4 items-center justify-between sticky bottom-0 z-10">
+              <div className="flex items-center gap-4">
+                {modalMode === 'edit' && selectedProduct && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteProduct(selectedProduct.id)}
+                    className="h-12 px-6 flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 rounded-xl transition-all font-bold text-sm"
+                  >
+                    <span className="material-symbols-outlined text-xl">delete</span>
+                    Eliminar Produto
+                  </button>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-3 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 h-16 font-bold uppercase tracking-widest text-slate-400 hover:text-secondary transition-all text-[10px]"
+                  className="flex-1 sm:flex-none h-12 px-8 font-bold text-zinc-500 hover:text-zinc-900 transition-all text-sm"
                 >
-                  CANCELAR
+                  Cancelar
                 </button>
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    const form = document.querySelector('form');
-                    if (form) form.requestSubmit();
+                    handleSaveProduct(e);
                   }}
                   disabled={saving || uploading}
-                  className="flex-[2] h-16 bg-primary hover:bg-secondary text-white rounded-2xl font-bold uppercase tracking-[0.2em] text-[11px] shadow-lg shadow-primary/10 active:scale-[0.98] transition-all disabled:opacity-50 relative overflow-hidden group/btn"
+                  className="flex-1 sm:flex-none px-12 h-12 bg-[#b80035] text-white rounded-full font-bold tracking-tight hover:shadow-lg hover:shadow-[#b80035]/20 active:scale-95 transition-all duration-200 disabled:opacity-50"
                 >
-                  <span className="flex items-center justify-center gap-3">
-                    <span className="material-symbols-outlined text-xl">{saving ? 'autorenew' : 'done'}</span>
-                    {saving ? 'GUARDANDO...' : 'SALVAR'}
-                  </span>
+                  {saving ? 'A guardar...' : 'Guardar Alterações'}
                 </button>
               </div>
             </footer>

@@ -55,6 +55,9 @@ export interface Product {
   status: ProductStatus;
   imageUrl: string;
   details?: string;
+  sku?: string;
+  stock?: string;
+  preparation_time?: string;
   accompanimentGroups?: AccompanimentGroup[];
 }
 
