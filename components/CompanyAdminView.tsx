@@ -55,7 +55,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   // Form state
   const [pName, setPName] = useState('');
   const [pPrice, setPPrice] = useState<number | ''>('');
-  const [pCategory, setPCategory] = useState('Hambúrgueres');
+  const [pCategory, setPCategory] = useState('');
   const [pStatus, setPStatus] = useState<ProductStatus>(ProductStatus.ACTIVE);
   const [pImageUrl, setPImageUrl] = useState('');
   const [pDetails, setPDetails] = useState('');
@@ -671,7 +671,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       setPSku(product.sku || ''); setPStock(product.stock || ''); setPPrepTime(product.preparation_time || '');
     } else {
       setSelectedProduct(null);
-      setPName(''); setPPrice(''); setPCategory('Hambúrgueres'); setPStatus(ProductStatus.ACTIVE); setPImageUrl(''); setPDetails('');
+      setPName(''); setPPrice(''); setPCategory(categories[0]?.name || ''); setPStatus(ProductStatus.ACTIVE); setPImageUrl(''); setPDetails('');
       setPSku(''); setPStock(''); setPPrepTime('');
     }
     setIsModalOpen(true);
