@@ -822,7 +822,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
            )}
 
            <button 
-             onClick={handleFinishOrder} 
+             onClick={() => checkoutStep === 1 ? setCheckoutStep(2) : handleFinishOrder()} 
              disabled={submittingOrder || (checkoutStep === 2 && !paymentMethod)}
              className="w-full py-5 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
            >
