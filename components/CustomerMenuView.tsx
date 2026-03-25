@@ -152,7 +152,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
   };
 
   return (
-    <div className="fixed inset-0 bg-[#FAFAFA] font-sans selection:bg-primary/20 flex flex-col overflow-hidden z-[60]">
+    <div className="fixed inset-0 bg-[#FAFAFA] font-sans selection:bg-primary/20 flex flex-col overflow-hidden z-[60] overscroll-none">
       {/* Premium Header */}
       <header className="flex-shrink-0 bg-white/80 backdrop-blur-xl border-b border-zinc-100 px-6 py-4 z-50">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
@@ -176,7 +176,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="max-w-4xl w-full mx-auto flex-1 flex flex-col overflow-hidden">
+        <div className="max-w-4xl w-full mx-auto flex-1 flex flex-col overflow-hidden min-h-0">
           {/* Search & Categories (Static) */}
           <div className="px-6 py-8 space-y-6 flex-shrink-0">
             <div className="max-w-2xl mx-auto text-center">
@@ -318,8 +318,8 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
 
           {/* Footer Info (Small) */}
           <footer className="text-center py-4 bg-white/50 border-t border-zinc-50 flex-shrink-0">
-            <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.4em]">KwikFood Angola • Premium Experience</p>
-          </footer>
+          <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.4em]">KwikFood Angola • Premium App v2.1 • {new Date().toLocaleTimeString()}</p>
+        </footer>
         </div>
 
       {/* Product Customization Modal */}
