@@ -285,8 +285,9 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-[12px] font-black text-[#111111] leading-tight mb-0.5 truncate group-hover:text-primary transition-colors">{product.name}</h3>
-                                <p className="text-primary font-black text-[11px]">Kz {product.price.toLocaleString()}</p>
+                                <h3 className="text-[12px] font-black text-[#111111] leading-tight mb-0.5 group-hover:text-primary transition-colors">{product.name}</h3>
+                                {product.details && <p className="text-[10px] text-zinc-400 mt-0.5 leading-tight">{product.details}</p>}
+                                <p className="text-primary font-black text-[11px] mt-1">Kz {product.price.toLocaleString()}</p>
                               </div>
                               <div className="size-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/10 flex items-center justify-center group-hover:bg-primary/90 active:scale-95 transition-all">
                                 <span className="material-symbols-outlined text-xl font-black">add</span>

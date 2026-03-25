@@ -641,8 +641,9 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                                 <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-[12px] font-black text-[#111111] leading-tight mb-0.5 truncate">{p.name}</h3>
-                                <p className="text-primary font-black text-[11px]">Kz {p.price.toLocaleString()}</p>
+                                <h3 className="text-[12px] font-black text-[#111111] leading-tight mb-0.5">{p.name}</h3>
+                                {p.details && <p className="text-[10px] text-zinc-400 mt-0.5 leading-tight">{p.details}</p>}
+                                <p className="text-primary font-black text-[11px] mt-1">Kz {p.price.toLocaleString()}</p>
                               </div>
                               <button
                                 onClick={() => handleOpenCustomization(p)}
