@@ -258,7 +258,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                       key={cat.id} 
                       className="min-w-full h-full snap-center px-6"
                     >
-                      <div className="bg-white rounded-none h-full flex flex-col shadow-sm border border-zinc-50 overflow-hidden">
+                      <div className="bg-white rounded-none h-full flex flex-col shadow-sm border border-transparent overflow-hidden">
                         {/* Slide Header */}
                         <div className="flex items-center justify-between border-b border-zinc-50 px-6 py-4 flex-shrink-0 bg-white">
                           <h3 className="text-base font-black text-secondary italic">
@@ -275,9 +275,9 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                             <button
                               key={product.id}
                               onClick={() => handleOpenCustomization(product)}
-                              className="w-full bg-white p-3 rounded-none shadow-sm border border-[#F8F9FA] flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50 group text-left"
+                              className="w-full bg-white p-3 rounded-none shadow-sm border border-transparent flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50 group text-left"
                             >
-                              <div className="size-12 rounded-xl overflow-hidden bg-[#F8F9FA] shrink-0 shadow-inner">
+                              <div className="size-12 rounded-xl overflow-hidden bg-transparent shrink-0 shadow-inner">
                                 <img 
                                   src={product.imageUrl} 
                                   alt={product.name} 

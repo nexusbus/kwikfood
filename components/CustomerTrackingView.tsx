@@ -598,7 +598,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               </div>
             </div>
             
-            <div className="bg-white rounded-none border border-[#F5F5F5] overflow-hidden shadow-sm flex flex-col min-h-[400px] h-[550px]">
+            <div className="bg-white rounded-none border border-transparent overflow-hidden shadow-sm flex flex-col min-h-[400px] h-[550px]">
               {/* Category Navigation (Horizontal) */}
               <div className="px-6 py-4 bg-white border-b border-zinc-50 z-20 overflow-x-auto scrollbar-hide">
                 <div className="flex gap-2 justify-start items-center">
@@ -636,8 +636,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       >
                         <div className="h-full overflow-y-auto p-4 space-y-3 custom-scrollbar">
                           {filteredProducts.map(p => (
-                            <div key={p.id} className="bg-white p-3 rounded-none shadow-sm border border-[#F8F9FA] flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50">
-                              <div className="size-12 rounded-xl overflow-hidden bg-[#F8F9FA] shrink-0 shadow-inner">
+                            <div key={p.id} className="bg-white p-3 rounded-none shadow-sm border border-transparent flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50">
+                              <div className="size-12 rounded-xl overflow-hidden bg-transparent shrink-0 shadow-inner">
                                 <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
