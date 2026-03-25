@@ -36,6 +36,9 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [uploadingProof, setUploadingProof] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1);
   const [productFilter, setProductFilter] = useState('Todos');
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const scrollRef = useRef<HTMLDivElement>(null);
   const categoryOptions = ['Todos', ...categories.map(c => c.name)];
   const lastStatusRef = useRef<OrderStatus>(initialOrder.status);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -400,11 +403,36 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   };
 
   const totalCart = cart.reduce((acc, p) => acc + (p.price * p.quantity), 0);
+  const categoriesToDisplay = categories.filter(c => products.some(p => p.category === c.name));
+
+  const scrollToCategory = (index: number) => {
+    if (scrollRef.current) {
+      const scrollAmount = index * scrollRef.current.offsetWidth;
+      scrollRef.current.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+      setActiveCategoryIndex(index);
+    }
+  };
+
+  const onScroll = () => {
+    if (scrollRef.current) {
+      const index = Math.round(scrollRef.current.scrollLeft / scrollRef.current.offsetWidth);
+      if (index !== activeCategoryIndex) setActiveCategoryIndex(index);
+    }
+  };
+
+  const toggleCategoryExpansion = (catName: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(catName)) next.delete(catName);
+      else next.add(catName);
+      return next;
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/10 overflow-x-hidden">
+    <div className="fixed inset-0 bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/10 overflow-hidden z-[60]">
       {/* Header */}
-      <header className="w-full max-w-5xl mx-auto px-6 py-6 flex justify-between items-center bg-white sticky top-0 z-[100] border-b border-[#F5F5F5]">
+      <header className="flex-shrink-0 w-full px-6 py-6 flex justify-between items-center bg-white border-b border-[#F5F5F5] z-[70]">
         <div className="flex items-center gap-3">
           <Logo variant="icon" size={32} />
           <span className="text-xl font-black tracking-tight text-[#111111]">KwikFood</span>
@@ -414,424 +442,193 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 w-full max-w-[480px] mx-auto px-6 py-10 space-y-10">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-black text-[#111111] tracking-tight animate-fade-in leading-tight">
-            {getStatusMessage(order.status).title}
-          </h1>
-          <p className="text-[#555555] font-medium text-[15px] animate-fade-in leading-relaxed">
-            {getStatusMessage(order.status).description}
-          </p>
-        </div>
+      {/* Main Content - Fixed Height Flex Container */}
+      <main className="flex-1 flex flex-col overflow-hidden w-full max-w-5xl mx-auto min-h-0">
+        
+        {/* Top Scrollable Info Area (Status & Timer) */}
+        <div className="flex-shrink-0 overflow-y-auto max-h-[35vh] px-6 py-4 space-y-6 custom-scrollbar bg-white/30">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-black text-[#111111] tracking-tight leading-tight">
+              {getStatusMessage(order.status).title}
+            </h1>
+            <p className="text-[#888888] font-medium text-[13px] leading-relaxed">
+              {getStatusMessage(order.status).description}
+            </p>
+          </div>
 
-
-        {/* Status Dashboard */}
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white p-6 rounded-[2.5rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F5F5F5] flex flex-col items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-xl">sync</span>
-                <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest">Status</span>
-              </div>
-              <p className="text-lg font-black text-[#111111]">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#F5F5F5] flex flex-col items-center gap-2">
+              <span className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest">Status</span>
+              <p className="text-sm font-bold text-[#111111]">
                 {order.status === OrderStatus.PENDING ? 'Entrando' :
                   order.status === OrderStatus.RECEIVED ? 'Pendente' :
                     order.status === OrderStatus.PREPARING ? 'Preparando' :
                       order.status === OrderStatus.READY ? (order.orderType === OrderType.DELIVERY ? 'A caminho' : 'Pronto!') : 'Entregue'}
-
               </p>
             </div>
-            <div className="bg-white p-6 rounded-[2.5rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F5F5F5] flex flex-col items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-xl">list_alt</span>
-                <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest">Posição</span>
-              </div>
-              <p className="text-lg font-black text-[#111111] font-sans">
-                {order.status === OrderStatus.DELIVERED ? 'N/A' : `${order.queuePosition}º`}
-              </p>
+            <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#F5F5F5] flex flex-col items-center gap-2">
+              <span className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest">Posição</span>
+              <p className="text-sm font-bold text-[#111111]">{order.status === OrderStatus.DELIVERED ? 'N/A' : `${order.queuePosition}º`}</p>
             </div>
           </div>
 
-          {/* Timer Card */}
-          <div className="bg-secondary p-8 rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.15)] relative overflow-hidden group">
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 opacity-10 translate-x-1/4 group-hover:scale-110 transition-transform duration-[2s]">
-              <span className="material-symbols-outlined text-[180px] text-white select-none">timer</span>
-            </div>
-            <div className="relative z-10 space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-white text-xl">schedule</span>
-                <span className="text-[11px] font-black text-white/50 uppercase tracking-widest">Tempo Decorrido</span>
+          <div className="bg-secondary p-6 rounded-[2rem] shadow-lg relative overflow-hidden group">
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="space-y-1">
+                <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">Tempo Decorrido</span>
+                <p className="text-3xl font-black text-white tabular-nums tracking-tight">{formatTime(elapsedSeconds)}</p>
               </div>
-              <p className="text-5xl font-black text-white tabular-nums tracking-tight">{formatTime(elapsedSeconds)}</p>
+              <span className="material-symbols-outlined text-white/20 text-4xl">timer</span>
             </div>
           </div>
         </div>
 
-        {/* Info Blocks */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white/50 p-4 rounded-3xl border border-[#F5F5F5] flex items-center gap-4">
-            <div className="size-10 bg-red-50 rounded-2xl flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-primary text-xl">store</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-0.5">Local</p>
-              <p className="text-[11px] font-black text-[#111111] truncate">{company?.name || 'Carregando...'}</p>
-            </div>
-          </div>
-          <div className="bg-white/50 p-4 rounded-3xl border border-[#F5F5F5] flex items-center gap-4">
-            <div className="size-10 bg-red-50 rounded-2xl flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-primary text-xl">call</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-0.5">Contacto</p>
-              <p className="text-[11px] font-black text-[#111111] truncate">{order.customerPhone}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Shopping Section - Allow adding products in PENDING OR RECEIVED status */}
+        {/* Shopping Section with Carousel */}
         {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
-          <>
-            <div className="space-y-8">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-black text-[#111111] tracking-tight">O que deseja comprar?</h2>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-xl text-[10px] font-black text-secondary/60 uppercase tracking-widest">
-                    <span className="material-symbols-outlined text-sm">filter_list</span>
-                    Filtrar
-                  </div>
-                </div>
-
-                {/* Categories Filter Bar */}
-                <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-6 px-6">
-                  {categoryOptions.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setProductFilter(cat)}
-                      className={`px-6 py-3 rounded-2xl whitespace-nowrap text-[11px] font-black uppercase tracking-widest transition-all ${productFilter === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white border border-[#EEEEEE] text-[#BBBBBB] hover:border-primary/20 hover:text-primary'}`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {products
-                  .filter(p => productFilter === 'Todos' || p.category === productFilter)
-                  .map(p => (
-                    <div key={p.id} className="bg-white p-4 rounded-[2rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F8F9FA] flex items-center gap-4 group hover:border-primary/20 transition-all">
-                      <div className="size-20 rounded-2xl overflow-hidden bg-[#F8F9FA] shrink-0">
-                        <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-black text-[#111111] leading-snug mb-0.5">{p.name}</h3>
-                        {p.details && <p className="text-[10px] font-medium text-slate-400 mb-2 line-clamp-1 italic">{p.details}</p>}
-                        <p className="text-primary font-black text-base">Kz {p.price.toLocaleString()}</p>
-                      </div>
-                      <button
-                        onClick={() => addToCart(p)}
-                        disabled={checkoutStep === 2}
-                        className={`size-12 rounded-2xl shadow-lg transition-all flex items-center justify-center ${checkoutStep === 2 ? 'bg-[#EEEEEE] text-[#BBBBBB] cursor-not-allowed' : 'bg-primary text-white shadow-primary/20 hover:bg-primary/90 active:scale-95'}`}
-                      >
-                        <span className="material-symbols-outlined text-2xl">add</span>
-                      </button>
-                    </div>
-                  ))}
-
-                {products.filter(p => productFilter === 'Todos' || p.category === productFilter).length === 0 && (
-                  <div className="py-12 text-center bg-white rounded-[2rem] border-2 border-dashed border-slate-100">
-                    <span className="material-symbols-outlined text-4xl text-slate-200 mb-3">inventory_2</span>
-                    <p className="text-[11px] font-black text-[#BBBBBB] uppercase tracking-widest">Nenhum produto nesta categoria</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Cart Section */}
-            {cart.length > 0 && (
-              <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] border border-[#F5F5F5] p-8 space-y-8 animate-slide-up">
-                <div className="flex items-center justify-between border-b border-[#F5F5F5] pb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <div className="size-14 bg-secondary rounded-[1.25rem] flex items-center justify-center text-white">
-                        <span className="material-symbols-outlined text-2xl">shopping_bag</span>
-                      </div>
-                      <span className="absolute -top-2 -right-2 size-6 bg-primary text-white text-[10px] font-black rounded-lg flex items-center justify-center ring-4 ring-white">
-                        {cart.reduce((acc, item) => acc + item.quantity, 0)}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-black text-[#111111] tracking-tight">O Meu Pedido</h3>
-                      <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">Total: Kz {totalCart.toLocaleString()}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Items List */}
-                <div className="space-y-4">
-                  {cart.map((item, idx) => (
-                    <div key={`${item.id}-${idx}`} className="bg-[#FDFCFD] rounded-3xl border border-[#F5F5F5] p-5 space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center bg-white rounded-[1rem] p-1 border border-[#F5F5F5]">
-                            <button
-                              onClick={() => removeFromCart(item.id)}
-                              disabled={paymentMethod !== null}
-                              className={`size-8 rounded-lg flex items-center justify-center transition-colors ${paymentMethod ? 'text-[#EEEEEE] cursor-not-allowed' : 'text-[#BBBBBB] hover:text-primary'}`}
-                            >
-                              <span className="material-symbols-outlined text-lg">remove</span>
-                            </button>
-                            <span className="w-8 text-center font-black text-[#111111] text-sm">{item.quantity}</span>
-                            <button
-                              onClick={() => addToCart(item)}
-                              disabled={paymentMethod !== null}
-                              className={`size-8 rounded-lg flex items-center justify-center transition-all ${paymentMethod !== null ? 'text-[#EEEEEE] cursor-not-allowed' : 'text-[#BBBBBB] hover:text-primary'}`}
-                              title={paymentMethod !== null ? 'Aumento desativado após selecionar pagamento' : ''}
-                            >
-                              <span className="material-symbols-outlined text-lg">add</span>
-                            </button>
-                          </div>
-                          <span className="font-black text-sm text-[#111111]">{item.name}</span>
-                        </div>
-                        <button
-                          onClick={() => setCart(cart.filter((_, i) => i !== idx))}
-                          disabled={paymentMethod !== null}
-                          className={`transition-colors ${paymentMethod ? 'text-[#EEEEEE] cursor-not-allowed' : 'text-[#BBBBBB] hover:text-primary'}`}
-                        >
-                          <span className="material-symbols-outlined text-xl">close</span>
-                        </button>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Restrições or observações?"
-                        value={item.observation}
-                        onChange={(e) => updateObservation(idx, e.target.value)}
-                        className="w-full bg-white border border-[#F5F5F5] rounded-xl px-4 py-3 text-xs font-bold focus:border-primary outline-none transition-all placeholder:text-[#BBBBBB]/60"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
-
-                {checkoutStep === 1 ? (
+          <div className="flex-1 flex flex-col overflow-hidden min-h-0 bg-white border-t border-zinc-100">
+            {/* Category Navigation (Sticky) */}
+            <div className="flex-shrink-0 px-6 py-4 bg-white/80 backdrop-blur-xl border-b border-zinc-50 z-20">
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide justify-start">
+                {categoriesToDisplay.map((cat, idx) => (
                   <button
-                    onClick={() => {
-                      setCheckoutStep(2);
-                      const el = document.getElementById('checkout-target');
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="w-full h-16 bg-secondary text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg hover:bg-secondary/95 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    key={cat.id}
+                    onClick={() => scrollToCategory(idx)}
+                    className={`px-6 py-2.5 rounded-full whitespace-nowrap text-[10px] font-black uppercase tracking-widest transition-all ${activeCategoryIndex === idx ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-transparent border border-zinc-100 text-[#BBBBBB] hover:border-primary/20 hover:text-primary'}`}
                   >
-                    AVANÇAR PARA PAGAMENTO
-                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                    {cat.name}
                   </button>
-                ) : (
-                  <>
-                    <div id="checkout-target" className="space-y-6 scroll-mt-24">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Método de Pagamento</p>
-                          <button onClick={() => setCheckoutStep(1)} className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Voltar e Editar</button>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3">
-                          {[
-                            { id: 'CASH', label: 'CASH', icon: 'payments' },
-                            { id: 'TPA', label: 'TPA', icon: 'credit_card' },
-                            { id: 'TRANSFER', label: 'TRANSFER', icon: 'account_balance' }
-                          ].map((m) => (
-                            <button
-                              key={m.id}
-                              onClick={() => setPaymentMethod(prev => prev === m.id ? null : m.id as any)}
-                              className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${paymentMethod === m.id ? 'border-primary bg-red-50 text-primary' : 'border-[#F5F5F5] hover:border-primary/20 text-[#BBBBBB]'}`}
-                            >
-                              <span className="material-symbols-outlined text-2xl">{m.icon}</span>
-                              <span className="text-[10px] font-black">{m.label}</span>
-                            </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Horizontal Product Carousel */}
+            <div className="flex-1 overflow-hidden relative">
+              <div 
+                ref={scrollRef}
+                onScroll={onScroll}
+                className="size-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-0"
+                style={{ scrollBehavior: 'auto' }}
+              >
+                {categoriesToDisplay.map((cat) => {
+                  const catProducts = products.filter(p => p.category === cat.name);
+                  const isExpanded = expandedCategories.has(cat.name);
+                  const displayedProducts = isExpanded ? catProducts : catProducts.slice(0, 5);
+
+                  return (
+                    <div 
+                      key={cat.id} 
+                      className="min-w-full h-full snap-center px-4"
+                    >
+                      <div className="h-full flex flex-col">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                          {displayedProducts.map(p => (
+                            <div key={p.id} className="bg-white p-4 rounded-[1.5rem] shadow-sm border border-[#F8F9FA] flex items-center gap-4 group hover:border-primary/20 transition-all">
+                              <div className="size-16 rounded-xl overflow-hidden bg-[#F8F9FA] shrink-0">
+                                <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-[13px] font-black text-[#111111] leading-tight mb-0.5">{p.name}</h3>
+                                <p className="text-primary font-black text-[13px]">Kz {p.price.toLocaleString()}</p>
+                              </div>
+                              <button
+                                onClick={() => addToCart(p)}
+                                disabled={checkoutStep === 2}
+                                className="size-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/10 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+                              >
+                                <span className="material-symbols-outlined text-xl">add</span>
+                              </button>
+                            </div>
                           ))}
+
+                          {catProducts.length > 5 && (
+                            <button 
+                              onClick={() => toggleCategoryExpansion(cat.name)}
+                              className="w-full py-4 bg-zinc-50 rounded-2xl text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-100 transition-all flex items-center justify-center gap-2"
+                            >
+                              {isExpanded ? 'Ver Menos' : `Ver Mais (${catProducts.length - 5} itens)`}
+                              <span className="material-symbols-outlined text-sm">{isExpanded ? 'expand_less' : 'expand_more'}</span>
+                            </button>
+                          )}
                         </div>
                       </div>
-
-                      {paymentMethod === 'TRANSFER' && (
-                        <div className="space-y-6 animate-fade-in mb-4">
-                          {/* Dados Bancários do Parceiro */}
-                          {(company?.iban || company?.expressNumber || company?.kwikNumber) && (
-                            <div className="bg-slate-900 rounded-[2rem] p-8 space-y-4 shadow-xl">
-                              <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] font-sans">Dados Bancários para Pagamento</p>
-
-                              {company.iban && (
-                                <div className="space-y-1">
-                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">IBAN de Recebimento</p>
-                                  <p className="text-white font-black text-sm tracking-tight break-all font-mono bg-white/5 p-3 rounded-lg border border-white/10">{company.iban}</p>
-                                </div>
-                              )}
-
-                              <div className="grid grid-cols-2 gap-4">
-                                {company.expressNumber && (
-                                  <div className="space-y-1">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Número Express</p>
-                                    <p className="text-white font-black text-sm tracking-tight font-mono bg-white/5 p-3 rounded-lg border border-white/10">{company.expressNumber}</p>
-                                  </div>
-                                )}
-                                {company.kwikNumber && (
-                                  <div className="space-y-1">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Número Kwik</p>
-                                    <p className="text-white font-black text-sm tracking-tight font-mono bg-white/5 p-3 rounded-lg border border-white/10">{company.kwikNumber}</p>
-                                  </div>
-                                )}
-                              </div>
-                              <p className="text-[9px] font-bold text-slate-400 mt-2 italic">* Após a transferência, carregue o comprovativo PDF abaixo.</p>
-                            </div>
-                          )}
-
-                          <div className="space-y-3">
-                            <p className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] ml-1">Comprovativo Transferência (PDF)</p>
-                            <div className="relative">
-                              <input
-                                type="file"
-                                accept=".pdf"
-                                onChange={handleUploadProof}
-                                className="hidden"
-                                id="proof-upload"
-                                disabled={uploadingProof}
-                              />
-                              <label
-                                htmlFor="proof-upload"
-                                className={`w-full h-16 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 cursor-pointer transition-all ${paymentProofUrl ? 'border-green-500 bg-green-50 text-green-600' : 'border-[#E0E0E0] hover:border-primary/50 text-[#BBBBBB]'}`}
-                              >
-                                {uploadingProof ? (
-                                  <div className="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                                ) : paymentProofUrl ? (
-                                  <>
-                                    <span className="material-symbols-outlined">check_circle</span>
-                                    <span className="text-[11px] font-black uppercase tracking-widest">PDF CARREGADO</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="material-symbols-outlined">upload_file</span>
-                                    <span className="text-[11px] font-black uppercase tracking-widest">CARREGAR PDF</span>
-                                  </>
-                                )}
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
-
-                    <button
-                      onClick={handleFinishOrder}
-                      disabled={submittingOrder || !paymentMethod || (paymentMethod === 'TRANSFER' && !paymentProofUrl)}
-                      className="w-full h-16 bg-primary hover:bg-primary/95 text-white rounded-2xl font-black text-[13px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {submittingOrder ? (
-                        <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      ) : (
-                        <>
-                          <span className="material-symbols-outlined text-lg">check_circle</span>
-                          CONFIRMAR PEDIDO
-                        </>
-                      )}
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Existing Order Detail if items present */}
-        {(order.status !== OrderStatus.PENDING && order.items && order.items.length > 0) && (
-          <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] border border-[#F5F5F5] p-8 space-y-8 animate-fade-in">
-            <div className="flex items-center gap-4 border-b border-[#F5F5F5] pb-6">
-              <div className="size-14 bg-red-50 rounded-[1.25rem] flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-2xl">receipt_long</span>
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-[#111111] tracking-tight">Detalhes do Pedido</h3>
-                <p className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest mt-1">Pendente</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {order.items.map((item, i) => (
-                <div key={i} className="flex justify-between items-center py-2">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-black text-primary bg-red-50 px-2 py-1 rounded-lg">{item.quantity}x</span>
-                    <span className="font-bold text-sm text-[#111111]">{item.name}</span>
-                  </div>
-                  <span className="font-black text-sm text-secondary">Kz {(item.price * item.quantity).toLocaleString()}</span>
-                </div>
-              ))}
-              <div className="pt-4 mt-4 border-t border-[#F5F5F5] flex justify-between items-center">
-                <span className="text-[11px] font-black text-[#BBBBBB] uppercase tracking-widest">Total do Pedido</span>
-                <span className="text-2xl font-black text-primary tracking-tighter">Kz {order.total?.toLocaleString()}</span>
+                  );
+                })}
               </div>
             </div>
           </div>
         )}
 
-        {/* SMS Notification Banner */}
-        <div className="bg-red-50/50 p-8 rounded-[2.5rem] flex items-start gap-5 border border-red-100/30">
-          <div className="size-10 bg-primary rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
-            <span className="material-symbols-outlined text-white text-base">info</span>
+        {/* Existing Order Detail (Non-Shopping View) */}
+        {(order.status !== OrderStatus.PENDING && (!order.items || order.items.length === 0)) && (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+             <span className="material-symbols-outlined text-6xl text-zinc-100">restaurant</span>
+             <p className="text-zinc-400 font-medium text-sm">O seu pedido está a ser processado.</p>
           </div>
-          <p className="text-[#555555] text-sm font-medium leading-relaxed pt-1">
-            Iremos enviar-lhe uma notificação via SMS assim que o seu pedido estiver quase pronto.
-          </p>
-        </div>
+        )}
 
-        {/* Footer Actions */}
-        <div className="space-y-8 pt-6">
-          {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
-            <button
-              onClick={handleCancelOrder}
-              disabled={submittingOrder}
-              className="w-full h-16 border-2 border-[#F5F5F5] text-[#BBBBBB] hover:border-red-500 hover:text-red-500 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all shadow-sm active:scale-95 disabled:opacity-50"
-            >
-              CANCELAR ENTRADA
-            </button>
-          )}
+        {/* Footer Area with SMS Note and Actions */}
+        <div className="flex-shrink-0 bg-white border-t border-zinc-50 p-6 space-y-4 z-30">
+          <div className="bg-red-50/50 p-4 rounded-2xl flex items-start gap-3 border border-red-100/30">
+            <span className="material-symbols-outlined text-primary text-sm mt-0.5">info</span>
+            <p className="text-[#555555] text-[11px] font-medium leading-relaxed">
+              Receberá avisos por SMS sobre o estado do seu pedido.
+            </p>
+          </div>
 
-          {order.status === OrderStatus.DELIVERED && (
+          <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => {
+                if (order.status !== OrderStatus.DELIVERED && order.status !== OrderStatus.CANCELLED) {
+                  if (!confirm('Deseja realmente encerrar a sessão e sair da fila?')) return;
+                }
                 localStorage.removeItem('kwikfood_active_order');
-                onNewOrder(company || undefined, order.customerPhone);
+                onNewOrder();
               }}
-              className="w-full h-16 bg-primary text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="flex items-center justify-center gap-2 text-[#E31B44] bg-red-50 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest"
             >
-              <span className="material-symbols-outlined text-lg">add_circle</span>
-              FAZER UM NOVO PEDIDO
+              <span className="material-symbols-outlined text-lg">logout</span>
+              Sair
             </button>
-          )}
-
-          {/* Botão Encerrar Sessão sempre visível */}
-          <button
-            onClick={() => {
-              if (order.status !== OrderStatus.DELIVERED && order.status !== OrderStatus.CANCELLED) {
-                if (!confirm('Você tem um pedido ativo em andamento. Deseja realmente encerrar a sessão e sair da fila?')) return;
-              }
-              localStorage.removeItem('kwikfood_active_order');
-              onNewOrder();
-            }}
-            className="w-full h-10 flex items-center justify-center gap-2 text-[#E31B44] hover:opacity-80 transition-all font-black text-[13px]"
-          >
-            <span className="material-symbols-outlined text-lg">logout</span>
-            Encerrar Sessão
-          </button>
-        </div>
-
-        <div className="text-center space-y-2 pt-10">
-          <p className="text-[10px] font-black text-primary/30 uppercase tracking-[0.4em]">PREMIUM QUEUE SYSTEM</p>
-          <p className="text-[10px] text-[#BBBBBB] font-black uppercase tracking-widest">
-            © {new Date().getFullYear()} <span className="text-[#E31B44]">KwikFood Angola</span>.<br />
-            Todos os direitos reservados.
-          </p>
+            {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
+              <button
+                onClick={handleCancelOrder}
+                disabled={submittingOrder}
+                className="flex items-center justify-center gap-2 bg-zinc-900 text-white py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest"
+              >
+                CANCELAR
+              </button>
+            )}
+          </div>
         </div>
       </main>
 
+      {/* Cart Modal Overlay (If items present) */}
+      {cart.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 bg-white shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.15)] border-t border-zinc-100 p-6 z-[100] animate-slide-up rounded-t-[2.5rem]">
+           <div className="max-w-xl mx-auto flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                 <div className="size-10 bg-secondary rounded-xl flex items-center justify-center text-white">
+                    <span className="material-symbols-outlined text-xl">shopping_cart</span>
+                 </div>
+                 <div>
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none">Subtotal</p>
+                    <p className="text-lg font-black text-secondary">Kz {totalCart.toLocaleString()}</p>
+                 </div>
+              </div>
+              <button onClick={() => setCheckoutStep(checkoutStep === 1 ? 2 : 1)} className="text-[10px] font-black text-primary uppercase tracking-widest">
+                 {checkoutStep === 1 ? 'Pagar' : 'Voltar'}
+              </button>
+           </div>
+           <button 
+             onClick={handleFinishOrder} 
+             disabled={submittingOrder || (checkoutStep === 2 && !paymentMethod)}
+             className="w-full py-4 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"
+           >
+             {submittingOrder ? 'Processando...' : checkoutStep === 1 ? 'CONCLUIR ADIÇÃO' : 'CONFIRMAR PAGAMENTO'}
+           </button>
+        </div>
+      )}
       {/* Floating Notification Button (Discreet) */}
       <div className="fixed bottom-8 left-8 z-[150] flex flex-col gap-3">
         {notificationPermission !== 'granted' ? (
@@ -852,7 +649,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           </button>
         )}
       </div>
-    </div >
+    </div>
   );
 };
 
