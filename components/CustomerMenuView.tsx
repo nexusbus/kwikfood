@@ -150,9 +150,9 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-primary/20">
+    <div className="h-screen bg-[#FAFAFA] font-sans selection:bg-primary/20 flex flex-col overflow-hidden">
       {/* Premium Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-zinc-100 px-6 py-4">
+      <header className="flex-shrink-0 bg-white/80 backdrop-blur-xl border-b border-zinc-100 px-6 py-4 z-50">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <button 
             onClick={onBack}
@@ -172,143 +172,153 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-10 space-y-10">
-        {/* Central Search Bar */}
-        <section className="text-center space-y-6">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl font-black text-secondary leading-tight mb-2">
-              O que vamos <span className="text-primary">pedir hoje?</span>
-            </h2>
-            <div className="relative group">
-              <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-primary transition-colors">search</span>
-              <input 
-                type="text"
-                placeholder="Pesquisar no cardápio..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-16 bg-white border-2 border-zinc-100 rounded-[2rem] pl-14 pr-6 font-bold text-secondary outline-none focus:border-primary/30 transition-all shadow-sm"
-              />
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="max-w-4xl w-full mx-auto flex-1 flex flex-col overflow-hidden">
+          {/* Search & Categories (Static) */}
+          <div className="px-6 py-8 space-y-6 flex-shrink-0">
+            <div className="max-w-2xl mx-auto text-center">
+              <h2 className="text-3xl font-black text-secondary leading-tight mb-2">
+                O que vamos <span className="text-primary">pedir hoje?</span>
+              </h2>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-primary transition-colors">search</span>
+                <input 
+                  type="text"
+                  placeholder="Pesquisar no cardápio..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full h-14 bg-white border-2 border-zinc-100 rounded-[2rem] pl-14 pr-6 font-bold text-secondary outline-none focus:border-primary/30 transition-all shadow-sm"
+                />
+              </div>
+            </div>
+
+            {/* Categories Pills */}
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide justify-center">
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setSelectedCategory(cat.name);
+                    const element = document.getElementById(`category-${cat.id}`);
+                    element?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                  }}
+                  className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat.name ? 'bg-secondary text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-primary/20'}`}
+                >
+                  {cat.name}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Categories Pills */}
-          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide justify-center sticky top-0 bg-[#FAFAFA]/80 backdrop-blur-md py-4 z-20">
-            {categories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setSelectedCategory(cat.name);
-                  const element = document.getElementById(`category-${cat.id}`);
-                  element?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          {/* Horizontal Category Carousel (Flexible & Scrollable Area) */}
+          <div className="flex-1 overflow-hidden relative">
+            {loading ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                <div className="size-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin"></div>
+                <p className="text-zinc-400 font-bold text-xs uppercase tracking-widest">Carregando...</p>
+              </div>
+            ) : (
+              <div 
+                ref={scrollRef}
+                className="size-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-0"
+                onScroll={(e) => {
+                  const container = e.currentTarget;
+                  const scrollLeft = container.scrollLeft;
+                  const width = container.offsetWidth;
+                  const index = Math.round(scrollLeft / width);
+                  if (categories[index] && selectedCategory !== categories[index].name) {
+                    setSelectedCategory(categories[index].name);
+                  }
                 }}
-                className={`px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat.name ? 'bg-secondary text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-primary/20'}`}
               >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        </section>
+                {categories.map(cat => {
+                  const categoryProducts = products.filter(p => 
+                    p.category === cat.name && 
+                    (p.name.toLowerCase().includes(search.toLowerCase()) || 
+                     (p.details && p.details.toLowerCase().includes(search.toLowerCase())))
+                  );
+                  
+                  if (search && categoryProducts.length === 0) return null;
+                  
+                  const isExpanded = expandedCategories.has(cat.id);
+                  const displayedProducts = isExpanded ? categoryProducts : categoryProducts.slice(0, 5);
 
-        {/* Horizontal Category Carousel */}
-        {loading ? (
-          <div className="flex flex-col items-center py-20 gap-4">
-            <div className="size-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin"></div>
-            <p className="text-zinc-400 font-bold text-xs uppercase tracking-widest">Carregando delícias...</p>
-          </div>
-        ) : (
-          <div 
-            ref={scrollRef}
-            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-8 pb-10"
-            onScroll={(e) => {
-              const container = e.currentTarget;
-              const scrollLeft = container.scrollLeft;
-              const width = container.offsetWidth;
-              const index = Math.round(scrollLeft / width);
-              if (categories[index] && selectedCategory !== categories[index].name) {
-                setSelectedCategory(categories[index].name);
-              }
-            }}
-          >
-            {categories.map(cat => {
-              const categoryProducts = products.filter(p => 
-                p.category === cat.name && 
-                (p.name.toLowerCase().includes(search.toLowerCase()) || 
-                 (p.details && p.details.toLowerCase().includes(search.toLowerCase())))
-              );
-              
-              if (search && categoryProducts.length === 0) return null;
-              
-              const isExpanded = expandedCategories.has(cat.id);
-              const displayedProducts = isExpanded ? categoryProducts : categoryProducts.slice(0, 5);
+                  return (
+                    <div 
+                      key={cat.id} 
+                      id={`category-${cat.id}`}
+                      className="min-w-full h-full snap-center px-6"
+                    >
+                      <div className="bg-white rounded-[3rem] h-full flex flex-col shadow-sm border border-zinc-100 overflow-hidden">
+                        {/* Slide Header */}
+                        <div className="flex items-center justify-between border-b border-zinc-50 p-6 flex-shrink-0 bg-white">
+                          <h3 className="text-xl font-black text-secondary italic">
+                            <span className="text-primary mr-2">/</span>{cat.name}
+                          </h3>
+                          <span className="bg-zinc-50 px-3 py-1 rounded-full text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                            {categoryProducts.length} itens
+                          </span>
+                        </div>
 
-              return (
-                <div 
-                  key={cat.id} 
-                  id={`category-${cat.id}`}
-                  className="min-w-full snap-center px-2"
-                >
-                  <div className="bg-white rounded-[3rem] p-8 shadow-sm border border-zinc-100 space-y-8 min-h-[400px]">
-                    <div className="flex items-center justify-between border-b border-zinc-50 pb-6">
-                      <h3 className="text-2xl font-black text-secondary italic">
-                        <span className="text-primary mr-2">/</span>{cat.name}
-                      </h3>
-                      <span className="bg-zinc-50 px-4 py-1.5 rounded-full text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                        {categoryProducts.length} itens
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {displayedProducts.map(product => (
-                        <button
-                          key={product.id}
-                          onClick={() => handleOpenCustomization(product)}
-                          className="group flex gap-4 text-left p-2 rounded-3xl hover:bg-zinc-50 transition-all"
-                        >
-                          <div className="size-20 rounded-2xl overflow-hidden bg-zinc-50 flex-shrink-0">
-                            <img 
-                              src={product.imageUrl} 
-                              alt={product.name} 
-                              className="size-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
+                        {/* List Area (Scrollable within Slide) */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {displayedProducts.map(product => (
+                              <button
+                                key={product.id}
+                                onClick={() => handleOpenCustomization(product)}
+                                className="group flex gap-4 text-left p-3 rounded-2xl hover:bg-zinc-50 transition-all border border-transparent hover:border-zinc-100"
+                              >
+                                <div className="size-20 rounded-xl overflow-hidden bg-zinc-50 flex-shrink-0">
+                                  <img 
+                                    src={product.imageUrl} 
+                                    alt={product.name} 
+                                    className="size-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  />
+                                </div>
+                                <div className="flex-1 py-0.5">
+                                  <h4 className="font-bold text-sm text-secondary group-hover:text-primary transition-colors line-clamp-1">{product.name}</h4>
+                                  <p className="text-[10px] text-zinc-400 font-medium mt-0.5 line-clamp-2 italic leading-tight">{product.details}</p>
+                                  <div className="mt-2 flex items-center justify-between">
+                                    <span className="font-black text-primary text-xs">{product.price.toLocaleString()} Kz</span>
+                                    <div className="size-6 bg-primary/10 rounded-lg flex items-center justify-center text-primary opacity-0 group-hover:opacity-100 transition-all">
+                                      <span className="material-symbols-outlined text-sm">add</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
                           </div>
-                          <div className="flex-1 py-1">
-                            <h4 className="font-bold text-secondary group-hover:text-primary transition-colors line-clamp-1">{product.name}</h4>
-                            <p className="text-[10px] text-zinc-400 font-medium mt-0.5 line-clamp-1 italic">{product.details}</p>
-                            <div className="mt-2 flex items-center justify-between">
-                              <span className="font-black text-primary text-sm">{product.price.toLocaleString()} Kz</span>
-                              <span className="material-symbols-outlined text-zinc-200 text-sm group-hover:text-primary transition-colors">add_circle</span>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
+
+                          {categoryProducts.length > 5 && (
+                            <button
+                              onClick={() => {
+                                const newExpanded = new Set(expandedCategories);
+                                if (isExpanded) newExpanded.delete(cat.id);
+                                else newExpanded.add(cat.id);
+                                setExpandedCategories(newExpanded);
+                              }}
+                              className="w-full py-4 border-2 border-dashed border-zinc-50 rounded-2xl text-[9px] font-black text-zinc-300 uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all mb-4"
+                            >
+                              {isExpanded ? 'Ver Menos' : `Expandir Lista (+${categoryProducts.length - 5})`}
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-
-                    {categoryProducts.length > 5 && (
-                      <button
-                        onClick={() => {
-                          const newExpanded = new Set(expandedCategories);
-                          if (isExpanded) newExpanded.delete(cat.id);
-                          else newExpanded.add(cat.id);
-                          setExpandedCategories(newExpanded);
-                        }}
-                        className="w-full py-4 border-2 border-dashed border-zinc-100 rounded-2xl text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all"
-                      >
-                        {isExpanded ? 'Ver Menos' : `Ver Mais (+${categoryProducts.length - 5})`}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
-      </main>
+        </div>
 
-      {/* Footer Info */}
-      <footer className="text-center py-20 pb-20 space-y-4">
-        <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.4em]">KwikFood Angola • Experiência Premium</p>
-        <div className="size-2 bg-primary/20 rounded-full mx-auto"></div>
-      </footer>
+          {/* Footer Info (Small) */}
+          <footer className="text-center py-4 bg-white/50 border-t border-zinc-50 flex-shrink-0">
+            <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.4em]">KwikFood Angola • Premium Experience</p>
+          </footer>
+        </div>
 
       {/* Product Customization Modal */}
       {isCustomizing && selectedProduct && (
