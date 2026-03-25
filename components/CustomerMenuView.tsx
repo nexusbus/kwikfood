@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Category, Company, ProductStatus } from '../types';
+import { Product, Category, Company, ProductStatus, Order, OrderStatus } from '../types';
+import { createOrder } from '../constants';
 import { supabase } from '../src/lib/supabase';
 import Logo from './Logo';
 
 interface CustomerMenuViewProps {
   company: Company;
   onBack: () => void;
+  onJoinQueue: (order: Order) => void;
   onSelectItem?: (product: Product) => void;
 }
 
-const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, onSelectItem }) => {
+const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, onJoinQueue, onSelectItem }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
@@ -432,10 +434,30 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                 </button>
               </div>
               <button 
-                onClick={() => {
-                  // TODO: Add to cart logic integration
-                  alert(`Adicionado ao pedido: ${quantity}x ${selectedProduct.name}`);
-                  setIsCustomizing(false);
+                onClick={async () => {
+                  try {
+                    const newOrder = await createOrder({
+                      companyId: company.id,
+                      customerPhone: localStorage.getItem('kwikfood_phone') || '',
+                      status: OrderStatus.RECEIVED,
+                      items: [{
+                        ...selectedProduct,
+                        quantity: quantity,
+                        observation: Object.entries(selectedExtras).map(([gid, ids]) => {
+                          const group = selectedProduct.accompanimentGroups?.find(g => g.id === gid);
+                          return (ids as string[]).map(id => group?.items?.find(i => i.id === id)?.name).join(', ');
+                        }).join(' | ')
+                      }],
+                      total: calculateTotal(),
+                      queuePosition: 1,
+                      estimatedMinutes: 5
+                    });
+                    onJoinQueue(newOrder);
+                    setIsCustomizing(false);
+                  } catch (err) {
+                    console.error("Order failed:", err);
+                    alert("Erro ao processar pedido. Verifique sua conexão.");
+                  }
                 }}
                 className="flex-1 w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] flex items-center justify-between px-8 hover:bg-secondary transition-all shadow-xl shadow-rose-200"
               >
