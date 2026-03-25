@@ -430,9 +430,9 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   };
 
   return (
-    <div className="fixed inset-0 bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/10 overflow-hidden z-[60]">
+    <div className="min-h-screen bg-[#FDFCFD] flex flex-col font-sans selection:bg-primary/10 overflow-x-hidden pb-32">
       {/* Header */}
-      <header className="flex-shrink-0 w-full px-6 py-6 flex justify-between items-center bg-white border-b border-[#F5F5F5] z-[70]">
+      <header className="w-full max-w-5xl mx-auto px-6 py-6 flex justify-between items-center bg-white sticky top-0 z-[100] border-b border-[#F5F5F5]">
         <div className="flex items-center gap-3">
           <Logo variant="icon" size={32} />
           <span className="text-xl font-black tracking-tight text-[#111111]">KwikFood</span>
@@ -442,100 +442,129 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
         </div>
       </header>
 
-      {/* Main Content - Fixed Height Flex Container */}
-      <main className="flex-1 flex flex-col overflow-hidden w-full max-w-5xl mx-auto min-h-0">
-        
-        {/* Top Scrollable Info Area (Status & Timer) */}
-        <div className="flex-shrink-0 overflow-y-auto max-h-[35vh] px-6 py-4 space-y-6 custom-scrollbar bg-white/30">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-black text-[#111111] tracking-tight leading-tight">
-              {getStatusMessage(order.status).title}
-            </h1>
-            <p className="text-[#888888] font-medium text-[13px] leading-relaxed">
-              {getStatusMessage(order.status).description}
-            </p>
-          </div>
+      {/* Main Content - Vertical Scrolling Page */}
+      <main className="flex-1 w-full max-w-[480px] mx-auto px-6 py-10 space-y-10">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-black text-[#111111] tracking-tight animate-fade-in leading-tight">
+            {getStatusMessage(order.status).title}
+          </h1>
+          <p className="text-[#555555] font-medium text-[15px] animate-fade-in leading-relaxed">
+            {getStatusMessage(order.status).description}
+          </p>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#F5F5F5] flex flex-col items-center gap-2">
-              <span className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest">Status</span>
-              <p className="text-sm font-bold text-[#111111]">
+        {/* Status Dashboard */}
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white p-6 rounded-[2.5rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F5F5F5] flex flex-col items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">sync</span>
+                <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest">Status</span>
+              </div>
+              <p className="text-lg font-black text-[#111111]">
                 {order.status === OrderStatus.PENDING ? 'Entrando' :
                   order.status === OrderStatus.RECEIVED ? 'Pendente' :
                     order.status === OrderStatus.PREPARING ? 'Preparando' :
                       order.status === OrderStatus.READY ? (order.orderType === OrderType.DELIVERY ? 'A caminho' : 'Pronto!') : 'Entregue'}
               </p>
             </div>
-            <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#F5F5F5] flex flex-col items-center gap-2">
-              <span className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest">Posição</span>
-              <p className="text-sm font-bold text-[#111111]">{order.status === OrderStatus.DELIVERED ? 'N/A' : `${order.queuePosition}º`}</p>
+            <div className="bg-white p-6 rounded-[2.5rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F5F5F5] flex flex-col items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">list_alt</span>
+                <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest">Posição</span>
+              </div>
+              <p className="text-lg font-black text-[#111111]">{order.status === OrderStatus.DELIVERED ? 'N/A' : `${order.queuePosition}º`}</p>
             </div>
           </div>
 
-          <div className="bg-secondary p-6 rounded-[2rem] shadow-lg relative overflow-hidden group">
-            <div className="relative z-10 flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">Tempo Decorrido</span>
-                <p className="text-3xl font-black text-white tabular-nums tracking-tight">{formatTime(elapsedSeconds)}</p>
+          <div className="bg-secondary p-8 rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.15)] relative overflow-hidden group">
+            <div className="relative z-10 space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-white text-xl">schedule</span>
+                <span className="text-[11px] font-black text-white/50 uppercase tracking-widest">Tempo Decorrido</span>
               </div>
-              <span className="material-symbols-outlined text-white/20 text-4xl">timer</span>
+              <p className="text-5xl font-black text-white tabular-nums tracking-tight">{formatTime(elapsedSeconds)}</p>
+            </div>
+            <span className="absolute top-1/2 right-0 -translate-y-1/2 opacity-10 translate-x-1/4 material-symbols-outlined text-[180px] text-white">timer</span>
+          </div>
+        </div>
+
+        {/* Info Blocks */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white/50 p-4 rounded-3xl border border-[#F5F5F5] flex items-center gap-4">
+            <div className="size-10 bg-red-50 rounded-2xl flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-primary text-xl">store</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-0.5">Local</p>
+              <p className="text-[11px] font-black text-[#111111] truncate">{company?.name || 'Carregando...'}</p>
+            </div>
+          </div>
+          <div className="bg-white/50 p-4 rounded-3xl border border-[#F5F5F5] flex items-center gap-4">
+            <div className="size-10 bg-red-50 rounded-2xl flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-primary text-xl">call</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-0.5">Contacto</p>
+              <p className="text-[11px] font-black text-[#111111] truncate">{order.customerPhone}</p>
             </div>
           </div>
         </div>
 
-        {/* Shopping Section with Carousel */}
+        {/* Shopping Section with Carousel (Hybrid: Horizontal Swipe inside Vertical Page) */}
         {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
-          <div className="flex-1 flex flex-col overflow-hidden min-h-0 bg-white border-t border-zinc-100">
-            {/* Category Navigation (Sticky) */}
-            <div className="flex-shrink-0 px-6 py-4 bg-white/80 backdrop-blur-xl border-b border-zinc-50 z-20">
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide justify-start">
-                {categoriesToDisplay.map((cat, idx) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => scrollToCategory(idx)}
-                    className={`px-6 py-2.5 rounded-full whitespace-nowrap text-[10px] font-black uppercase tracking-widest transition-all ${activeCategoryIndex === idx ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-transparent border border-zinc-100 text-[#BBBBBB] hover:border-primary/20 hover:text-primary'}`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Horizontal Product Carousel */}
-            <div className="flex-1 overflow-hidden relative">
-              <div 
-                ref={scrollRef}
-                onScroll={onScroll}
-                className="size-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-0"
-                style={{ scrollBehavior: 'auto' }}
-              >
-                {categoriesToDisplay.map((cat) => {
-                  const catProducts = products.filter(p => p.category === cat.name);
-                  const isExpanded = expandedCategories.has(cat.name);
-                  const displayedProducts = isExpanded ? catProducts : catProducts.slice(0, 5);
-
-                  return (
-                    <div 
-                      key={cat.id} 
-                      className="min-w-full h-full snap-center px-4"
+          <div className="space-y-6">
+            <h2 className="text-2xl font-black text-[#111111] tracking-tight">O que deseja comprar?</h2>
+            
+            <div className="bg-white rounded-[2.5rem] border border-[#F5F5F5] overflow-hidden shadow-sm flex flex-col min-h-[500px] h-[600px]">
+              {/* Category Navigation (Horizontal) */}
+              <div className="px-6 py-4 bg-white border-b border-zinc-50 z-20 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-3 justify-start">
+                  {categoriesToDisplay.map((cat, idx) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => scrollToCategory(idx)}
+                      className={`px-6 py-2.5 rounded-2xl whitespace-nowrap text-[10px] font-black uppercase tracking-widest transition-all ${activeCategoryIndex === idx ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-transparent border border-zinc-100 text-[#BBBBBB] hover:border-primary/20 hover:text-primary'}`}
                     >
-                      <div className="h-full flex flex-col">
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Horizontal Product Carousel */}
+              <div className="flex-1 overflow-hidden relative">
+                <div 
+                  ref={scrollRef}
+                  onScroll={onScroll}
+                  className="size-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-0"
+                >
+                  {categoriesToDisplay.map((cat) => {
+                    const catProducts = products.filter(p => p.category === cat.name);
+                    const isExpanded = expandedCategories.has(cat.name);
+                    const displayedProducts = isExpanded ? catProducts : catProducts.slice(0, 5);
+
+                    return (
+                      <div 
+                        key={cat.id} 
+                        className="min-w-full h-full snap-center"
+                      >
+                        <div className="h-full overflow-y-auto p-6 space-y-6 custom-scrollbar">
                           {displayedProducts.map(p => (
-                            <div key={p.id} className="bg-white p-4 rounded-[1.5rem] shadow-sm border border-[#F8F9FA] flex items-center gap-4 group hover:border-primary/20 transition-all">
-                              <div className="size-16 rounded-xl overflow-hidden bg-[#F8F9FA] shrink-0">
+                            <div key={p.id} className="bg-white p-5 rounded-[2rem] shadow-[0_5px_20px_-5px_rgba(0,0,0,0.05)] border border-[#F8F9FA] flex items-center gap-5 group hover:border-primary/20 transition-all opacity-0 animate-fade-in fill-mode-forwards">
+                              <div className="size-20 rounded-3xl overflow-hidden bg-[#F8F9FA] shrink-0 shadow-inner">
                                 <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-[13px] font-black text-[#111111] leading-tight mb-0.5">{p.name}</h3>
-                                <p className="text-primary font-black text-[13px]">Kz {p.price.toLocaleString()}</p>
+                                <h3 className="text-base font-black text-[#111111] leading-tight mb-1">{p.name}</h3>
+                                <p className="text-primary font-black text-base">Kz {p.price.toLocaleString()}</p>
                               </div>
                               <button
                                 onClick={() => addToCart(p)}
                                 disabled={checkoutStep === 2}
-                                className="size-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/10 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+                                className="size-14 rounded-[1.25rem] bg-primary text-white shadow-[0_10px_20px_-5px_rgba(227,27,68,0.3)] flex items-center justify-center hover:bg-primary/90 active:scale-90 transition-all"
                               >
-                                <span className="material-symbols-outlined text-xl">add</span>
+                                <span className="material-symbols-outlined text-3xl">add</span>
                               </button>
                             </div>
                           ))}
@@ -543,7 +572,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                           {catProducts.length > 5 && (
                             <button 
                               onClick={() => toggleCategoryExpansion(cat.name)}
-                              className="w-full py-4 bg-zinc-50 rounded-2xl text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-100 transition-all flex items-center justify-center gap-2"
+                              className="w-full py-5 bg-zinc-50 rounded-3xl text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-100 transition-all flex items-center justify-center gap-2"
                             >
                               {isExpanded ? 'Ver Menos' : `Ver Mais (${catProducts.length - 5} itens)`}
                               <span className="material-symbols-outlined text-sm">{isExpanded ? 'expand_less' : 'expand_more'}</span>
@@ -551,32 +580,54 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                           )}
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Existing Order Detail (Non-Shopping View) */}
-        {(order.status !== OrderStatus.PENDING && (!order.items || order.items.length === 0)) && (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-             <span className="material-symbols-outlined text-6xl text-zinc-100">restaurant</span>
-             <p className="text-zinc-400 font-medium text-sm">O seu pedido está a ser processado.</p>
+        {/* Existing Order Detail if items present */}
+        {(order.status !== OrderStatus.PENDING && order.items && order.items.length > 0) && (
+          <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] border border-[#F5F5F5] p-8 space-y-8 animate-fade-in">
+            <div className="flex items-center gap-4 border-b border-[#F5F5F5] pb-6">
+              <div className="size-14 bg-red-50 rounded-[1.25rem] flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-2xl">receipt_long</span>
+              </div>
+              <h3 className="text-xl font-black text-[#111111] tracking-tight">Detalhes do Pedido</h3>
+            </div>
+            <div className="space-y-4">
+              {order.items.map((item, i) => (
+                <div key={i} className="flex justify-between items-center py-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-black text-primary bg-red-50 px-2 py-1 rounded-lg">{item.quantity}x</span>
+                    <span className="font-bold text-sm text-[#111111]">{item.name}</span>
+                  </div>
+                  <span className="font-black text-sm text-secondary">Kz {(item.price * item.quantity).toLocaleString()}</span>
+                </div>
+              ))}
+              <div className="pt-4 mt-4 border-t border-[#F5F5F5] flex justify-between items-center">
+                <span className="text-[11px] font-black text-[#BBBBBB] uppercase tracking-widest">Total</span>
+                <span className="text-2xl font-black text-primary tracking-tighter">Kz {order.total?.toLocaleString()}</span>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Footer Area with SMS Note and Actions */}
-        <div className="flex-shrink-0 bg-white border-t border-zinc-50 p-6 space-y-4 z-30">
-          <div className="bg-red-50/50 p-4 rounded-2xl flex items-start gap-3 border border-red-100/30">
-            <span className="material-symbols-outlined text-primary text-sm mt-0.5">info</span>
-            <p className="text-[#555555] text-[11px] font-medium leading-relaxed">
-              Receberá avisos por SMS sobre o estado do seu pedido.
-            </p>
+        {/* SMS Notification Banner */}
+        <div className="bg-red-50/50 p-8 rounded-[2.5rem] flex items-start gap-5 border border-red-100/30">
+          <div className="size-10 bg-primary rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
+            <span className="material-symbols-outlined text-white text-base">info</span>
           </div>
+          <p className="text-[#555555] text-sm font-medium leading-relaxed pt-1">
+            Receberá avisos por SMS sobre o estado do seu pedido.
+          </p>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
+        {/* Footer Actions (Standard scrolling section) */}
+        <div className="space-y-6 pt-6">
+          <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => {
                 if (order.status !== OrderStatus.DELIVERED && order.status !== OrderStatus.CANCELLED) {
@@ -585,7 +636,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                 localStorage.removeItem('kwikfood_active_order');
                 onNewOrder();
               }}
-              className="flex items-center justify-center gap-2 text-[#E31B44] bg-red-50 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest"
+              className="flex items-center justify-center gap-2 text-[#E31B44] bg-red-50 py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all active:scale-95"
             >
               <span className="material-symbols-outlined text-lg">logout</span>
               Sair
@@ -594,11 +645,16 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               <button
                 onClick={handleCancelOrder}
                 disabled={submittingOrder}
-                className="flex items-center justify-center gap-2 bg-zinc-900 text-white py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest"
+                className="flex items-center justify-center gap-2 bg-zinc-900 text-white py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all active:scale-95"
               >
                 CANCELAR
               </button>
             )}
+          </div>
+          
+          <div className="text-center space-y-2 pt-6">
+            <p className="text-[10px] font-black text-primary/30 uppercase tracking-[0.4em]">PREMIUM QUEUE SYSTEM</p>
+            <p className="text-[10px] text-[#BBBBBB] font-black uppercase tracking-widest">© {new Date().getFullYear()} KwikFood Angola</p>
           </div>
         </div>
       </main>
@@ -623,19 +679,19 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
            <button 
              onClick={handleFinishOrder} 
              disabled={submittingOrder || (checkoutStep === 2 && !paymentMethod)}
-             className="w-full py-4 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"
+             className="w-full py-5 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"
            >
-             {submittingOrder ? 'Processando...' : checkoutStep === 1 ? 'CONCLUIR ADIÇÃO' : 'CONFIRMAR PAGAMENTO'}
+             {submittingOrder ? 'Processando...' : checkoutStep === 1 ? 'ADICIONAR AO PEDIDO' : 'CONFIRMAR PAGAMENTO'}
            </button>
         </div>
       )}
+
       {/* Floating Notification Button (Discreet) */}
       <div className="fixed bottom-8 left-8 z-[150] flex flex-col gap-3">
         {notificationPermission !== 'granted' ? (
           <button
             onClick={handleRequestPermission}
             className="size-14 bg-white border border-[#F5F5F5] text-primary rounded-2xl shadow-premium hover:shadow-2xl transition-all flex items-center justify-center animate-bounce-soft"
-            title="Ativar Notificações"
           >
             <span className="material-symbols-outlined text-2xl">notifications_active</span>
           </button>
@@ -643,7 +699,6 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           <button
             onClick={handleTestNotification}
             className="size-14 bg-white/80 backdrop-blur-md border border-[#F5F5F5] text-secondary rounded-2xl shadow-premium hover:shadow-2xl transition-all flex items-center justify-center"
-            title="Testar Alerta"
           >
             <span className="material-symbols-outlined text-2xl">vibration</span>
           </button>
