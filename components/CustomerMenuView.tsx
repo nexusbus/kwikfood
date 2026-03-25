@@ -13,13 +13,15 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [customizationLoading, setCustomizationLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<Record<string, string[]>>({});
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadMenu = async () => {
@@ -32,7 +34,11 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
         .eq('company_id', company.id)
         .order('sort_order', { ascending: true });
       
-      if (catData) setCategories(catData.map(c => ({ ...c, companyId: c.company_id, sortOrder: c.sort_order })));
+      if (catData) {
+        const mappedCats = catData.map(c => ({ ...c, companyId: c.company_id, sortOrder: c.sort_order }));
+        setCategories(mappedCats);
+        if (mappedCats.length > 0) setSelectedCategory(mappedCats[0].name);
+      }
 
       // Load Products
       const { data: prodData } = await supabase
@@ -78,14 +84,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
     };
   }, [company.id]);
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
-                         (p.details && p.details.toLowerCase().includes(search.toLowerCase()));
-    const matchesCategory = selectedCategory === 'Todos' || p.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const categoryOptions = ['Todos', ...categories.map(c => c.name)];
+  // Removed old filteredProducts logic
 
   const handleOpenCustomization = async (product: Product) => {
     setSelectedProduct(product);
@@ -193,63 +192,114 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
           </div>
 
           {/* Categories Pills */}
-          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide justify-center">
-            {categoryOptions.map(cat => (
+          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide justify-center sticky top-0 bg-[#FAFAFA]/80 backdrop-blur-md py-4 z-20">
+            {categories.map(cat => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-secondary text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-primary/20'}`}
+                key={cat.id}
+                onClick={() => {
+                  setSelectedCategory(cat.name);
+                  const element = document.getElementById(`category-${cat.id}`);
+                  element?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }}
+                className={`px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat.name ? 'bg-secondary text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-primary/20'}`}
               >
-                {cat}
+                {cat.name}
               </button>
             ))}
           </div>
         </section>
 
-        {/* Products Grid */}
+        {/* Horizontal Category Carousel */}
         {loading ? (
           <div className="flex flex-col items-center py-20 gap-4">
             <div className="size-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin"></div>
             <p className="text-zinc-400 font-bold text-xs uppercase tracking-widest">Carregando delícias...</p>
           </div>
-        ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredProducts.map(product => (
-              <button
-                key={product.id}
-                onClick={() => handleOpenCustomization(product)}
-                className="group bg-white p-4 rounded-[2.5rem] border border-zinc-100 shadow-sm hover:shadow-xl hover:shadow-zinc-200/50 transition-all flex flex-col sm:flex-row gap-5 text-left"
-              >
-                <div className="size-full sm:size-32 rounded-[2rem] overflow-hidden bg-zinc-50 flex-shrink-0">
-                  <img 
-                    src={product.imageUrl} 
-                    alt={product.name} 
-                    className="size-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                </div>
-                <div className="flex-1 flex flex-col justify-between py-1">
-                  <div>
-                    <span className="text-[9px] font-black text-primary uppercase tracking-widest">{product.category}</span>
-                    <h3 className="text-lg font-black text-secondary group-hover:text-primary transition-colors mt-1">{product.name}</h3>
-                    <p className="text-zinc-400 text-xs font-medium mt-1 line-clamp-2 leading-relaxed italic">{product.details}</p>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xl font-black text-secondary">
-                      <span className="text-[10px] text-zinc-300 mr-1">Kz</span>
-                      {product.price.toLocaleString()}
-                    </span>
-                    <div className="size-10 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-primary group-hover:text-white transition-all transform group-hover:rotate-12">
-                      <span className="material-symbols-outlined">add</span>
-                    </div>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
         ) : (
-          <div className="text-center py-20 space-y-4">
-            <span className="material-symbols-outlined text-6xl text-zinc-200">sentiment_very_dissatisfied</span>
-            <p className="text-zinc-400 font-bold text-xs uppercase tracking-widest">Nenhum prato encontrado com esses critérios</p>
+          <div 
+            ref={scrollRef}
+            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-8 pb-10"
+            onScroll={(e) => {
+              const container = e.currentTarget;
+              const scrollLeft = container.scrollLeft;
+              const width = container.offsetWidth;
+              const index = Math.round(scrollLeft / width);
+              if (categories[index] && selectedCategory !== categories[index].name) {
+                setSelectedCategory(categories[index].name);
+              }
+            }}
+          >
+            {categories.map(cat => {
+              const categoryProducts = products.filter(p => 
+                p.category === cat.name && 
+                (p.name.toLowerCase().includes(search.toLowerCase()) || 
+                 (p.details && p.details.toLowerCase().includes(search.toLowerCase())))
+              );
+              
+              if (search && categoryProducts.length === 0) return null;
+              
+              const isExpanded = expandedCategories.has(cat.id);
+              const displayedProducts = isExpanded ? categoryProducts : categoryProducts.slice(0, 5);
+
+              return (
+                <div 
+                  key={cat.id} 
+                  id={`category-${cat.id}`}
+                  className="min-w-full snap-center px-2"
+                >
+                  <div className="bg-white rounded-[3rem] p-8 shadow-sm border border-zinc-100 space-y-8 min-h-[400px]">
+                    <div className="flex items-center justify-between border-b border-zinc-50 pb-6">
+                      <h3 className="text-2xl font-black text-secondary italic">
+                        <span className="text-primary mr-2">/</span>{cat.name}
+                      </h3>
+                      <span className="bg-zinc-50 px-4 py-1.5 rounded-full text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                        {categoryProducts.length} itens
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {displayedProducts.map(product => (
+                        <button
+                          key={product.id}
+                          onClick={() => handleOpenCustomization(product)}
+                          className="group flex gap-4 text-left p-2 rounded-3xl hover:bg-zinc-50 transition-all"
+                        >
+                          <div className="size-20 rounded-2xl overflow-hidden bg-zinc-50 flex-shrink-0">
+                            <img 
+                              src={product.imageUrl} 
+                              alt={product.name} 
+                              className="size-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          </div>
+                          <div className="flex-1 py-1">
+                            <h4 className="font-bold text-secondary group-hover:text-primary transition-colors line-clamp-1">{product.name}</h4>
+                            <p className="text-[10px] text-zinc-400 font-medium mt-0.5 line-clamp-1 italic">{product.details}</p>
+                            <div className="mt-2 flex items-center justify-between">
+                              <span className="font-black text-primary text-sm">{product.price.toLocaleString()} Kz</span>
+                              <span className="material-symbols-outlined text-zinc-200 text-sm group-hover:text-primary transition-colors">add_circle</span>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {categoryProducts.length > 5 && (
+                      <button
+                        onClick={() => {
+                          const newExpanded = new Set(expandedCategories);
+                          if (isExpanded) newExpanded.delete(cat.id);
+                          else newExpanded.add(cat.id);
+                          setExpandedCategories(newExpanded);
+                        }}
+                        className="w-full py-4 border-2 border-dashed border-zinc-100 rounded-2xl text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all"
+                      >
+                        {isExpanded ? 'Ver Menos' : `Ver Mais (+${categoryProducts.length - 5})`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </main>
