@@ -152,7 +152,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
   };
 
   return (
-    <div className="h-screen bg-[#FAFAFA] font-sans selection:bg-primary/20 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-[#FAFAFA] font-sans selection:bg-primary/20 flex flex-col overflow-hidden z-[60]">
       {/* Premium Header */}
       <header className="flex-shrink-0 bg-white/80 backdrop-blur-xl border-b border-zinc-100 px-6 py-4 z-50">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
