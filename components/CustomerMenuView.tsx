@@ -15,7 +15,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCustomizing, setIsCustomizing] = useState(false);
@@ -39,7 +39,6 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
       if (catData) {
         const mappedCats = catData.map(c => ({ ...c, companyId: c.company_id, sortOrder: c.sort_order }));
         setCategories(mappedCats);
-        if (mappedCats.length > 0) setSelectedCategory(mappedCats[0].name);
       }
 
       // Load Products
@@ -138,6 +137,18 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
     }
   };
 
+  const scrollToCategory = (index: number) => {
+    if (scrollRef.current) {
+      const width = scrollRef.current.offsetWidth;
+      scrollRef.current.scrollTo({
+        left: width * index,
+        behavior: 'smooth'
+      });
+      const cats = [ { id: 'all', name: 'Todos' }, ...categories ];
+      if (cats[index]) setSelectedCategory(cats[index].name);
+    }
+  };
+
   const calculateTotal = () => {
     if (!selectedProduct) return 0;
     let total = selectedProduct.price;
@@ -179,8 +190,8 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
         <div className="max-w-4xl w-full mx-auto flex-1 flex flex-col overflow-hidden min-h-0">
           {/* Search & Categories (Static) */}
           <div className="px-6 py-8 space-y-6 flex-shrink-0">
-            <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-3xl font-black text-secondary leading-tight mb-2">
+            <div className="max-w-2xl mx-auto text-center space-y-4">
+              <h2 className="text-3xl font-black text-secondary leading-tight">
                 O que vamos <span className="text-primary">pedir hoje?</span>
               </h2>
               <div className="relative group">
@@ -190,22 +201,18 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                   placeholder="Pesquisar no cardápio..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full h-14 bg-white border-2 border-zinc-100 rounded-[2rem] pl-14 pr-6 font-bold text-secondary outline-none focus:border-primary/30 transition-all shadow-sm"
+                  className="w-full h-14 bg-white border border-zinc-100 rounded-2xl pl-14 pr-6 font-bold text-secondary outline-none focus:border-primary/30 transition-all shadow-sm"
                 />
               </div>
             </div>
 
             {/* Categories Pills */}
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide justify-center">
-              {categories.map(cat => (
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide justify-start sm:justify-center">
+              {[ { id: 'all', name: 'Todos' }, ...categories ].map((cat, idx) => (
                 <button
                   key={cat.id}
-                  onClick={() => {
-                    setSelectedCategory(cat.name);
-                    const element = document.getElementById(`category-${cat.id}`);
-                    element?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                  }}
-                  className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat.name ? 'bg-secondary text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-primary/20'}`}
+                  onClick={() => scrollToCategory(idx)}
+                  className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat.name || (cat.id === 'all' && selectedCategory === 'Todos') ? 'bg-secondary text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-primary/20'}`}
                 >
                   {cat.name}
                 </button>
@@ -229,19 +236,19 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                   const scrollLeft = container.scrollLeft;
                   const width = container.offsetWidth;
                   const index = Math.round(scrollLeft / width);
-                  if (categories[index] && selectedCategory !== categories[index].name) {
-                    setSelectedCategory(categories[index].name);
+                  const cats = [ { id: 'all', name: 'Todos' }, ...categories ];
+                  if (cats[index] && selectedCategory !== cats[index].name) {
+                    setSelectedCategory(cats[index].name);
                   }
                 }}
               >
-                {categories.map(cat => {
-                  const categoryProducts = products.filter(p => 
-                    p.category === cat.name && 
-                    (p.name.toLowerCase().includes(search.toLowerCase()) || 
-                     (p.details && p.details.toLowerCase().includes(search.toLowerCase())))
-                  );
-                  
-                  if (search && categoryProducts.length === 0) return null;
+                {[ { id: 'all', name: 'Todos' }, ...categories ].map(cat => {
+                  const categoryProducts = products.filter(p => {
+                    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
+                                        (p.details && p.details.toLowerCase().includes(search.toLowerCase()));
+                    const matchesCategory = cat.id === 'all' || p.category === cat.name;
+                    return matchesSearch && matchesCategory;
+                  });
                   
                   const isExpanded = expandedCategories.has(cat.id);
                   const displayedProducts = isExpanded ? categoryProducts : categoryProducts.slice(0, 5);
@@ -249,49 +256,43 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                   return (
                     <div 
                       key={cat.id} 
-                      id={`category-${cat.id}`}
                       className="min-w-full h-full snap-center px-6"
                     >
-                      <div className="bg-white rounded-[3rem] h-full flex flex-col shadow-sm border border-zinc-100 overflow-hidden">
+                      <div className="bg-white rounded-[2.5rem] h-full flex flex-col shadow-sm border border-zinc-50 overflow-hidden">
                         {/* Slide Header */}
-                        <div className="flex items-center justify-between border-b border-zinc-50 p-6 flex-shrink-0 bg-white">
-                          <h3 className="text-xl font-black text-secondary italic">
+                        <div className="flex items-center justify-between border-b border-zinc-50 px-6 py-4 flex-shrink-0 bg-white">
+                          <h3 className="text-base font-black text-secondary italic">
                             <span className="text-primary mr-2">/</span>{cat.name}
                           </h3>
-                          <span className="bg-zinc-50 px-3 py-1 rounded-full text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                          <span className="bg-zinc-50 px-3 py-1 rounded-full text-[8px] font-black text-zinc-400 uppercase tracking-widest">
                             {categoryProducts.length} itens
                           </span>
                         </div>
 
                         {/* List Area (Scrollable within Slide) */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {displayedProducts.map(product => (
-                              <button
-                                key={product.id}
-                                onClick={() => handleOpenCustomization(product)}
-                                className="group flex gap-4 text-left p-3 rounded-2xl hover:bg-zinc-50 transition-all border border-transparent hover:border-zinc-100"
-                              >
-                                <div className="size-20 rounded-xl overflow-hidden bg-zinc-50 flex-shrink-0">
-                                  <img 
-                                    src={product.imageUrl} 
-                                    alt={product.name} 
-                                    className="size-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                  />
-                                </div>
-                                <div className="flex-1 py-0.5">
-                                  <h4 className="font-bold text-sm text-secondary group-hover:text-primary transition-colors line-clamp-1">{product.name}</h4>
-                                  <p className="text-[10px] text-zinc-400 font-medium mt-0.5 line-clamp-2 italic leading-tight">{product.details}</p>
-                                  <div className="mt-2 flex items-center justify-between">
-                                    <span className="font-black text-primary text-xs">{product.price.toLocaleString()} Kz</span>
-                                    <div className="size-6 bg-primary/10 rounded-lg flex items-center justify-center text-primary opacity-0 group-hover:opacity-100 transition-all">
-                                      <span className="material-symbols-outlined text-sm">add</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                          {displayedProducts.map(product => (
+                            <button
+                              key={product.id}
+                              onClick={() => handleOpenCustomization(product)}
+                              className="w-full bg-white p-3 rounded-2xl shadow-sm border border-[#F8F9FA] flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50 group text-left"
+                            >
+                              <div className="size-12 rounded-xl overflow-hidden bg-[#F8F9FA] shrink-0 shadow-inner">
+                                <img 
+                                  src={product.imageUrl} 
+                                  alt={product.name} 
+                                  className="size-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-[12px] font-black text-[#111111] leading-tight mb-0.5 truncate group-hover:text-primary transition-colors">{product.name}</h3>
+                                <p className="text-primary font-black text-[11px]">Kz {product.price.toLocaleString()}</p>
+                              </div>
+                              <div className="size-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/10 flex items-center justify-center group-hover:bg-primary/90 active:scale-95 transition-all">
+                                <span className="material-symbols-outlined text-xl font-black">add</span>
+                              </div>
+                            </button>
+                          ))}
 
                           {categoryProducts.length > 5 && (
                             <button
@@ -301,10 +302,17 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                                 else newExpanded.add(cat.id);
                                 setExpandedCategories(newExpanded);
                               }}
-                              className="w-full py-4 border-2 border-dashed border-zinc-50 rounded-2xl text-[9px] font-black text-zinc-300 uppercase tracking-widest hover:border-primary/20 hover:text-primary transition-all mb-4"
+                              className="w-full py-4 bg-zinc-50 rounded-2xl text-[9px] font-black text-zinc-300 uppercase tracking-widest hover:bg-zinc-100 transition-all"
                             >
-                              {isExpanded ? 'Ver Menos' : `Expandir Lista (+${categoryProducts.length - 5})`}
+                              {isExpanded ? 'Ver Menos' : `Ver Mais (+${categoryProducts.length - 5})`}
                             </button>
+                          )}
+
+                          {categoryProducts.length === 0 && (
+                            <div className="h-40 flex flex-col items-center justify-center text-center p-8">
+                               <span className="material-symbols-outlined text-3xl text-zinc-100 mb-2">search_off</span>
+                               <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Nada encontrado</p>
+                            </div>
                           )}
                         </div>
                       </div>
