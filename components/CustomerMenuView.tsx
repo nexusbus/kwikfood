@@ -258,7 +258,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                       key={cat.id} 
                       className="min-w-full h-full snap-center px-6"
                     >
-                      <div className="bg-white rounded-[2.5rem] h-full flex flex-col shadow-sm border border-zinc-50 overflow-hidden">
+                      <div className="bg-white rounded-none h-full flex flex-col shadow-sm border border-zinc-50 overflow-hidden">
                         {/* Slide Header */}
                         <div className="flex items-center justify-between border-b border-zinc-50 px-6 py-4 flex-shrink-0 bg-white">
                           <h3 className="text-base font-black text-secondary italic">
@@ -271,11 +271,11 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
 
                         {/* List Area (Scrollable within Slide) */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                          {displayedProducts.map(product => (
+                          {categoryProducts.map(product => (
                             <button
                               key={product.id}
                               onClick={() => handleOpenCustomization(product)}
-                              className="w-full bg-white p-3 rounded-2xl shadow-sm border border-[#F8F9FA] flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50 group text-left"
+                              className="w-full bg-white p-3 rounded-none shadow-sm border border-[#F8F9FA] flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50 group text-left"
                             >
                               <div className="size-12 rounded-xl overflow-hidden bg-[#F8F9FA] shrink-0 shadow-inner">
                                 <img 
@@ -293,20 +293,6 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                               </div>
                             </button>
                           ))}
-
-                          {categoryProducts.length > 5 && (
-                            <button
-                              onClick={() => {
-                                const newExpanded = new Set(expandedCategories);
-                                if (isExpanded) newExpanded.delete(cat.id);
-                                else newExpanded.add(cat.id);
-                                setExpandedCategories(newExpanded);
-                              }}
-                              className="w-full py-4 bg-zinc-50 rounded-2xl text-[9px] font-black text-zinc-300 uppercase tracking-widest hover:bg-zinc-100 transition-all"
-                            >
-                              {isExpanded ? 'Ver Menos' : `Ver Mais (+${categoryProducts.length - 5})`}
-                            </button>
-                          )}
 
                           {categoryProducts.length === 0 && (
                             <div className="h-40 flex flex-col items-center justify-center text-center p-8">

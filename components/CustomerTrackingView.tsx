@@ -39,6 +39,11 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isCustomizing, setIsCustomizing] = useState(false);
+  const [customizationLoading, setCustomizationLoading] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedExtras, setSelectedExtras] = useState<Record<string, string[]>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const categoryOptions = ['Todos', ...categories.map(c => c.name)];
   const lastStatusRef = useRef<OrderStatus>(initialOrder.status);
@@ -424,6 +429,65 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
     }
   };
 
+  const handleOpenCustomization = async (product: Product) => {
+    setSelectedProduct(product);
+    setIsCustomizing(true);
+    setCustomizationLoading(true);
+    setQuantity(1);
+    setSelectedExtras({});
+
+    try {
+      const { data: groupsData, error: groupsError } = await supabase
+        .from('product_to_accompaniment_groups')
+        .select(`
+          group_id,
+          accompaniment_groups (
+            id,
+            name,
+            isRequired:is_required,
+            minSelection:min_selection,
+            maxSelection:max_selection,
+            accompaniment_items (
+              id,
+              name,
+              price,
+              isActive:is_active
+            )
+          )
+        `)
+        .eq('product_id', product.id);
+
+      if (groupsError) throw groupsError;
+
+      if (groupsData) {
+        const enrichedGroups = groupsData.map((g: any) => {
+          const group = g.accompaniment_groups;
+          if (!group) return null;
+          return {
+            ...group,
+            items: (group.accompaniment_items || []).filter((i: any) => i.isActive)
+          };
+        }).filter(Boolean);
+        
+        setSelectedProduct({ ...product, accompanimentGroups: enrichedGroups });
+      }
+    } catch (err) {
+      console.error('Error loading accompaniments:', err);
+    } finally {
+      setCustomizationLoading(false);
+    }
+  };
+
+  const calculateCustomTotal = () => {
+    if (!selectedProduct) return 0;
+    let total = selectedProduct.price;
+    Object.values(selectedExtras).flat().forEach(extraId => {
+      const item = selectedProduct.accompanimentGroups?.flatMap(g => g.items || []).find(i => i.id === extraId);
+      if (item) total += item.price;
+    });
+    return total * quantity;
+  };
+
   const toggleCategoryExpansion = (catName: string) => {
     setExpandedCategories(prev => {
       const next = new Set(prev);
@@ -534,7 +598,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               </div>
             </div>
             
-            <div className="bg-white rounded-[2.5rem] border border-[#F5F5F5] overflow-hidden shadow-sm flex flex-col min-h-[400px] h-[550px]">
+            <div className="bg-white rounded-none border border-[#F5F5F5] overflow-hidden shadow-sm flex flex-col min-h-[400px] h-[550px]">
               {/* Category Navigation (Horizontal) */}
               <div className="px-6 py-4 bg-white border-b border-zinc-50 z-20 overflow-x-auto scrollbar-hide">
                 <div className="flex gap-2 justify-start items-center">
@@ -565,17 +629,14 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       return matchesSearch && matchesCategory;
                     });
 
-                    const isExpanded = expandedCategories.has(cat.id);
-                    const displayedProducts = isExpanded ? filteredProducts : filteredProducts.slice(0, 5);
-
                     return (
                       <div 
                         key={cat.id} 
                         className="min-w-full h-full snap-center"
                       >
                         <div className="h-full overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                          {displayedProducts.map(p => (
-                            <div key={p.id} className="bg-white p-3 rounded-2xl shadow-sm border border-[#F8F9FA] flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50">
+                          {filteredProducts.map(p => (
+                            <div key={p.id} className="bg-white p-3 rounded-none shadow-sm border border-[#F8F9FA] flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50">
                               <div className="size-12 rounded-xl overflow-hidden bg-[#F8F9FA] shrink-0 shadow-inner">
                                 <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
                               </div>
@@ -584,7 +645,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                                 <p className="text-primary font-black text-[11px]">Kz {p.price.toLocaleString()}</p>
                               </div>
                               <button
-                                onClick={() => addToCart(p)}
+                                onClick={() => handleOpenCustomization(p)}
                                 disabled={checkoutStep === 2}
                                 className="size-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/10 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
                               >
@@ -592,16 +653,6 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                               </button>
                             </div>
                           ))}
-
-                          {filteredProducts.length > 5 && (
-                            <button 
-                              onClick={() => toggleCategoryExpansion(cat.id)}
-                              className="w-full py-4 bg-zinc-50 rounded-2xl text-[9px] font-black text-zinc-400 uppercase tracking-widest hover:bg-zinc-100 transition-all flex items-center justify-center gap-2"
-                            >
-                              {isExpanded ? 'Ver Menos' : `Ver Mais (${filteredProducts.length - 5} itens)`}
-                              <span className="material-symbols-outlined text-sm">{isExpanded ? 'expand_less' : 'expand_more'}</span>
-                            </button>
-                          )}
 
                           {filteredProducts.length === 0 && (
                             <div className="h-40 flex flex-col items-center justify-center text-center p-8">
@@ -692,8 +743,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
       {/* Cart Modal Overlay (If items present) */}
       {cart.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 bg-white shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.15)] border-t border-zinc-100 p-6 z-[100] animate-slide-up rounded-t-[2.5rem]">
-           <div className="max-w-xl mx-auto flex items-center justify-between mb-4">
+        <div className="fixed inset-x-0 bottom-0 bg-white shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.15)] border-t border-zinc-100 p-6 z-[100] animate-slide-up rounded-t-[2.5rem] flex flex-col gap-6 max-h-[90vh]">
+           <div className="max-w-xl mx-auto w-full flex items-center justify-between">
               <div className="flex items-center gap-3">
                  <div className="size-10 bg-secondary rounded-xl flex items-center justify-center text-white">
                     <span className="material-symbols-outlined text-xl">shopping_cart</span>
@@ -703,17 +754,214 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                     <p className="text-lg font-black text-secondary">Kz {totalCart.toLocaleString()}</p>
                  </div>
               </div>
-              <button onClick={() => setCheckoutStep(checkoutStep === 1 ? 2 : 1)} className="text-[10px] font-black text-primary uppercase tracking-widest">
-                 {checkoutStep === 1 ? 'Pagar' : 'Voltar'}
+              <button onClick={() => setCheckoutStep(checkoutStep === 1 ? 2 : 1)} className="px-4 py-2 bg-zinc-50 rounded-xl text-[10px] font-black text-primary uppercase tracking-widest hover:bg-zinc-100 transition-all">
+                 {checkoutStep === 1 ? 'Revisar e Pagar' : 'Voltar'}
               </button>
            </div>
+
+           {/* Step 2: Review & Payment Selection */}
+           {checkoutStep === 2 && (
+             <div className="flex-1 overflow-y-auto space-y-6 custom-scrollbar pb-4">
+                {/* Item List */}
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Revisar Itens</h4>
+                  {cart.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-zinc-50 rounded-2xl">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-black text-secondary truncate">{item.name}</p>
+                        <p className="text-[10px] text-zinc-400 truncate italic">{item.observation || 'Sem observações'}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center bg-white rounded-xl p-1 shadow-sm border border-zinc-100">
+                          <button onClick={() => removeFromCart(item.id)} className="size-8 flex items-center justify-center text-zinc-400 hover:text-primary">
+                            <span className="material-symbols-outlined text-sm">remove</span>
+                          </button>
+                          <span className="w-6 text-center text-xs font-black text-secondary">{item.quantity}</span>
+                          <button onClick={() => addToCart(item)} className="size-8 flex items-center justify-center text-zinc-400 hover:text-primary">
+                            <span className="material-symbols-outlined text-sm">add</span>
+                          </button>
+                        </div>
+                        <span className="min-w-[60px] text-right text-xs font-black text-primary">Kz {(item.price * item.quantity).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Payment Selection */}
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Método de Pagamento</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'CASH', label: 'Dinheiro', icon: 'payments' },
+                      { id: 'TPA', label: 'Multicaixa', icon: 'credit_card' },
+                      { id: 'TRANSFER', label: 'Transferência', icon: 'account_balance' }
+                    ].map((method) => (
+                      <button
+                        key={method.id}
+                        onClick={() => setPaymentMethod(method.id as any)}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${paymentMethod === method.id ? 'border-primary bg-red-50 text-primary' : 'border-zinc-50 bg-zinc-50 text-zinc-400 hover:border-zinc-100'}`}
+                      >
+                        <span className="material-symbols-outlined text-xl">{method.icon}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest">{method.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {paymentMethod === 'TRANSFER' && (
+                    <div className="p-4 bg-zinc-900 rounded-2xl space-y-3 animate-fade-in">
+                       <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Dados Bancários</p>
+                       <p className="text-xs font-medium text-white/90 leading-relaxed">
+                          IBAN: {company?.iban || 'Carregando...'}<br/>
+                          Titular: {company?.name}
+                       </p>
+                    </div>
+                  )}
+                </div>
+             </div>
+           )}
+
            <button 
              onClick={handleFinishOrder} 
              disabled={submittingOrder || (checkoutStep === 2 && !paymentMethod)}
-             className="w-full py-5 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"
+             className="w-full py-5 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
            >
-             {submittingOrder ? 'Processando...' : checkoutStep === 1 ? 'ADICIONAR AO PEDIDO' : 'CONFIRMAR PAGAMENTO'}
+             {submittingOrder ? 'Processando...' : checkoutStep === 1 ? 'CONCLUIR PEDIDO' : 'ENVIAR PARA COZINHA'}
            </button>
+        </div>
+      )}
+
+      {/* Product Customization Modal */}
+      {isCustomizing && selectedProduct && (
+        <div className="fixed inset-0 z-[150] bg-zinc-900/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-6 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-lg h-[90vh] sm:h-auto sm:max-h-[85vh] rounded-t-[2.5rem] sm:rounded-3xl overflow-hidden flex flex-col relative animate-in slide-in-from-bottom-10 duration-500">
+            {/* Modal Header/Image */}
+            <div className="relative h-48 sm:h-64 flex-shrink-0">
+              <img src={selectedProduct.imageUrl} className="size-full object-cover" alt={selectedProduct.name} />
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+              <button 
+                onClick={() => setIsCustomizing(false)}
+                className="absolute top-4 right-4 size-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white hover:text-secondary transition-all"
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-8 custom-scrollbar">
+              <header className="space-y-2">
+                <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">{selectedProduct.category}</span>
+                <div className="flex justify-between items-start gap-4">
+                  <h2 className="text-2xl font-black text-secondary tracking-tight">{selectedProduct.name}</h2>
+                  <span className="text-xl font-black text-primary">Kz {selectedProduct.price.toLocaleString()}</span>
+                </div>
+                {selectedProduct.details && (
+                  <p className="text-zinc-500 font-medium text-sm italic leading-relaxed">{selectedProduct.details}</p>
+                )}
+              </header>
+
+              {/* Customization Groups */}
+              {customizationLoading ? (
+                <div className="py-10 flex flex-col items-center gap-4">
+                  <div className="size-8 border-2 border-primary/10 border-t-primary rounded-full animate-spin"></div>
+                  <p className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">Carregando...</p>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {selectedProduct.accompanimentGroups?.map(group => (
+                    <section key={group.id} className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-[11px] font-black text-secondary uppercase tracking-widest">{group.name}</h4>
+                          <p className="text-[10px] text-zinc-400 font-bold mt-1">
+                            {group.isRequired ? `Mínimo ${group.minSelection}` : `Até ${group.maxSelection}`}
+                          </p>
+                        </div>
+                        {group.isRequired && (
+                          <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[8px] font-black uppercase tracking-widest">Obrigatório</span>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        {group.items?.map(item => {
+                          const isSelected = selectedExtras[group.id]?.includes(item.id);
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => {
+                                setSelectedExtras(prev => {
+                                  const current = prev[group.id] || [];
+                                  if (isSelected) return { ...prev, [group.id]: current.filter(id => id !== item.id) };
+                                  if (group.maxSelection === 1) return { ...prev, [group.id]: [item.id] };
+                                  if (current.length < group.maxSelection) return { ...prev, [group.id]: [...current, item.id] };
+                                  return prev;
+                                });
+                              }}
+                              className={`w-full p-4 rounded-2xl border flex items-center justify-between transition-all ${isSelected ? 'border-primary bg-rose-50' : 'border-zinc-50 bg-zinc-50 hover:border-zinc-100'}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`size-4 rounded-full border flex items-center justify-center transition-all ${isSelected ? 'border-primary bg-primary' : 'border-zinc-300 bg-white'}`}>
+                                  {isSelected && <span className="material-symbols-outlined text-white text-[10px] font-black">check</span>}
+                                </div>
+                                <span className={`font-bold text-xs ${isSelected ? 'text-primary' : 'text-zinc-700'}`}>{item.name}</span>
+                              </div>
+                              {item.price > 0 && <span className={`text-[10px] font-black ${isSelected ? 'text-primary' : 'text-zinc-400'}`}>+ {item.price.toLocaleString()} Kz</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                  
+                  {/* Observation Field */}
+                  <div className="space-y-3">
+                    <h4 className="text-[11px] font-black text-secondary uppercase tracking-widest">Observações</h4>
+                    <textarea 
+                      placeholder="Ex: Sem cebola, bem passado..."
+                      className="w-full p-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-xs font-medium outline-none focus:border-primary/20 transition-all min-h-[100px] resize-none"
+                      onChange={(e) => {
+                         // We store observation directly in the adding logic
+                      }}
+                      id="product-observation"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="p-6 bg-white border-t border-zinc-50 flex items-center gap-4">
+               <div className="flex items-center bg-zinc-50 p-1.5 rounded-xl gap-3">
+                  <button onClick={() => quantity > 1 && setQuantity(quantity - 1)} className="size-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-zinc-400 hover:text-primary transition-all active:scale-90">
+                    <span className="material-symbols-outlined text-sm">remove</span>
+                  </button>
+                  <span className="w-6 text-center font-black text-sm text-secondary">{quantity}</span>
+                  <button onClick={() => setQuantity(quantity + 1)} className="size-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-zinc-400 hover:text-primary transition-all active:scale-90">
+                    <span className="material-symbols-outlined text-sm">add</span>
+                  </button>
+               </div>
+               <button 
+                 onClick={() => {
+                    const obs = (document.getElementById('product-observation') as HTMLTextAreaElement)?.value || '';
+                    const extraNames = Object.entries(selectedExtras).flatMap(([gid, ids]) => {
+                      const group = selectedProduct?.accompanimentGroups?.find(g => g.id === gid);
+                      return (ids as string[]).map(id => group?.items?.find(i => i.id === id)?.name);
+                    }).filter(Boolean).join(', ');
+
+                    const finalObs = [extraNames, obs].filter(Boolean).join(' | ');
+
+                    setCart(prev => {
+                      const existing = prev.find(item => item.id === selectedProduct.id && item.observation === finalObs);
+                      if (existing) return prev.map(item => item.id === selectedProduct.id && item.observation === finalObs ? { ...item, quantity: item.quantity + quantity } : item);
+                      return [...prev, { ...selectedProduct, quantity, observation: finalObs }];
+                    });
+                    setIsCustomizing(false);
+                 }}
+                 className="flex-1 h-14 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-between px-6 hover:bg-secondary transition-all shadow-lg shadow-primary/20"
+               >
+                 <span>ADICIONAR</span>
+                 <span>Kz {calculateCustomTotal().toLocaleString()}</span>
+               </button>
+            </div>
+          </div>
         </div>
       )}
 
