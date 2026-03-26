@@ -474,16 +474,10 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
 
           {/* Order Type Selection - Moved immediately after user data */}
           <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-xl">restaurant_menu</span>
                 <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Como vai querer o seu pedido?</label>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-xl">restaurant_menu</span>
-                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Como vai querer o seu pedido?</label>
-              </div>
-            </div>
 
             {locationDenied && (
               <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl mb-4 flex items-center gap-3">
