@@ -37,6 +37,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [kwikNumber, setKwikNumber] = useState('');
   const [telegramChatId, setTelegramChatId] = useState('');
   const [telegramBotToken, setTelegramBotToken] = useState('');
+  const [ownerName, setOwnerName] = useState('');
+  const [bankHolder, setBankHolder] = useState('');
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
   const [showQRModal, setShowQRModal] = useState<Company | null>(null);
@@ -209,7 +211,9 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         express_number: expressNumber,
         kwik_number: kwikNumber,
         telegram_chat_id: telegramChatId,
-        telegram_bot_token: telegramBotToken
+        telegram_bot_token: telegramBotToken,
+        owner_name: ownerName,
+        bank_holder: bankHolder
       };
 
       if (editingCompany) {
@@ -228,7 +232,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
       setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
       setCity(''); setType(''); setIban(''); setExpressNumber(''); setKwikNumber('');
-      setTelegramChatId(''); setTelegramBotToken('');
+      setTelegramChatId(''); setTelegramBotToken(''); setOwnerName(''); setBankHolder('');
       setIsFormVisible(false);
       const nextId = await getNextCompanyId();
       setId(nextId.toString().padStart(4, '0'));
@@ -258,6 +262,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setKwikNumber(company.kwikNumber || '');
     setTelegramChatId(company.telegramChatId || '');
     setTelegramBotToken(company.telegramBotToken || '');
+    setOwnerName(company.ownerName || '');
+    setBankHolder(company.bankHolder || '');
     setIsFormVisible(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -292,7 +298,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
     setCity(''); setType(''); setIban(''); setExpressNumber(''); setKwikNumber('');
-    setTelegramChatId(''); setTelegramBotToken('');
+    setTelegramChatId(''); setTelegramBotToken(''); setOwnerName(''); setBankHolder('');
     setIsFormVisible(false);
     const nextId = await getNextCompanyId();
     setId(nextId.toString().padStart(4, '0'));
@@ -503,6 +509,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                       <input type="text" value={type} onChange={e => setType(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: Restaurante, Hamburgaria..." required />
                     </div>
                     <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Proprietário / Responsável</label>
+                      <input type="text" value={ownerName} onChange={e => setOwnerName(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: João Silva" required />
+                    </div>
+                    <div className="space-y-3">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">NIF Corporativo</label>
                       <input type="text" value={nif} onChange={e => setNif(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="000000000" required />
                     </div>
@@ -563,6 +573,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">IBAN de Recebimento (Opcional)</label>
                         <input type="text" value={iban} onChange={e => setIban(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="AO06 0000 0000 ..." />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Titular da Conta (Opcional)</label>
+                        <input type="text" value={bankHolder} onChange={e => setBankHolder(e.target.value)} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-6 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all" placeholder="Nome Completo do Titular" />
                       </div>
                       <div className="space-y-3">
                         <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Número Express (Opcional)</label>

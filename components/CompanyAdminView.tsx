@@ -312,6 +312,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
       if (status === OrderStatus.CANCELLED) {
         updates.cancelled_by = 'admin';
+        updates.queue_position = 0;
       }
 
       if (status === OrderStatus.PREPARING) {

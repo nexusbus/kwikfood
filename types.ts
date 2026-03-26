@@ -78,10 +78,11 @@ export interface Company {
   isActive?: boolean;
   telegramChatId?: string;
   telegramBotToken?: string;
-  isAcceptingOrders?: boolean;
   iban?: string;
   expressNumber?: string;
   kwikNumber?: string;
+  ownerName?: string;
+  bankHolder?: string;
 }
 
 export interface CartItem extends Product {
@@ -99,7 +100,7 @@ export interface Order {
   status: OrderStatus;
   items?: CartItem[];
   total?: number;
-  queuePosition: number;
+  queuePosition: number | 'n/a';
   estimatedMinutes: number;
   timerAccumulatedSeconds: number;
   timerLastStartedAt?: string;

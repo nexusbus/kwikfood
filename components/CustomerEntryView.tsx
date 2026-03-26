@@ -370,9 +370,18 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
             <h2 className="text-2xl font-black text-[#111111] tracking-tight truncate max-w-full px-4">
               {matchedCompany.name}
             </h2>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex flex-col items-center gap-1.5 mt-1">
               <span className="size-1.5 bg-green-500 rounded-full animate-pulse"></span>
               <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-[0.2em]">Estabelecimento Conectado</span>
+              {matchedCompany.expressNumber && (
+                <div className="mt-2 flex items-center gap-2 px-4 py-1.5 bg-slate-50 border border-slate-100 rounded-full">
+                  <span className="material-symbols-outlined text-primary text-sm">phone_in_talk</span>
+                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Contacto: +244 {matchedCompany.expressNumber}</span>
+                </div>
+              )}
+              {matchedCompany.ownerName && (
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Proprietário: {matchedCompany.ownerName}</p>
+              )}
             </div>
             <button 
               onClick={onShowMenu}
@@ -470,12 +479,10 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
                 <span className="material-symbols-outlined text-primary text-xl">restaurant_menu</span>
                 <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Como vai querer o seu pedido?</label>
               </div>
-              {distanceToStore !== null && (
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-zinc-50 rounded-full border border-zinc-100">
-                  <span className="size-1.5 bg-primary rounded-full animate-pulse"></span>
-                  <span className="text-[9px] font-black text-secondary uppercase tracking-widest">{Math.round(distanceToStore)}m de distância</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">restaurant_menu</span>
+                <label className="text-[11px] font-black text-[#111111] uppercase tracking-widest">Como vai querer o seu pedido?</label>
+              </div>
             </div>
 
             {locationDenied && (
@@ -528,9 +535,14 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               </button>
             </div>
             {(distanceToStore !== null && distanceToStore > STORE_RADIUS_METERS) && (
-              <p className="text-[9px] font-bold text-primary text-center uppercase tracking-widest animate-pulse">
-                Estás a {Math.round(distanceToStore)}m. Precisas estar a menos de {STORE_RADIUS_METERS}m para pedir localmente.
-              </p>
+              <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-center space-y-2">
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest">
+                  Irregularidade Detectada: Localização Fora do Raio
+                </p>
+                <p className="text-[11px] font-bold text-slate-500 leading-tight">
+                  Estás a <span className="text-primary font-black">{Math.round(distanceToStore)}m</span>. Precisas estar a menos de {STORE_RADIUS_METERS}m para pedir localmente.
+                </p>
+              </div>
             )}
           </div>
 

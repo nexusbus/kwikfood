@@ -77,7 +77,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
       },
       [OrderStatus.CANCELLED]: {
         title: 'Pedido Cancelado 😔',
-        description: 'Lamentamos imenso, mas o seu pedido teve de ser cancelado. Por favor, contacte-nos para mais detalhes.'
+        description: 'Lamentamos imenso, mas o seu pedido teve de ser cancelado e a sua posição foi removida. Por favor, contacte-nos para mais detalhes.'
       }
     };
     return messages[status] || { title: 'A carregar...', description: 'Por favor, aguarde.' };
@@ -537,10 +537,12 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               </p>
             </div>
             <div className="bg-white p-6 rounded-[2.5rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F5F5F5] flex flex-col items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-xl">list_alt</span>
-                <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest">Posição</span>
-              </div>
+              <div className="flex items-baseline gap-2">
+              <span className="text-6xl font-black text-secondary tracking-tighter italic">
+                {order.status === OrderStatus.CANCELLED || order.queuePosition === 0 ? 'n/a' : order.queuePosition}
+              </span>
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Posição na Fila</span>
+            </div>
               <p className="text-lg font-black text-[#111111]">{order.status === OrderStatus.DELIVERED ? 'N/A' : `${order.queuePosition}º`}</p>
             </div>
           </div>
@@ -809,12 +811,26 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                   </div>
 
                   {paymentMethod === 'TRANSFER' && (
-                    <div className="p-4 bg-zinc-900 rounded-2xl space-y-3 animate-fade-in">
-                       <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Dados Bancários</p>
+                    <div className="p-4 bg-zinc-900 rounded-2xl space-y-4 animate-fade-in">
+                       <div className="flex justify-between items-center">
+                          <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Dados Bancários</p>
+                          <span className="material-symbols-outlined text-primary text-xl">account_balance</span>
+                       </div>
                        <p className="text-xs font-medium text-white/90 leading-relaxed">
-                          IBAN: {company?.iban || 'Carregando...'}<br/>
-                          Titular: {company?.name}
+                          IBAN: <span className="font-black text-primary">{company?.iban || 'Carregando...'}</span><br/>
+                          Titular: <span className="font-black text-white">{company?.bankHolder || company?.name}</span>
                        </p>
+                       
+                       <div className="pt-2">
+                          <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-3">Upload do Comprovativo (Obrigatório)</p>
+                          <label className={`w-full h-14 rounded-xl border-2 border-dashed flex items-center justify-center gap-3 transition-all cursor-pointer ${paymentProofUrl ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20'}`}>
+                             <span className="material-symbols-outlined">{paymentProofUrl ? 'check_circle' : 'upload_file'}</span>
+                             <span className="text-[10px] font-black uppercase tracking-widest">
+                                {uploadingProof ? 'Enviando...' : paymentProofUrl ? 'Comprovativo Enviado' : 'Selecionar PDF'}
+                             </span>
+                             <input type="file" onChange={handleUploadProof} accept="application/pdf" className="hidden" />
+                          </label>
+                       </div>
                     </div>
                   )}
                 </div>
@@ -823,7 +839,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
 
            <button 
              onClick={() => checkoutStep === 1 ? setCheckoutStep(2) : handleFinishOrder()} 
-             disabled={submittingOrder || (checkoutStep === 2 && !paymentMethod)}
+             disabled={submittingOrder || (checkoutStep === 2 && !paymentMethod) || (checkoutStep === 2 && paymentMethod === 'TRANSFER' && !paymentProofUrl)}
              className="w-full py-5 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
            >
              {submittingOrder ? 'Processando...' : checkoutStep === 1 ? 'CONCLUIR PEDIDO' : 'ENVIAR PARA COZINHA'}
@@ -841,9 +857,9 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
               <button 
                 onClick={() => setIsCustomizing(false)}
-                className="absolute top-4 right-4 size-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-all shadow-lg"
+                className="absolute top-6 right-6 size-12 bg-white shadow-2xl rounded-full flex items-center justify-center text-secondary hover:text-primary transition-all z-[110] border border-zinc-100 group"
               >
-                <span className="material-symbols-outlined text-sm">close</span>
+                <span className="material-symbols-outlined text-2xl group-active:scale-90 transition-transform">close</span>
               </button>
             </div>
 
