@@ -279,7 +279,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                             >
                               <div className="size-12 rounded-xl overflow-hidden bg-transparent shrink-0 shadow-inner">
                                 <img 
-                                  src={product.imageUrl} 
+                                  src={product.imageUrl || company.logoUrl} 
                                   alt={product.name} 
                                   className="size-full object-cover group-hover:scale-110 transition-transform duration-500" 
                                 />
@@ -323,7 +323,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
           <div className="bg-white w-full max-w-2xl h-[92vh] sm:h-auto sm:max-h-[90vh] rounded-t-[3rem] sm:rounded-[3.5rem] overflow-hidden flex flex-col relative shadow-premium animate-in slide-in-from-bottom-20 duration-500">
             {/* Header / Image Area */}
             <div className="relative h-64 sm:h-80 w-full flex-shrink-0">
-              <img src={selectedProduct.imageUrl} className="size-full object-cover" alt={selectedProduct.name} />
+              <img src={selectedProduct.imageUrl || company.logoUrl} className="size-full object-cover" alt={selectedProduct.name} />
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
               <button 
                 onClick={() => setIsCustomizing(false)}

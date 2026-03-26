@@ -1287,7 +1287,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     {filteredProducts.filter(p => p.name.toLowerCase().includes(ticketSearch.toLowerCase())).map(p => (
                       <div key={p.id} className="group bg-white p-4 rounded-2xl border border-zinc-100 hover:border-rose-100 hover:shadow-xl hover:shadow-zinc-200/50 transition-all flex flex-col sm:flex-row gap-4">
                         <div className="w-full sm:w-32 h-32 rounded-xl overflow-hidden bg-zinc-100 flex-shrink-0 relative">
-                          <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={p.imageUrl} alt={p.name} />
+                          <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={p.imageUrl || company.logoUrl} alt={p.name} />
                           <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-bold text-zinc-800 uppercase">{p.category}</div>
                         </div>
                         <div className="flex-1 flex flex-col justify-between">

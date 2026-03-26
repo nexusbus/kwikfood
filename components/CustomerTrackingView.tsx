@@ -638,7 +638,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                           {filteredProducts.map(p => (
                             <div key={p.id} className="bg-white p-3 rounded-none shadow-sm border border-transparent flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50">
                               <div className="size-12 rounded-xl overflow-hidden bg-transparent shrink-0 shadow-inner">
-                                <img src={p.imageUrl} alt={p.name} className="size-full object-cover" />
+                                <img src={p.imageUrl || company?.logoUrl} alt={p.name} className="size-full object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h3 className="text-[12px] font-black text-[#111111] leading-tight mb-0.5">{p.name}</h3>
