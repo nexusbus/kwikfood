@@ -17,6 +17,10 @@ export const fetchCompanies = async (): Promise<Company[]> => {
     type: co.type,
     telegramChatId: co.telegram_chat_id,
     telegramBotToken: co.telegram_bot_token,
+    ownerName: co.owner_name,
+    bankHolder: co.bank_holder,
+    expressNumber: co.express_number,
+    kwikNumber: co.kwik_number,
     isAcceptingOrders: co.is_accepting_orders
   })) as Company[];
 };
