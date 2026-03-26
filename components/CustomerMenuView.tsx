@@ -327,7 +327,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
               <button 
                 onClick={() => setIsCustomizing(false)}
-                className="absolute top-6 right-6 size-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white hover:bg-white hover:text-secondary transition-all"
+                className="absolute top-6 right-6 size-12 bg-black/50 backdrop-blur-xl rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-all shadow-lg"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>

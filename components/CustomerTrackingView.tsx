@@ -841,7 +841,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
               <button 
                 onClick={() => setIsCustomizing(false)}
-                className="absolute top-4 right-4 size-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white hover:text-secondary transition-all"
+                className="absolute top-4 right-4 size-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-all shadow-lg"
               >
                 <span className="material-symbols-outlined text-sm">close</span>
               </button>
