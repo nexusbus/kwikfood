@@ -816,10 +816,32 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                           <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Dados Bancários</p>
                           <span className="material-symbols-outlined text-primary text-xl">account_balance</span>
                        </div>
-                       <p className="text-xs font-medium text-white/90 leading-relaxed">
-                          IBAN: <span className="font-black text-primary">{company?.iban || 'Carregando...'}</span><br/>
-                          Titular: <span className="font-black text-white">{company?.bankHolder || company?.name}</span>
-                       </p>
+                        <div className="text-xs font-medium text-white/90 leading-relaxed">
+                          {company?.iban && (
+                            <div className="flex justify-between items-center py-1 border-b border-white/5">
+                              <span className="text-white/40">IBAN</span>
+                              <span className="font-black text-primary">{company.iban}</span>
+                            </div>
+                          )}
+                          {(company?.bankHolder || company?.name) && (
+                            <div className="flex justify-between items-center py-1 border-b border-white/5">
+                              <span className="text-white/40">Titular</span>
+                              <span className="font-black text-white">{company?.bankHolder || company?.name}</span>
+                            </div>
+                          )}
+                          {company?.expressNumber && (
+                            <div className="flex justify-between items-center py-1 border-b border-white/5">
+                              <span className="text-white/40">Express</span>
+                              <span className="font-black text-white">{company.expressNumber}</span>
+                            </div>
+                          )}
+                          {company?.kwikNumber && (
+                            <div className="flex justify-between items-center py-1">
+                              <span className="text-white/40">Kwik</span>
+                              <span className="font-black text-white">{company.kwikNumber}</span>
+                            </div>
+                          )}
+                        </div>
                        
                        <div className="pt-2">
                           <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-3">Upload do Comprovativo (Obrigatório)</p>
