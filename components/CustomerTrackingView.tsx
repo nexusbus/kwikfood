@@ -542,11 +542,14 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       order.status === OrderStatus.READY ? (order.orderType === OrderType.DELIVERY ? 'A caminho' : 'Pronto!') : 'Entregue'}
               </p>
             </div>
-            <div className="bg-white p-6 rounded-[2.5rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F5F5F5] flex flex-col items-center justify-center gap-1">
-              <span className="text-6xl font-black text-secondary tracking-tighter italic">
+            <div className="bg-white p-6 rounded-[2.5rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F5F5F5] flex flex-col items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-xl">person_pin_circle</span>
+                <span className="text-[10px] font-black text-[#BBBBBB] uppercase tracking-widest">Posição na Fila</span>
+              </div>
+              <p className="text-lg font-black text-[#111111]">
                 {order.status === OrderStatus.CANCELLED || order.queuePosition === 0 ? 'n/a' : `${order.queuePosition}º`}
-              </span>
-              <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mt-2">Posição na Fila</span>
+              </p>
             </div>
           </div>
 
