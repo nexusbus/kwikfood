@@ -174,7 +174,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               ownerName: companyData.owner_name,
               bankHolder: companyData.bank_holder,
               expressNumber: companyData.express_number,
-              kwikNumber: companyData.kwik_number
+              kwikNumber: companyData.kwik_number,
+              companyPhone: companyData.company_phone
             } as Company);
           }
 
@@ -509,7 +510,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
           <Logo variant="icon" size={32} />
           <span className="text-xl font-black tracking-tight text-[#111111]">KwikFood</span>
         </div>
-        <div className="bg-red-50 text-primary px-5 py-2 rounded-2xl font-black text-[13px] tracking-widest shadow-sm">
+        <div className="bg-red-50 text-primary px-5 py-2 rounded-2xl font-black text-[11px] tracking-widest shadow-sm flex items-center gap-2">
+          <span className="text-[9px] opacity-50 uppercase">Ticket</span>
           #{order.ticketCode}
         </div>
       </header>
@@ -540,14 +542,11 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       order.status === OrderStatus.READY ? (order.orderType === OrderType.DELIVERY ? 'A caminho' : 'Pronto!') : 'Entregue'}
               </p>
             </div>
-            <div className="bg-white p-6 rounded-[2.5rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F5F5F5] flex flex-col items-center gap-3">
-              <div className="flex items-baseline gap-2">
+            <div className="bg-white p-6 rounded-[2.5rem] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] border border-[#F5F5F5] flex flex-col items-center justify-center gap-1">
               <span className="text-6xl font-black text-secondary tracking-tighter italic">
-                {order.status === OrderStatus.CANCELLED || order.queuePosition === 0 ? 'n/a' : order.queuePosition}
+                {order.status === OrderStatus.CANCELLED || order.queuePosition === 0 ? 'n/a' : `${order.queuePosition}º`}
               </span>
-              <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Posição na Fila</span>
-            </div>
-              <p className="text-lg font-black text-[#111111]">{order.status === OrderStatus.DELIVERED ? 'N/A' : `${order.queuePosition}º`}</p>
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mt-2">Posição na Fila</span>
             </div>
           </div>
 
@@ -579,8 +578,8 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               <span className="material-symbols-outlined text-primary text-xl">call</span>
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-0.5">Contacto</p>
-              <p className="text-[11px] font-black text-[#111111] truncate">{order.customerPhone}</p>
+              <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-0.5">Contacto do Espaço</p>
+              <p className="text-[11px] font-black text-[#111111] truncate">{company?.companyPhone || company?.expressNumber || 'N/A'}</p>
             </div>
           </div>
         </div>

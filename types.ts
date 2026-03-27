@@ -81,6 +81,7 @@ export interface Company {
   iban?: string;
   expressNumber?: string;
   kwikNumber?: string;
+  companyPhone?: string;
   ownerName?: string;
   bankHolder?: string;
 }

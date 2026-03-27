@@ -39,6 +39,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   const [telegramBotToken, setTelegramBotToken] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [bankHolder, setBankHolder] = useState('');
+  const [companyPhone, setCompanyPhone] = useState('');
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
   const [showQRModal, setShowQRModal] = useState<Company | null>(null);
@@ -213,7 +214,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
         telegram_chat_id: telegramChatId,
         telegram_bot_token: telegramBotToken,
         owner_name: ownerName,
-        bank_holder: bankHolder
+        bank_holder: bankHolder,
+        company_phone: companyPhone
       };
 
       if (editingCompany) {
@@ -232,7 +234,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
 
       setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
       setCity(''); setType(''); setIban(''); setExpressNumber(''); setKwikNumber('');
-      setTelegramChatId(''); setTelegramBotToken(''); setOwnerName(''); setBankHolder('');
+      setTelegramChatId(''); setTelegramBotToken(''); setOwnerName(''); setBankHolder(''); setCompanyPhone('');
       setIsFormVisible(false);
       const nextId = await getNextCompanyId();
       setId(nextId.toString().padStart(4, '0'));
@@ -264,6 +266,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setTelegramBotToken(company.telegramBotToken || '');
     setOwnerName(company.ownerName || '');
     setBankHolder(company.bankHolder || '');
+    setCompanyPhone(company.companyPhone || '');
     setIsFormVisible(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -298,7 +301,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
     setEditingCompany(null);
     setName(''); setNif(''); setLat(''); setLng(''); setEmail(''); setPassword(''); setLogoUrl('');
     setCity(''); setType(''); setIban(''); setExpressNumber(''); setKwikNumber('');
-    setTelegramChatId(''); setTelegramBotToken(''); setOwnerName(''); setBankHolder('');
+    setTelegramChatId(''); setTelegramBotToken(''); setOwnerName(''); setBankHolder(''); setCompanyPhone('');
     setIsFormVisible(false);
     const nextId = await getNextCompanyId();
     setId(nextId.toString().padStart(4, '0'));
@@ -511,6 +514,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     <div className="space-y-3">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Proprietário / Responsável</label>
                       <input type="text" value={ownerName} onChange={e => setOwnerName(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="Ex: João Silva" required />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Contacto do Espaço / Loja</label>
+                      <input type="text" value={companyPhone} onChange={e => setCompanyPhone(e.target.value)} className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-lg text-slate-900 outline-none focus:border-primary transition-all" placeholder="9XXXXXXXX" required />
                     </div>
                     <div className="space-y-3">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">NIF Corporativo</label>

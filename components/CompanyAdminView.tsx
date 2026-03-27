@@ -66,6 +66,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [accompanimentGroups, setAccompanimentGroups] = useState<AccompanimentGroup[]>([]);
   const [productLinks, setProductLinks] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [editCompanyName, setEditCompanyName] = useState(company.name);
+  const [editOwnerName, setEditOwnerName] = useState(company.ownerName || '');
+  const [editCompanyPhone, setEditCompanyPhone] = useState(company.companyPhone || '');
 
   // History filters
   const [hStartDate, setHStartDate] = useState('');
@@ -184,6 +188,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         .from('sms_logs')
         .select('*', { count: 'exact', head: true })
         .eq('company_id', company.id);
+      if (sCount !== null) setSmsCount(sCount);
 
       const { data: catData } = await supabase.from('categories').select('*').eq('company_id', company.id).order('sort_order', { ascending: true });
       if (catData) setCategories(catData.map(c => ({ ...c, companyId: c.company_id, sortOrder: c.sort_order })));
@@ -991,6 +996,15 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   </div>
                 </div>
 
+                {/* Configurações de Perfil */}
+                <button
+                  onClick={() => setIsProfileModalOpen(true)}
+                  className="bg-white size-12 rounded-2xl border border-[#F5F5F5] shadow-sm flex items-center justify-center text-secondary hover:text-primary transition-all active:scale-95"
+                  title="Configurações do Perfil"
+                >
+                  <span className="material-symbols-outlined text-xl">settings</span>
+                </button>
+
                 {/* Busca Posicionada no Canto Superior Direito */}
                 <div className="relative group lg:ml-auto">
                   <input
@@ -1032,6 +1046,10 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 <div className="p-6 bg-[#FDFCFD] border border-[#EEEEEE] rounded-3xl flex flex-col gap-1 text-secondary">
                   <span className="text-[9px] font-black text-secondary/40 uppercase tracking-widest">Número Kwik</span>
                   <span className="text-sm font-black">{company.kwikNumber || '--'}</span>
+                </div>
+                <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl flex flex-col gap-1 text-slate-900 col-span-full sm:col-span-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Contacto do Espaço (Exibido ao Cliente)</span>
+                  <span className="text-sm font-black">{company.companyPhone || '--'}</span>
                 </div>
               </div>
             </div>
@@ -2468,6 +2486,83 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 </div>
               </section>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Edit Modal */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-secondary/80 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="w-full max-w-lg bg-white rounded-[3rem] p-10 shadow-premium relative animate-in zoom-in-95 duration-200">
+            <header className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-black text-secondary tracking-tight">Editar Perfil</h3>
+              <button 
+                onClick={() => setIsProfileModalOpen(false)}
+                className="size-10 rounded-xl hover:bg-zinc-100 flex items-center justify-center text-zinc-400 transition-all"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </header>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2">Nome do Estabelecimento</label>
+                <input 
+                  type="text" 
+                  value={editCompanyName} 
+                  onChange={e => setEditCompanyName(e.target.value)}
+                  className="w-full h-14 bg-zinc-50 border-none rounded-2xl px-5 font-bold text-secondary outline-none focus:ring-2 focus:ring-primary/10 transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2">Proprietário / Responsável</label>
+                <input 
+                  type="text" 
+                  value={editOwnerName} 
+                  onChange={e => setEditOwnerName(e.target.value)}
+                  className="w-full h-14 bg-zinc-50 border-none rounded-2xl px-5 font-bold text-secondary outline-none focus:ring-2 focus:ring-primary/10 transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-2">Contacto Oficial da Loja</label>
+                <input 
+                  type="text" 
+                  value={editCompanyPhone} 
+                  onChange={e => setEditCompanyPhone(e.target.value)}
+                  className="w-full h-14 bg-zinc-50 border-none rounded-2xl px-5 font-bold text-secondary outline-none focus:ring-2 focus:ring-primary/10 transition-all"
+                  placeholder="9XXXXXXXX"
+                />
+              </div>
+            </div>
+
+            <footer className="mt-10">
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    const { error } = await supabase
+                      .from('companies')
+                      .update({
+                        name: editCompanyName,
+                        owner_name: editOwnerName,
+                        company_phone: editCompanyPhone
+                      })
+                      .eq('id', company.id);
+                    if (error) throw error;
+                    alert('Perfil atualizado com sucesso! Reinicie a página para ver as mudanças.');
+                    setIsProfileModalOpen(false);
+                  } catch (err: any) {
+                    alert('Erro ao atualizar perfil: ' + err.message);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="w-full h-14 bg-primary text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-rose-100 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {saving ? 'A GUARDAR...' : 'GUARDAR ALTERAÇÕES'}
+              </button>
+            </footer>
           </div>
         </div>
       )}

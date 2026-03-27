@@ -21,6 +21,7 @@ export const fetchCompanies = async (): Promise<Company[]> => {
     bankHolder: co.bank_holder,
     expressNumber: co.express_number,
     kwikNumber: co.kwik_number,
+    companyPhone: co.company_phone,
     isAcceptingOrders: co.is_accepting_orders
   })) as Company[];
 };

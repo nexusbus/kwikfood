@@ -376,11 +376,8 @@ const CustomerEntryView: React.FC<CustomerEntryViewProps> = ({ companies, onJoin
               {matchedCompany.expressNumber && (
                 <div className="mt-2 flex items-center gap-2 px-4 py-1.5 bg-slate-50 border border-slate-100 rounded-full">
                   <span className="material-symbols-outlined text-primary text-sm">phone_in_talk</span>
-                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Contacto: +244 {matchedCompany.expressNumber}</span>
+                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Contacto: +244 {matchedCompany.companyPhone || matchedCompany.expressNumber}</span>
                 </div>
-              )}
-              {matchedCompany.ownerName && (
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Proprietário: {matchedCompany.ownerName}</p>
               )}
             </div>
             <button 
