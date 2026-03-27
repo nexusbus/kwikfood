@@ -631,9 +631,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100">
                         <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Estabelecimento</th>
-                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Contacto Directo</th>
+                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Acesso / NIF</th>
                         <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Localização</th>
-                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">Gestão de Status</th>
+                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Finanças</th>
+                        <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">Status</th>
                         <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] text-right">Acções Master</th>
                       </tr>
                     </thead>
@@ -663,6 +664,14 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                             <div className="flex items-center gap-2 text-slate-600">
                               <span className="material-symbols-outlined text-lg opacity-50">location_on</span>
                               <p className="font-black text-xs uppercase tracking-wide">{co.location}, {co.city}</p>
+                            </div>
+                          </td>
+                          <td className="px-10 py-8">
+                            <div className="flex flex-col gap-1 items-start">
+                              {co.iban && <span className="text-[10px] font-black text-slate-900 uppercase tracking-tighter">IBAN: {co.iban}</span>}
+                              {co.expressNumber && <span className="text-[10px] font-black text-primary uppercase tracking-tighter">EXP: {co.expressNumber}</span>}
+                              {co.kwikNumber && <span className="text-[10px] font-black text-secondary uppercase tracking-tighter">KWIK: {co.kwikNumber}</span>}
+                              {!co.iban && !co.expressNumber && !co.kwikNumber && <span className="text-[10px] text-slate-300 italic">Não Configurado</span>}
                             </div>
                           </td>
                           <td className="px-10 py-8">

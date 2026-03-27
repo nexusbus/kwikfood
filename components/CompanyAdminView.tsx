@@ -1009,10 +1009,31 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
         <div className="relative z-10">
           {activeTab === 'FILA' && (
-            <div className="flex items-center gap-3 mb-10 overflow-hidden">
-              <h3 className="text-[13px] font-black text-[#111111] uppercase tracking-[0.2em] whitespace-nowrap">Fila de Pedidos</h3>
-              <span className="px-3 py-1 bg-red-50 text-primary rounded-lg text-[9px] font-black uppercase tracking-widest">Novos</span>
-              <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
+            <div className="mb-10 animate-fade-in">
+              <div className="flex items-center gap-3 mb-6 overflow-hidden">
+                <h3 className="text-[13px] font-black text-[#111111] uppercase tracking-[0.2em] whitespace-nowrap">Fila de Pedidos</h3>
+                <span className="px-3 py-1 bg-red-50 text-primary rounded-lg text-[9px] font-black uppercase tracking-widest">Ativos</span>
+                <div className="h-[1px] bg-[#F5F5F5] w-full"></div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-6 bg-[#FDFCFD] border border-[#EEEEEE] rounded-3xl flex flex-col gap-1">
+                  <span className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest">IBAN para Clientes</span>
+                  <span className="text-sm font-black text-secondary">{company.iban || 'NÃO CONFIGURADO'}</span>
+                </div>
+                <div className="p-6 bg-[#FDFCFD] border border-[#EEEEEE] rounded-3xl flex flex-col gap-1">
+                  <span className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest">Titular da Conta</span>
+                  <span className="text-sm font-black text-secondary">{company.bankHolder || company.name}</span>
+                </div>
+                <div className="p-6 bg-[#FDFCFD] border border-[#EEEEEE] rounded-3xl flex flex-col gap-1 text-primary">
+                  <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">Número Express</span>
+                  <span className="text-sm font-black">{company.expressNumber || '--'}</span>
+                </div>
+                <div className="p-6 bg-[#FDFCFD] border border-[#EEEEEE] rounded-3xl flex flex-col gap-1 text-secondary">
+                  <span className="text-[9px] font-black text-secondary/40 uppercase tracking-widest">Número Kwik</span>
+                  <span className="text-sm font-black">{company.kwikNumber || '--'}</span>
+                </div>
+              </div>
             </div>
           )}
 

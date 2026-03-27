@@ -170,7 +170,11 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
               marketingEnabled: companyData.marketing_enabled,
               isActive: companyData.is_active,
               telegramChatId: companyData.telegram_chat_id,
-              telegramBotToken: companyData.telegram_bot_token
+              telegramBotToken: companyData.telegram_bot_token,
+              ownerName: companyData.owner_name,
+              bankHolder: companyData.bank_holder,
+              expressNumber: companyData.express_number,
+              kwikNumber: companyData.kwik_number
             } as Company);
           }
 
