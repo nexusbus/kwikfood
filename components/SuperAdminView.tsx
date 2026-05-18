@@ -396,33 +396,31 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
   );
 
   return (
-    <div className="bg-background min-h-screen selection:bg-primary selection:text-white relative overflow-x-hidden">
+    <div className="bg-[#FCFAFA] min-h-screen selection:bg-primary selection:text-white relative overflow-x-hidden">
       {/* Decorative Background */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-40">
         <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[150px]"></div>
-        <div className="absolute bottom-[-10%] left-[-20%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[150px]"></div>
       </div>
 
-      <header className="glass sticky top-0 z-[60] px-6 lg:px-12 py-6 flex flex-col lg:flex-row items-center justify-between gap-6 border-b border-border/30 animate-fade-in no-print bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-[60] px-6 lg:px-12 py-4 flex flex-col lg:flex-row items-center justify-between gap-6 border-b border-[#E5E7EB] animate-fade-in no-print bg-[#FCFAFA]">
         <div className="flex items-center gap-6">
           <button
             onClick={onBack}
             title="Encerrar Sessão e Sair"
-            className="group flex items-center justify-center gap-3 h-14 px-6 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm"
+            className="group flex items-center justify-center size-10 rounded-sm bg-white border border-[#E5E7EB] hover:border-primary hover:text-primary transition-all active:scale-95 shadow-sm"
           >
-            <span className="material-symbols-outlined text-2xl group-hover:-translate-x-1 transition-transform">logout</span>
-            <span className="text-[11px] font-black uppercase tracking-widest hidden sm:block">Sair</span>
+            <span className="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform text-zinc-500">logout</span>
           </button>
           <div className="flex items-center gap-4">
-            <Logo variant="icon" size={44} color="primary" className="transform hover:rotate-12 transition-transform duration-500" />
+             <span className="material-symbols-outlined text-primary text-2xl">shield</span>
             <div>
-              <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mb-1">Central de Comando</p>
-              <h2 className="text-2xl font-black tracking-tight text-slate-900 leading-none">Super Admin</h2>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-0.5">Central de Comando</p>
+              <h2 className="text-xl font-black tracking-tight text-primary uppercase leading-none">SUPER ADMIN</h2>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto no-scrollbar max-w-full shadow-inner">
+        <div className="flex items-center gap-2 bg-white p-1 rounded-sm border border-[#E5E7EB] overflow-x-auto no-scrollbar max-w-full">
           {[
             { id: 'ESTABELECIMENTOS', label: 'Gestão' },
             { id: 'AUDITORIA', label: 'Auditoria' },
@@ -432,32 +430,34 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             <button
               key={view.id}
               onClick={() => setActiveView(view.id as any)}
-              className={`px-6 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] transition-all ${activeView === view.id ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-white hover:text-slate-900'}`}
+              className={`px-6 py-2 rounded-sm font-black text-[10px] uppercase tracking-[0.2em] transition-all ${activeView === view.id ? 'bg-secondary text-white border-l-4 border-l-primary' : 'text-zinc-500 hover:bg-zinc-50 border-l-4 border-l-transparent'}`}
             >
               {view.label}
             </button>
           ))}
         </div>
 
-        <div className="hidden lg:flex items-center gap-2 px-6 h-14 bg-green-50 text-green-600 rounded-2xl font-black text-[9px] uppercase tracking-widest border border-green-100">
-          <span className="size-2 bg-green-500 rounded-full animate-pulse"></span>
-          Sistema Operativo
+        <div className="hidden lg:flex items-center gap-2 px-6 py-2 bg-white text-emerald-600 rounded-sm font-black text-[10px] uppercase tracking-widest border border-[#E5E7EB]">
+          <span className="size-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+          Sistema Operacional
         </div>
       </header>
 
       <main className="max-w-[1600px] mx-auto px-6 lg:px-12 py-8 lg:py-12 space-y-12 relative z-10">
 
         {/* Dashboard Analytics */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
           {[
-            { label: 'Estabelecimentos Ativos', val: companies.filter(c => c.isActive).length, color: 'text-slate-900' },
-            { label: 'Clientes Hoje', val: totalClientCount, color: 'text-primary' },
-            { label: 'SMS Enviadas Hoje', val: dailySmsCount, color: 'text-slate-900' },
+            { label: 'Estabelecimentos Ativos', val: companies.filter(c => c.isActive).length, color: 'text-secondary' },
+            { label: 'Clientes Hoje', val: totalClientCount, color: 'text-secondary' },
+            { label: 'SMS Enviadas Hoje', val: dailySmsCount, color: 'text-secondary' },
             { label: 'Receita do Dia', val: `${dailyRevenue.toLocaleString()} Kz`, color: 'text-primary' }
           ].map((stat, i) => (
-            <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-1 group">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] group-hover:text-primary transition-colors">{stat.label}</p>
-              <p className={`text-4xl font-black ${stat.color} tracking-tighter`}>{stat.val}</p>
+            <div key={i} className="bg-white p-6 rounded-sm border border-[#E5E7EB] relative flex flex-col gap-2 overflow-hidden group">
+              {i === 3 && <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>}
+              {i !== 3 && <div className="absolute top-0 left-0 w-1 h-full bg-zinc-800"></div>}
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{stat.label}</p>
+              <p className={`text-3xl font-black ${stat.color} tracking-tight`}>{stat.val}</p>
             </div>
           ))}
         </section>
@@ -467,28 +467,26 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             <div className="flex justify-start">
               <button
                 onClick={() => setIsFormVisible(!isFormVisible)}
-                className={`h-16 px-8 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center gap-3 shadow-sm ${isFormVisible ? 'bg-slate-100 text-slate-500 hover:bg-slate-200' : 'bg-primary text-white hover:bg-secondary shadow-lg shadow-primary/20'}`}
+                className={`h-12 px-6 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-3 border ${isFormVisible ? 'bg-white text-zinc-500 border-[#E5E7EB] hover:bg-zinc-50' : 'bg-primary text-white border-primary hover:bg-red-800'}`}
               >
-                <span className="material-symbols-outlined text-2xl">{isFormVisible ? 'close' : 'add_business'}</span>
-                {isFormVisible ? 'CANCELAR CADASTRO' : 'ADICIONAR NOVO PARCEIRO'}
+                <span className="material-symbols-outlined text-lg">{isFormVisible ? 'close' : 'add'}</span>
+                {isFormVisible ? 'CANCELAR CADASTRO' : 'NOVO REGISTRO'}
               </button>
             </div>
 
             {/* Registration Form */}
             {isFormVisible && (
-              <section className="bg-white rounded-[3.5rem] p-8 lg:p-16 border border-slate-100 shadow-sm relative overflow-hidden animate-scale-in">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
-
+              <section className="bg-white rounded-sm p-8 lg:p-12 border border-[#E5E7EB] relative animate-scale-in">
                 <div className="max-w-5xl mx-auto">
-                  <div className="flex items-center gap-6 mb-16">
-                    <div className="size-16 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                      <span className="material-symbols-outlined text-3xl">add_business</span>
+                  <div className="flex items-center gap-6 mb-12 border-b border-[#E5E7EB] pb-6">
+                    <div className="size-12 bg-zinc-900 text-white rounded-sm flex items-center justify-center">
+                      <span className="material-symbols-outlined text-xl">add_business</span>
                     </div>
                     <div>
-                      <h2 className="text-4xl font-black tracking-tight text-slate-900">
-                        {editingCompany ? 'Ajustar Parceiro' : 'Novo Estabelecimento'}
+                      <h2 className="text-2xl font-black tracking-tight text-secondary uppercase">
+                        {editingCompany ? 'AJUSTAR REGISTRO' : 'NOVO REGISTRO'}
                       </h2>
-                      <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Expanda a rede KwikFood registando novos restaurantes.</p>
+                      <p className="text-zinc-500 font-black text-[10px] uppercase tracking-widest mt-1">Expanda a rede operacional registrando novas unidades.</p>
                     </div>
                   </div>
 
@@ -606,12 +604,12 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                       </div>
                     </div>
 
-                    <div className="col-span-full pt-12 flex gap-4">
+                    <div className="col-span-full pt-10 flex gap-4">
                       {editingCompany && (
-                        <button type="button" onClick={handleCancelEdit} className="flex-1 h-16 font-black text-slate-400 uppercase tracking-widest text-[11px] hover:text-primary transition-all">Cancelar</button>
+                        <button type="button" onClick={handleCancelEdit} className="flex-1 h-14 bg-white border border-[#E5E7EB] text-zinc-500 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-50 transition-all">Cancelar</button>
                       )}
-                      <button type="submit" disabled={loading} className="flex-[3] h-20 bg-primary text-white rounded-[1.5rem] font-black text-[13px] uppercase tracking-[0.3em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
-                        {loading ? 'Sincronizando...' : editingCompany ? 'Guardar Alterações' : 'Finalizar Registo'}
+                      <button type="submit" disabled={loading} className="flex-[3] h-14 bg-primary text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-red-800 active:scale-[0.98] transition-all">
+                        {loading ? 'SINCRONIZANDO...' : editingCompany ? 'SALVAR ALTERAÇÕES' : 'FINALIZAR REGISTRO'}
                       </button>
                     </div>
                   </form>
@@ -620,19 +618,19 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             )}
 
             {/* Partners List */}
-            <section className="space-y-8 animate-fade-in">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+            <section className="space-y-6 animate-fade-in">
+              <div className="flex flex-col sm:flex-row justify-between items-end gap-6 border-b border-[#E5E7EB] pb-4">
                 <div>
-                  <h3 className="text-3xl font-black text-slate-900 tracking-tight">Rede de Parceiros</h3>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.35em] mt-1">{companies.length} Estabelecimentos Ligados</p>
+                  <h3 className="text-xl font-black text-secondary tracking-tight uppercase">REDE OPERACIONAL</h3>
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-1">{companies.length} UNIDADES ATIVAS</p>
                 </div>
-                <div className="relative w-full sm:w-96">
-                  <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Pesquisar Unidade..." className="w-full h-16 bg-white border border-slate-100 rounded-2xl px-14 font-black text-xs text-slate-700 shadow-sm focus:border-primary outline-none transition-all" />
-                  <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">search</span>
+                <div className="relative w-full sm:w-80">
+                  <input type="text" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="BUSCAR UNIDADE..." className="w-full h-10 bg-white border border-[#E5E7EB] rounded-sm px-10 font-black text-[10px] uppercase tracking-widest text-secondary focus:border-primary outline-none transition-all" />
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">search</span>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[3.5rem] border border-slate-100 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-sm border border-[#E5E7EB] overflow-hidden">
                 <div className="overflow-x-auto no-scrollbar">
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -650,27 +648,26 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         c.id.toString().includes(searchTerm)
                       ).map((co) => (
-                        <tr key={co.id} className="group hover:bg-slate-50/50 transition-all">
-                          <td className="px-10 py-8">
-                            <div className="flex items-center gap-6">
-                              <div className="size-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 shadow-inner group-hover:scale-110 transition-transform">
-                                {co.logoUrl ? <img src={co.logoUrl} alt={co.name} className="size-full object-cover" /> : <div className="size-full flex items-center justify-center font-black text-slate-300 text-2xl uppercase">{co.name[0]}</div>}
+                        <tr key={co.id} className="group hover:bg-zinc-50 transition-all">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-4">
+                              <div className="size-12 rounded-sm bg-zinc-100 border border-[#E5E7EB] overflow-hidden flex-shrink-0">
+                                {co.logoUrl ? <img src={co.logoUrl} alt={co.name} className="size-full object-cover" /> : <div className="size-full flex items-center justify-center font-black text-zinc-400 text-lg uppercase">{co.name[0]}</div>}
                               </div>
                               <div>
-                                <h4 className="font-black text-slate-900 text-base">{co.name}</h4>
-                                <p className="text-[10px] font-black text-primary uppercase tracking-widest">{co.type}</p>
-                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {co.id.toString().padStart(4, '0')}</p>
+                                <h4 className="font-black text-secondary text-sm uppercase">{co.name}</h4>
+                                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">ID: {co.id.toString().padStart(4, '0')} | {co.type}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-10 py-8">
-                            <p className="font-black text-slate-700 text-sm">{co.email}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NIF: {co.nif}</p>
+                          <td className="px-6 py-4">
+                            <p className="font-black text-secondary text-[10px] tracking-widest">{co.email}</p>
+                            <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">NIF: {co.nif}</p>
                           </td>
-                          <td className="px-10 py-8">
-                            <div className="flex items-center gap-2 text-slate-600">
-                              <span className="material-symbols-outlined text-lg opacity-50">location_on</span>
-                              <p className="font-black text-xs uppercase tracking-wide">{co.location}, {co.city}</p>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2 text-zinc-500">
+                              <span className="material-symbols-outlined text-base">location_on</span>
+                              <p className="font-black text-[10px] uppercase tracking-widest">{co.location}, {co.city}</p>
                             </div>
                           </td>
                           <td className="px-10 py-8">
@@ -720,23 +717,23 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             </section>
           </div>
         ) : activeView === 'AUDITORIA' ? (
-          <section className="space-y-12 animate-fade-in">
-            <div className="flex flex-col lg:flex-row justify-between items-center gap-8 bg-white p-10 rounded-[3.5rem] border border-slate-100 shadow-sm no-print">
+          <section className="space-y-6 animate-fade-in">
+            <div className="flex flex-col lg:flex-row justify-between items-end gap-6 border-b border-[#E5E7EB] pb-4 no-print">
               <div>
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight">Registo de Auditoria</h3>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Monitorização global de transações e logs de sistema.</p>
+                <h3 className="text-xl font-black text-secondary tracking-tight uppercase">REGISTRO DE AUDITORIA</h3>
+                <p className="text-zinc-500 font-black text-[10px] uppercase tracking-widest mt-1">MONITORAMENTO GLOBAL DE TRANSAÇÕES</p>
               </div>
-              <div className="flex gap-4 w-full lg:w-auto">
-                <button onClick={handleExportAudit} className="flex-1 lg:flex-none h-16 px-10 bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white flex items-center justify-center gap-3">
-                  <span className="material-symbols-outlined text-2xl">table_rows</span> CSV
+              <div className="flex gap-2 w-full lg:w-auto">
+                <button onClick={handleExportAudit} className="flex-1 lg:flex-none h-10 px-6 bg-white border border-[#E5E7EB] text-zinc-600 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all hover:bg-zinc-50 flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined text-lg">table_rows</span> CSV
                 </button>
-                <button onClick={() => window.print()} className="flex-1 lg:flex-none h-16 px-10 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-3 active:scale-95">
-                  <span className="material-symbols-outlined text-2xl">picture_as_pdf</span> PDF
+                <button onClick={() => window.print()} className="flex-1 lg:flex-none h-10 px-6 bg-secondary text-white rounded-sm font-black text-[10px] uppercase tracking-widest transition-all hover:bg-zinc-800 flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined text-lg">picture_as_pdf</span> PDF
                 </button>
               </div>
             </div>
 
-            <div className="bg-white rounded-[3.5rem] border border-slate-100 shadow-sm overflow-hidden animate-scale-in">
+            <div className="bg-white rounded-sm border border-[#E5E7EB] overflow-hidden animate-scale-in">
               <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -848,19 +845,17 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             </div>
           </section>
         ) : activeView === 'DIAGNOSTICO' ? (
-          <section className="space-y-12 animate-fade-in">
-            <div className="bg-white rounded-[3.5rem] p-8 lg:p-16 border border-slate-100 shadow-sm relative overflow-hidden animate-scale-in">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -mr-40 -mt-40"></div>
+          <section className="space-y-6 animate-fade-in">
+            <div className="bg-white rounded-sm p-8 lg:p-12 border border-[#E5E7EB] relative animate-scale-in">
 
               <div className="max-w-4xl mx-auto">
-                <div className="flex items-center gap-8 mb-16">
-                  <div className="size-20 bg-slate-900 text-white rounded-[2.2rem] flex items-center justify-center shadow-2xl relative">
-                    <span className="material-symbols-outlined text-4xl">terminal</span>
-                    <div className="absolute -top-2 -right-2 size-6 bg-primary rounded-full border-4 border-white animate-pulse"></div>
+                <div className="flex items-center gap-6 mb-12 border-b border-[#E5E7EB] pb-6">
+                  <div className="size-12 bg-secondary text-white rounded-sm flex items-center justify-center">
+                    <span className="material-symbols-outlined text-xl">terminal</span>
                   </div>
                   <div>
-                    <h2 className="text-4xl font-black tracking-tight text-slate-900">Consola de Diagnóstico</h2>
-                    <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Verificação de Integridade e Webhooks do Telegram.</p>
+                    <h2 className="text-2xl font-black tracking-tight text-secondary uppercase">CONSOLA DE DIAGNÓSTICO</h2>
+                    <p className="text-zinc-500 font-black text-[10px] uppercase tracking-widest mt-1">VERIFICAÇÃO DE INTEGRIDADE E WEBHOOKS DO TELEGRAM.</p>
                   </div>
                 </div>
 
@@ -899,8 +894,8 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                         placeholder="Ex: -100123... ou 91283..."
                       />
                     </div>
-                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col justify-center gap-4">
-                      <p className="text-[10px] font-bold text-slate-500 leading-snug">
+                    <div className="bg-white p-6 rounded-sm border border-[#E5E7EB] flex flex-col justify-center gap-4">
+                      <p className="text-[10px] font-bold text-zinc-500 leading-snug uppercase tracking-widest">
                         Para grupos, escreva algo no Telegram e use o scanner para capturar o ID exacto.
                       </p>
                       <button
@@ -914,7 +909,7 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                             alert("Nenhum grupo detectado recentemente.");
                           }
                         }}
-                        className="w-full py-4 bg-white border border-slate-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-slate-900 hover:border-primary transition-all flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-white border border-[#E5E7EB] rounded-sm font-black text-[9px] uppercase tracking-widest text-secondary hover:border-primary transition-all flex items-center justify-center gap-2"
                       >
                         <span className="material-symbols-outlined text-lg">radar</span> Scanner Ativo
                       </button>
@@ -926,13 +921,13 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     <textarea
                       value={testMessage}
                       onChange={e => setTestMessage(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-[2rem] p-8 font-bold text-sm text-slate-900 outline-none focus:border-primary transition-all resize-none min-h-[140px]"
-                      placeholder="Escreva aqui a mensagem para enviar..."
+                      className="w-full bg-white border border-[#E5E7EB] rounded-sm p-6 font-bold text-[10px] uppercase text-secondary outline-none focus:border-primary transition-all resize-none min-h-[140px]"
+                      placeholder="ESCREVA AQUI A MENSAGEM PARA ENVIAR..."
                     />
                   </div>
 
                   {testResult && (
-                    <div className={`p-8 rounded-3xl border animate-fade-in ${testResult.success ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'}`}>
+                    <div className={`p-6 rounded-sm border animate-fade-in ${testResult.success ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-red-50 border-red-100 text-red-700'}`}>
                       <div className="flex items-start gap-4">
                         <span className="material-symbols-outlined">{testResult.success ? 'check_circle' : 'error'}</span>
                         <div>
@@ -966,23 +961,23 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
           </section>
         ) : (
           /* SMS & Financial View */
-          <section className="space-y-12 animate-fade-in">
-            <div className="flex flex-col lg:flex-row justify-between items-center gap-8 bg-white p-10 rounded-[3.5rem] border border-slate-100 shadow-sm no-print">
+          <section className="space-y-6 animate-fade-in">
+            <div className="flex flex-col lg:flex-row justify-between items-end gap-6 border-b border-[#E5E7EB] pb-4 no-print">
               <div>
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight">Financeiro & SMS</h3>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">Monitorização de custos de mensageira por estabelecimento.</p>
+                <h3 className="text-xl font-black text-secondary tracking-tight uppercase">FINANCEIRO & SMS</h3>
+                <p className="text-zinc-500 font-black text-[10px] uppercase tracking-widest mt-1">MONITORAMENTO DE CUSTOS DE MENSAGENS POR ESTABELECIMENTO.</p>
               </div>
-              <div className="flex gap-4 w-full lg:w-auto">
-                <button onClick={handleExportSMS} className="flex-1 lg:flex-none h-16 px-10 bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:bg-white flex items-center justify-center gap-3">
-                  <span className="material-symbols-outlined text-2xl">table_rows</span> CSV
+              <div className="flex gap-2 w-full lg:w-auto">
+                <button onClick={handleExportSMS} className="flex-1 lg:flex-none h-10 px-6 bg-white border border-[#E5E7EB] text-zinc-600 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all hover:bg-zinc-50 flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined text-lg">table_rows</span> CSV
                 </button>
-                <button onClick={() => window.print()} className="flex-1 lg:flex-none h-16 px-10 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-3 active:scale-95">
-                  <span className="material-symbols-outlined text-2xl">picture_as_pdf</span> PDF
+                <button onClick={() => window.print()} className="flex-1 lg:flex-none h-10 px-6 bg-secondary text-white rounded-sm font-black text-[10px] uppercase tracking-widest transition-all hover:bg-zinc-800 flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined text-lg">picture_as_pdf</span> PDF
                 </button>
               </div>
             </div>
 
-            <div className="bg-white rounded-[3.5rem] border border-slate-100 shadow-sm overflow-hidden animate-scale-in">
+            <div className="bg-white rounded-sm border border-[#E5E7EB] overflow-hidden animate-scale-in">
               <div className="overflow-x-auto no-scrollbar">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -997,18 +992,18 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                     {companies.map(co => {
                       const count = smsStats[co.id.toString()] || 0;
                       return (
-                        <tr key={co.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-10 py-8">
+                        <tr key={co.id} className="hover:bg-zinc-50 transition-colors">
+                          <td className="px-6 py-4">
                             <div className="flex items-center gap-4">
-                              <div className="size-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 shadow-inner">
-                                {co.logoUrl ? <img src={co.logoUrl} alt={co.name} className="size-full object-cover" /> : <div className="size-full flex items-center justify-center font-black text-slate-300 text-xs uppercase">{co.name[0]}</div>}
+                              <div className="size-10 rounded-sm bg-zinc-100 border border-[#E5E7EB] overflow-hidden flex-shrink-0">
+                                {co.logoUrl ? <img src={co.logoUrl} alt={co.name} className="size-full object-cover" /> : <div className="size-full flex items-center justify-center font-black text-zinc-400 text-xs uppercase">{co.name[0]}</div>}
                               </div>
-                              <p className="font-black text-slate-900 uppercase text-sm tracking-tight">{co.name}</p>
+                              <p className="font-black text-secondary uppercase text-[10px] tracking-widest">{co.name}</p>
                             </div>
                           </td>
-                          <td className="px-10 py-8 text-center font-black text-slate-700">{count}</td>
-                          <td className="px-10 py-8 text-center font-black text-primary">{(count * 5).toLocaleString()} Kz</td>
-                          <td className="px-10 py-8 text-right font-black text-green-600">
+                          <td className="px-6 py-4 text-center font-black text-[10px] text-zinc-700 tracking-widest">{count}</td>
+                          <td className="px-6 py-4 text-center font-black text-[10px] text-primary tracking-widest">{(count * 5).toLocaleString()} Kz</td>
+                          <td className="px-6 py-4 text-right font-black text-[10px] text-emerald-600 tracking-widest">
                             Alta
                           </td>
                         </tr>
@@ -1025,16 +1020,16 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       {/* Delete Modal */}
       {
         showDeleteModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in no-print">
-            <div className="w-full max-w-lg bg-white rounded-[3rem] p-12 shadow-2xl relative overflow-hidden animate-scale-in">
-              <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-900/60 backdrop-blur-md animate-fade-in no-print">
+            <div className="w-full max-w-lg bg-white rounded-sm p-10 border border-[#E5E7EB] relative overflow-hidden animate-scale-in">
+              <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
 
               <div className="text-center mb-10">
-                <div className="size-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <span className="material-symbols-outlined text-4xl">warning</span>
+                <div className="size-16 bg-primary/10 text-primary rounded-sm flex items-center justify-center mx-auto mb-6">
+                  <span className="material-symbols-outlined text-3xl">warning</span>
                 </div>
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-none uppercase">Acção Crítica</h3>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-4">
+                <h3 className="text-xl font-black text-secondary tracking-tight leading-none uppercase">AÇÃO CRÍTICA</h3>
+                <p className="text-zinc-500 font-black text-[10px] uppercase tracking-widest mt-4">
                   A exclusão da unidade é irreversível. Todos os produtos e logs serão perdidos imediatamente.
                 </p>
               </div>
@@ -1052,10 +1047,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
                 {deleteError && <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-[10px] font-black rounded-xl text-center uppercase tracking-widest">{deleteError}</div>}
 
                 <div className="flex flex-col gap-4 pt-6">
-                  <button type="submit" disabled={deleteLoading} className="w-full h-16 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-lg shadow-primary/20 hover:bg-slate-900 transition-all">
-                    {deleteLoading ? 'Eliminando...' : 'Confirmar Exclusão'}
+                  <button type="submit" disabled={deleteLoading} className="w-full h-12 bg-primary text-white rounded-sm font-black uppercase tracking-widest text-[10px] hover:bg-red-800 transition-all">
+                    {deleteLoading ? 'ELIMINANDO...' : 'CONFIRMAR EXCLUSÃO'}
                   </button>
-                  <button type="button" onClick={() => setShowDeleteModal(null)} className="w-full h-12 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors">Abortar Operação</button>
+                  <button type="button" onClick={() => setShowDeleteModal(null)} className="w-full h-10 text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-secondary transition-colors">ABORTAR OPERAÇÃO</button>
                 </div>
               </form>
             </div>
@@ -1066,13 +1061,13 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
       {/* QR Modal */}
       {
         showQRModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-fade-in no-print">
-            <div className="w-full max-w-lg bg-white rounded-[3rem] p-12 shadow-2xl relative overflow-hidden animate-scale-in text-center">
-              <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-900/60 backdrop-blur-md animate-fade-in no-print">
+            <div className="w-full max-w-lg bg-white rounded-sm p-10 border border-[#E5E7EB] relative overflow-hidden animate-scale-in text-center">
+              <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
 
               <div className="mb-10">
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight uppercase leading-none">{showQRModal.name}</h3>
-                <p className="text-primary font-black text-[10px] uppercase tracking-[0.4em] mt-3">ID Local: {showQRModal.id.toString().padStart(4, '0')}</p>
+                <h3 className="text-xl font-black text-secondary tracking-tight uppercase leading-none">{showQRModal.name}</h3>
+                <p className="text-primary font-black text-[10px] uppercase tracking-[0.4em] mt-3">ID LOCAL: {showQRModal.id.toString().padStart(4, '0')}</p>
               </div>
 
               <div className="bg-white p-8 border-2 border-slate-100 rounded-[2.5rem] shadow-inner mb-10 w-fit mx-auto relative group">
@@ -1091,10 +1086,10 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
               </div>
 
               <div className="space-y-4">
-                <button onClick={() => window.print()} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-lg flex items-center justify-center gap-3">
-                  <span className="material-symbols-outlined">print</span> Imprimir Pack QR
+                <button onClick={() => window.print()} className="w-full h-12 bg-secondary text-white rounded-sm font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined text-lg">print</span> IMPRIMIR PACK QR
                 </button>
-                <button onClick={() => setShowQRModal(null)} className="w-full h-12 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900">Fechar Janela</button>
+                <button onClick={() => setShowQRModal(null)} className="w-full h-10 text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-secondary">FECHAR JANELA</button>
               </div>
             </div>
           </div>

@@ -278,6 +278,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   }, [company.id]);
 
   useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
     if (activeTab === 'MARKETING') {
       const loadContacts = async () => {
         const { data, error } = await supabase
@@ -790,14 +793,14 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   };
 
   return (
-    <div className="flex h-screen bg-[#F9F9F9] overflow-hidden selection:bg-primary selection:text-white relative font-sans">
+    <div className="flex h-screen bg-[#FCFAFA] overflow-hidden selection:bg-primary selection:text-white relative font-sans">
       {/* Mobile Menu Toggle - Only visible on small screens */}
       {!showSidebar && (
         <button
           onClick={() => setShowSidebar(true)}
-          className="lg:hidden fixed bottom-8 right-8 z-[160] size-16 bg-primary text-white rounded-2xl shadow-premium flex items-center justify-center animate-fade-in active:scale-90 transition-all"
+          className="lg:hidden fixed bottom-8 right-8 z-[160] size-14 bg-primary text-white shadow-sm flex items-center justify-center active:scale-95 transition-all"
         >
-          <span className="material-symbols-outlined text-3xl">menu</span>
+          <span className="material-symbols-outlined text-2xl">menu</span>
         </button>
       )}
 
@@ -809,48 +812,40 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         />
       )}
       {/* Premium Sidebar - Collapsible */}
-      <aside className={`fixed inset-y-0 left-0 w-80 bg-white shadow-2xl border-r border-border/30 p-8 flex flex-col gap-10 z-[200] transition-all duration-500 ease-in-out overflow-y-auto custom-scrollbar ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex flex-col items-center text-center gap-6 py-4">
+      <aside className={`fixed inset-y-0 left-0 w-72 bg-[#FCFAFA] border-r border-[#E5E7EB] p-6 flex flex-col gap-8 z-[200] transition-all duration-300 ease-in-out overflow-y-auto custom-scrollbar ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} lg:relative lg:translate-x-0`}>
+        <div className="flex flex-col items-center text-center gap-4 py-4">
+          <div className="flex items-center justify-center gap-2 mb-4 w-full border-b border-[#E5E7EB] pb-6">
+             <span className="material-symbols-outlined text-primary text-2xl">shield</span>
+             <h1 className="text-xl font-black tracking-tight text-primary uppercase">COMMAND</h1>
+          </div>
           {company.logoUrl && (
-            <div className="size-28 bg-white rounded-[2.5rem] shadow-premium border-2 border-primary/5 overflow-hidden group/logo">
+            <div className="size-20 bg-white rounded-sm border border-[#E5E7EB] p-1 overflow-hidden group/logo">
               <img
                 src={company.logoUrl}
                 alt={company.name}
-                className="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-700"
+                className="w-full h-full object-cover"
               />
             </div>
           )}
-
-          <button
-            onClick={() => setShowSidebar(false)}
-            className="flex flex-col items-center gap-3 relative group w-full hover:opacity-80 transition-opacity"
-          >
-            <div className="flex items-center gap-4">
-              <Logo variant="icon" size={32} className="transform group-hover:rotate-12 transition-transform duration-500" color="primary" />
-              <div className="h-4 w-[1px] bg-border/40"></div>
-              <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">Portal Parceiro</p>
-            </div>
-            <h1 className="text-2xl font-black tracking-tighter text-secondary leading-tight px-4">{company.name}</h1>
-          </button>
+          <h2 className="text-sm font-black tracking-widest text-secondary uppercase px-4">{company.name}</h2>
         </div>
 
-        <nav className="flex flex-col gap-4">
+        <nav className="flex flex-col gap-2">
           <button
             onClick={() => { setActiveTab('FILA'); setShowSidebar(false); }}
             title="Ver fila de pedidos em tempo real"
-            className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'FILA' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
+            className={`flex items-center gap-4 px-6 py-4 rounded-sm transition-all font-black text-[10px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'FILA' ? 'bg-secondary text-white border-l-4 border-l-primary' : 'text-zinc-500 hover:bg-zinc-100 border-l-4 border-l-transparent'}`}
           >
-            <span className="material-symbols-outlined text-2xl">view_list</span>
-            Monitor de Fila
-            {activeTab === 'FILA' && <div className="absolute right-6 size-2 bg-primary rounded-full animate-pulse"></div>}
+            <span className="material-symbols-outlined text-lg">dashboard</span>
+            Dashboard
           </button>
           <button
             onClick={() => { setActiveTab('PRODUTOS'); setShowSidebar(false); }}
             title="Gerir menu de produtos e categorias"
-            className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'PRODUTOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
+            className={`flex items-center gap-4 px-6 py-4 rounded-sm transition-all font-black text-[10px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'PRODUTOS' ? 'bg-secondary text-white border-l-4 border-l-primary' : 'text-zinc-500 hover:bg-zinc-100 border-l-4 border-l-transparent'}`}
           >
-            <span className="material-symbols-outlined text-2xl">inventory_2</span>
-            Menu Digital
+            <span className="material-symbols-outlined text-lg">inventory_2</span>
+            Resources
           </button>
 
           {company.marketingEnabled && (
@@ -866,105 +861,84 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 }
               }}
               title="Campanhas de marketing e SMS"
-              className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'MARKETING' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
+              className={`flex items-center gap-4 px-6 py-4 rounded-sm transition-all font-black text-[10px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'MARKETING' ? 'bg-secondary text-white border-l-4 border-l-primary' : 'text-zinc-500 hover:bg-zinc-100 border-l-4 border-l-transparent'}`}
             >
-              <span className="material-symbols-outlined text-2xl">campaign</span>
+              <span className="material-symbols-outlined text-lg">campaign</span>
               Marketing
-              {activeTab === 'MARKETING' && <div className="absolute right-6 size-2 bg-primary rounded-full animate-pulse"></div>}
             </button>
           )}
 
           <button
             onClick={() => { setActiveTab('RELATORIOS'); setShowSidebar(false); }}
             title="Relatórios de vendas e auditoria"
-            className={`flex items-center gap-5 px-8 py-5 rounded-[1.5rem] transition-all font-black text-[12px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'RELATORIOS' ? 'bg-secondary text-white shadow-premium' : 'text-text-muted hover:bg-white/40 hover:text-secondary'}`}
+            className={`flex items-center gap-4 px-6 py-4 rounded-sm transition-all font-black text-[10px] uppercase tracking-widest relative overflow-hidden group ${activeTab === 'RELATORIOS' ? 'bg-secondary text-white border-l-4 border-l-primary' : 'text-zinc-500 hover:bg-zinc-100 border-l-4 border-l-transparent'}`}
           >
-            <span className="material-symbols-outlined text-2xl">analytics</span>
-            Auditoria & Relatórios
-            {activeTab === 'RELATORIOS' && <div className="absolute right-6 size-2 bg-primary rounded-full animate-pulse"></div>}
+            <span className="material-symbols-outlined text-lg">analytics</span>
+            Reports
           </button>
 
           <div className="mt-8">
             <button
               onClick={() => setShowQRModal(true)}
               title="Exibir e imprimir QR Code do local"
-              className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.5rem] bg-primary/10 text-primary border border-primary/20 transition-all font-black text-[12px] uppercase tracking-widest hover:bg-primary hover:text-white no-print"
+              className="w-full flex items-center gap-4 px-6 py-4 rounded-sm bg-primary/10 text-primary border border-primary/20 transition-all font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white no-print"
             >
-              <span className="material-symbols-outlined text-2xl">qr_code_2</span>
+              <span className="material-symbols-outlined text-lg">qr_code_2</span>
               Meu QR Code
             </button>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-border/50">
+          <div className="mt-8 pt-8 border-t border-[#E5E7EB]">
             <button
               onClick={onLogout}
               title="Sair do painel administrativo"
-              className="w-full flex items-center justify-between px-8 py-5 rounded-[1.5rem] bg-primary/5 text-primary font-black text-[12px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all group shadow-sm"
+              className="w-full flex items-center gap-4 px-6 py-4 rounded-sm text-zinc-500 font-black text-[10px] uppercase tracking-widest hover:bg-zinc-100 hover:text-secondary transition-all group"
             >
-              <span className="flex items-center gap-5">
-                <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">logout</span>
-                Sair
-              </span>
-              <span className="material-symbols-outlined text-xl opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all">arrow_forward</span>
+              <span className="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">logout</span>
+              Settings / Sair
             </button>
           </div>
         </nav>
-
-        <div className="mt-auto p-8 rounded-[2.5rem] bg-secondary text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-12 -mt-12"></div>
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2">SISTEMA ATIVO</p>
-          <code className="text-[12px] text-primary font-mono tracking-tighter">{company.id}</code>
-
-        </div>
       </aside>
 
       <main
         ref={mainContentRef}
-        className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-12 relative custom-scrollbar bg-slate-50"
+        className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-12 relative custom-scrollbar bg-[#FCFAFA]"
       >
-        <div className="fixed top-0 right-0 w-1/3 h-1/2 bg-red-500/5 rounded-full blur-[150px] pointer-events-none"></div>
-
-        <header className={`mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-center gap-6 relative z-10 animate-fade-in no-print ${isKitchenMonitor ? 'bg-white rounded-[2rem] p-6 shadow-premium border border-border/20 mb-8' : ''}`}>
-          <div className="flex items-center gap-4">
-            {!showSidebar && (
-              <button
-                onClick={() => setShowSidebar(true)}
-                className="group flex items-center justify-center size-14 rounded-2xl bg-white border border-border/20 shadow-sm hover:bg-slate-50 transition-all active:scale-95"
-              >
-                <span className="material-symbols-outlined text-3xl font-black text-secondary">menu</span>
-              </button>
-            )}
-            <div>
-              <h2 className={`font-black tracking-tight text-primary italic ${isKitchenMonitor ? 'text-2xl' : 'text-2xl lg:text-3xl'}`}>
-                {activeTab === 'FILA' ? 'A cozinha' :
-                  activeTab === 'PRODUTOS' ? 'Menu Digital' :
-                    activeTab === 'MARKETING' ? 'Marketing & Fidelização' :
-                      activeTab === 'RELATORIOS' ? 'Auditoria & Relatórios' : 'Painel Administrativo'}
-              </h2>
+        <header className="mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10 animate-fade-in no-print border-b border-[#E5E7EB] pb-6">
+          <div className="flex items-center gap-4 w-full">
+            <div className="lg:hidden flex items-center gap-2">
+               <span className="material-symbols-outlined text-primary text-xl">shield</span>
+               <h1 className="text-lg font-black tracking-tight text-primary uppercase">COMMAND</h1>
+            </div>
+            <div className="flex-1">
+              <h2 className="font-black tracking-tight text-secondary text-2xl lg:text-3xl">Olá, {company.ownerName || 'Gestor'}</h2>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{new Date().toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
             </div>
           </div>
 
           <div className="flex flex-wrap justify-center items-center gap-4">
             {activeTab === 'FILA' && (
-              <div className="flex flex-col lg:flex-row items-center gap-8 w-full lg:w-auto">
-                {/* Indicadores Lado a Lado */}
-                <div className="flex items-center gap-3">
-                  <div className="bg-white px-5 py-3 rounded-[1.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[130px] group hover:border-primary/20 transition-all">
-                    <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1 flex items-center gap-2">
+              <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-auto">
+                {/* Indicadores Lado a Lado - COMMAND Style */}
+                <div className="flex items-center gap-4 w-full">
+                  <div className="bg-white px-5 py-5 rounded-sm border border-[#E5E7EB] flex flex-col items-start w-full lg:min-w-[160px] relative">
+                    <span className="material-symbols-outlined absolute top-4 right-4 text-zinc-300 text-lg">inbox</span>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">
                       Pedidos Atuais
                     </p>
-                    <div className="flex items-baseline gap-1.5">
-                      <p className="text-2xl font-black text-[#111111]">{orders.length}</p>
-                      <span className={`text-[9px] font-black flex items-center gap-0.5 ${orders.length > 5 ? 'text-red-500' : 'text-green-500'}`}>
-                        <span className="material-symbols-outlined text-[12px]">{orders.length > 5 ? 'trending_up' : 'trending_down'}</span>
-                        {orders.length > 0 ? `${Math.round((orders.length / products.length) * 100)}%` : '0%'}
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-black text-secondary">{orders.length}</p>
+                      <span className={`text-[10px] font-black ${orders.length > 5 ? 'text-primary' : 'text-emerald-600'}`}>
+                        +{orders.length > 0 ? Math.round((orders.length / products.length) * 100) : 0}%
                       </span>
                     </div>
                   </div>
-                  <div className="bg-white px-5 py-3 rounded-[1.5rem] border border-[#F5F5F5] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] flex flex-col items-start min-w-[130px] group hover:border-primary/20 transition-all">
-                    <p className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest mb-1">Tempo Médio (Hoje)</p>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-2xl font-black text-[#111111]">
+                  <div className="bg-primary text-white px-5 py-5 rounded-sm flex flex-col items-start w-full lg:min-w-[160px] relative">
+                    <span className="material-symbols-outlined absolute top-4 right-4 text-white/50 text-lg">warning</span>
+                    <p className="text-[10px] font-black text-white/80 uppercase tracking-widest mb-2">Tempo Médio</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-black text-white">
                         {(() => {
                           const today = new Date().toISOString().split('T')[0];
                           const todayOrders = historyOrders.filter(o => o.timestamp.includes(today));
@@ -973,25 +947,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                           return Math.round(avg);
                         })()}
                       </p>
-                      <p className="text-[9px] font-black text-[#BBBBBB] uppercase">min</p>
-                      {(() => {
-                        const today = new Date().toISOString().split('T')[0];
-                        const todayOrders = historyOrders.filter(o => o.timestamp.includes(today));
-                        const prevOrders = historyOrders.filter(o => !o.timestamp.includes(today));
-
-                        if (todayOrders.length === 0 || prevOrders.length === 0) return null;
-
-                        const todayAvg = todayOrders.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / todayOrders.length;
-                        const prevAvg = prevOrders.reduce((acc, o) => acc + (o.timerAccumulatedSeconds || 0), 0) / prevOrders.length;
-                        const diff = ((todayAvg - prevAvg) / prevAvg) * 100;
-
-                        return (
-                          <span className={`text-[9px] font-black flex items-center gap-0.5 ml-1.5 ${diff > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                            <span className="material-symbols-outlined text-[12px]">{diff > 0 ? 'trending_up' : 'trending_down'}</span>
-                            {Math.abs(Math.round(diff))}%
-                          </span>
-                        );
-                      })()}
+                      <p className="text-[10px] font-black text-white/80 uppercase">min</p>
                     </div>
                   </div>
                 </div>
@@ -1006,16 +962,26 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 </button>
 
                 {/* Busca Posicionada no Canto Superior Direito */}
-                <div className="relative group lg:ml-auto">
+                <div className="relative w-full lg:w-auto">
                   <input
                     type="text"
-                    placeholder="Buscar ticket ou telefone..."
+                    placeholder="BUSCAR REGISTRO..."
                     value={ticketSearch}
                     onChange={(e) => setTicketSearch(e.target.value.toUpperCase())}
-                    className="w-64 h-12 bg-white border border-[#F5F5F5] rounded-[1.5rem] px-12 font-bold text-sm text-[#111111] shadow-[0_5px_25px_-5px_rgba(0,0,0,0.04)] focus:border-primary transition-all outline-none placeholder:text-[#BBBBBB]/60"
+                    className="w-full lg:w-64 h-12 bg-white border border-[#E5E7EB] rounded-sm px-12 font-bold text-xs text-secondary focus:border-primary transition-all outline-none placeholder:text-zinc-400 uppercase tracking-widest"
                   />
-                  <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-[#BBBBBB] text-xl">search</span>
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">search</span>
                 </div>
+              </div>
+            )}
+            
+            <button
+              onClick={() => setIsProfileModalOpen(true)}
+              className="hidden lg:flex bg-white size-12 rounded-sm border border-[#E5E7EB] items-center justify-center text-secondary hover:text-primary transition-all ml-auto"
+              title="Configurações do Perfil"
+            >
+              <span className="material-symbols-outlined text-lg">settings</span>
+            </button>
               </div>
             )}
           </div>
@@ -1031,25 +997,25 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-6 bg-[#FDFCFD] border border-[#EEEEEE] rounded-3xl flex flex-col gap-1">
-                  <span className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest">IBAN para Clientes</span>
-                  <span className="text-sm font-black text-secondary">{company.iban || 'NÃO CONFIGURADO'}</span>
+                <div className="p-6 bg-white border border-[#E5E7EB] rounded-sm flex flex-col gap-1">
+                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">IBAN para Clientes</span>
+                  <span className="text-xs font-black text-secondary uppercase">{company.iban || 'NÃO CONFIGURADO'}</span>
                 </div>
-                <div className="p-6 bg-[#FDFCFD] border border-[#EEEEEE] rounded-3xl flex flex-col gap-1">
-                  <span className="text-[9px] font-black text-[#BBBBBB] uppercase tracking-widest">Titular da Conta</span>
-                  <span className="text-sm font-black text-secondary">{company.bankHolder || company.name}</span>
+                <div className="p-6 bg-white border border-[#E5E7EB] rounded-sm flex flex-col gap-1">
+                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Titular da Conta</span>
+                  <span className="text-xs font-black text-secondary uppercase">{company.bankHolder || company.name}</span>
                 </div>
-                <div className="p-6 bg-[#FDFCFD] border border-[#EEEEEE] rounded-3xl flex flex-col gap-1 text-primary">
-                  <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">Número Express</span>
-                  <span className="text-sm font-black">{company.expressNumber || '--'}</span>
+                <div className="p-6 bg-primary/5 border border-primary/20 rounded-sm flex flex-col gap-1 text-primary">
+                  <span className="text-[10px] font-black text-primary/70 uppercase tracking-widest">Número Express</span>
+                  <span className="text-xs font-black uppercase">{company.expressNumber || '--'}</span>
                 </div>
-                <div className="p-6 bg-[#FDFCFD] border border-[#EEEEEE] rounded-3xl flex flex-col gap-1 text-secondary">
-                  <span className="text-[9px] font-black text-secondary/40 uppercase tracking-widest">Número Kwik</span>
-                  <span className="text-sm font-black">{company.kwikNumber || '--'}</span>
+                <div className="p-6 bg-white border border-[#E5E7EB] rounded-sm flex flex-col gap-1 text-secondary">
+                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Número Kwik</span>
+                  <span className="text-xs font-black uppercase">{company.kwikNumber || '--'}</span>
                 </div>
-                <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl flex flex-col gap-1 text-slate-900 col-span-full sm:col-span-1">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Contacto do Espaço (Exibido ao Cliente)</span>
-                  <span className="text-sm font-black">{company.companyPhone || '--'}</span>
+                <div className="p-6 bg-white border border-[#E5E7EB] rounded-sm flex flex-col gap-1 text-zinc-800 col-span-full sm:col-span-1">
+                  <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Contacto (Cliente)</span>
+                  <span className="text-xs font-black uppercase">{company.companyPhone || '--'}</span>
                 </div>
               </div>
             </div>
@@ -1068,9 +1034,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                   {filteredOrders.map(order => (
-                    <div key={order.id} className="bg-white rounded-none p-6 lg:p-8 border border-[#EEEEEE] shadow-sm group relative overflow-hidden animate-scale-in flex flex-col justify-between min-h-[400px]">
-                      <div className="absolute top-0 left-0 w-1.5 h-full transition-all"
-                        style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#FACC15' : order.status === OrderStatus.READY ? '#22C55E' : '#E11D48' }}>
+                    <div key={order.id} className="bg-white rounded-sm p-6 lg:p-8 border border-[#E5E7EB] group relative overflow-hidden animate-scale-in flex flex-col justify-between min-h-[400px]">
+                      <div className="absolute top-0 left-0 w-1 h-full transition-all"
+                        style={{ backgroundColor: order.status === OrderStatus.PREPARING ? '#E11D48' : order.status === OrderStatus.READY ? '#111111' : '#E5E7EB' }}>
                       </div>
 
                       <div>
@@ -1184,9 +1150,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                               <button
                                 onClick={() => updateOrderStatus(order.id, OrderStatus.PREPARING)}
                                 disabled={order.status === OrderStatus.PREPARING}
-                                className={`flex items-center justify-center gap-2 h-14 rounded-none font-black text-[11px] uppercase tracking-[0.1em] leading-none transition-all ${order.status === OrderStatus.PREPARING ? 'bg-amber-50 text-amber-600 border border-amber-200 cursor-default' : 'bg-[#E11D48] text-white hover:bg-[#BE123C] active:scale-[0.98]'}`}
+                                className={`flex items-center justify-center gap-2 h-14 rounded-sm font-black text-[10px] uppercase tracking-widest transition-all ${order.status === OrderStatus.PREPARING ? 'bg-zinc-100 text-zinc-400 border border-zinc-200 cursor-default' : 'bg-primary text-white hover:bg-red-800'}`}
                               >
-                                <span className="material-symbols-outlined text-xl">{order.status === OrderStatus.PREPARING ? 'cooking' : 'outdoor_grill'}</span>
+                                <span className="material-symbols-outlined text-lg">{order.status === OrderStatus.PREPARING ? 'cooking' : 'outdoor_grill'}</span>
                                 {order.status === OrderStatus.PREPARING ? 'PREPARANDO' : 'PREPARAR'}
                               </button>
                               <button
@@ -1229,34 +1195,38 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
               <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-20">
                 {/* Quick Stats Bento Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="col-span-1 md:col-span-2 bg-primary text-white p-6 rounded-xl shadow-lg shadow-rose-200 flex flex-col justify-between relative overflow-hidden">
+                  <div className="col-span-1 md:col-span-2 bg-secondary text-white p-6 rounded-sm border-l-4 border-l-primary flex flex-col justify-between relative overflow-hidden">
                     <div className="relative z-10">
-                      <p className="text-rose-100 text-sm font-medium">Categorias Ativas</p>
-                      <h3 className="text-4xl font-black mt-1">{categories.length}</h3>
+                      <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">Categorias Ativas</p>
+                      <h3 className="text-4xl font-black mt-2">{categories.length}</h3>
                     </div>
-                    <div className="mt-4 relative z-10">
-                      <button onClick={() => setIsCategoryModalOpen(true)} className="bg-white/20 hover:bg-white/30 transition-colors px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                        <span className="material-symbols-outlined text-sm">add_circle</span>
+                    <div className="mt-6 relative z-10">
+                      <button onClick={() => setIsCategoryModalOpen(true)} className="bg-white/10 hover:bg-white/20 transition-colors px-4 py-3 rounded-sm text-[10px] uppercase tracking-widest font-black flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">add</span>
                         Nova Categoria
                       </button>
                     </div>
-                    <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl opacity-10">category</span>
+                    <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl opacity-5">category</span>
                   </div>
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-100 flex flex-col justify-between">
+                  <div className="bg-white p-6 rounded-sm border border-[#E5E7EB] flex flex-col justify-between relative">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-zinc-800"></div>
                     <div>
-                      <p className="text-zinc-500 text-sm font-medium">Total de Produtos</p>
-                      <h3 className="text-3xl font-bold mt-1 text-zinc-900">{products.length}</h3>
+                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Total de Produtos</p>
+                      <h3 className="text-3xl font-black mt-2 text-secondary">{products.length}</h3>
                     </div>
-                    <div className="text-emerald-600 text-sm font-bold flex items-center gap-1 mt-2">
-                      <span className="material-symbols-outlined text-xs">trending_up</span> +{products.filter(p => new Date(p.id).getTime() > Date.now() - 30*24*60*60*1000).length} este mês
+                    <div className="text-primary text-[10px] uppercase tracking-widest font-black flex items-center gap-1 mt-4">
+                      <span className="material-symbols-outlined text-sm">trending_up</span> +{products.filter(p => new Date(p.id).getTime() > Date.now() - 30*24*60*60*1000).length} ESTE MÊS
                     </div>
                   </div>
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-zinc-100 flex flex-col justify-between">
+                  <div className="bg-white p-6 rounded-sm border border-[#E5E7EB] flex flex-col justify-between relative">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-zinc-300"></div>
                     <div>
-                      <p className="text-zinc-500 text-sm font-medium">Grupos de Acompanhamentos</p>
-                      <h3 className="text-3xl font-bold mt-1 text-zinc-900">{accompanimentGroups.length}</h3>
+                      <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Grupos de Acompanhamentos</p>
+                      <h3 className="text-3xl font-black mt-2 text-secondary">{accompanimentGroups.length}</h3>
                     </div>
-                    <div className="text-zinc-400 text-sm font-medium mt-2">Vinculados a {products.filter(p => p.accompanimentGroups?.length).length} itens</div>
+                    <div className="text-zinc-400 text-[10px] uppercase tracking-widest font-black mt-4">
+                      VINCULADOS A {products.filter(p => p.accompanimentGroups?.length).length} ITENS
+                    </div>
                   </div>
                 </div>
 
@@ -1272,13 +1242,14 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       </button>
                     </div>
                     <button className="text-primary font-bold text-sm hover:underline">Ver todas</button>
+                    <button className="text-primary font-bold text-[10px] uppercase tracking-widest hover:underline">Ver todas</button>
                   </div>
                   <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                     {categoryOptions.map(cat => (
                       <div key={cat} className="relative flex-shrink-0">
                         <button
                           onClick={() => setProductFilter(cat)}
-                          className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${productFilter === cat ? 'bg-secondary text-white shadow-md' : 'bg-white text-zinc-600 border border-zinc-200 hover:border-primary hover:text-primary'}`}
+                          className={`px-6 py-3 rounded-sm text-[10px] uppercase tracking-widest font-black whitespace-nowrap transition-all flex items-center gap-2 border ${productFilter === cat ? 'bg-secondary text-white border-secondary' : 'bg-white text-zinc-600 border-[#E5E7EB] hover:border-primary hover:text-primary'}`}
                         >
                           {cat}
                         </button>
@@ -1312,13 +1283,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                       />
                     </div>
                     <div className="flex gap-3">
-                      <button onClick={() => setIsLinkModalOpen(true)} className="flex-1 md:flex-none px-5 py-2.5 border-2 border-primary text-primary rounded-xl font-bold hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-xl">link</span>
-                        Vincular Acompanhamento
+                      <button onClick={() => setIsLinkModalOpen(true)} className="flex-1 md:flex-none px-6 py-3 border border-primary text-primary rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-primary/10 transition-all flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-base">link</span>
+                        Vincular
                       </button>
-                      <button onClick={() => openModal('add')} className="flex-1 md:flex-none px-5 py-2.5 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:shadow-rose-200 transition-all flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-xl">add</span>
-                        Adicionar Produto
+                      <button onClick={() => openModal('add')} className="flex-1 md:flex-none px-6 py-3 bg-primary text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-red-800 transition-all flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-base">add</span>
+                        Adicionar
                       </button>
                     </div>
                   </div>

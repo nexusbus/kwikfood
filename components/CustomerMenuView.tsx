@@ -26,6 +26,7 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const loadMenu = async () => {
       setLoading(true);
       
@@ -207,12 +208,12 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
             </div>
 
             {/* Categories Pills */}
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide justify-start sm:justify-center">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide justify-start sm:justify-center px-6">
               {[ { id: 'all', name: 'Todos' }, ...categories ].map((cat, idx) => (
                 <button
                   key={cat.id}
                   onClick={() => scrollToCategory(idx)}
-                  className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat.name || (cat.id === 'all' && selectedCategory === 'Todos') ? 'bg-secondary text-white shadow-lg' : 'bg-white text-zinc-400 border border-zinc-100 hover:border-primary/20'}`}
+                  className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat.name || (cat.id === 'all' && selectedCategory === 'Todos') ? 'bg-secondary text-white shadow-md' : 'bg-white text-zinc-400 border border-zinc-100 hover:bg-zinc-50'}`}
                 >
                   {cat.name}
                 </button>
@@ -258,39 +259,39 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                       key={cat.id} 
                       className="min-w-full h-full snap-center px-6"
                     >
-                      <div className="bg-white rounded-none h-full flex flex-col shadow-sm border border-transparent overflow-hidden">
+                      <div className="bg-white rounded-none h-full flex flex-col overflow-hidden">
                         {/* Slide Header */}
-                        <div className="flex items-center justify-between border-b border-zinc-50 px-6 py-4 flex-shrink-0 bg-white">
-                          <h3 className="text-base font-black text-secondary italic">
-                            <span className="text-primary mr-2">/</span>{cat.name}
+                        <div className="flex items-center justify-between border-b border-zinc-100/50 px-6 py-4 flex-shrink-0 bg-white">
+                          <h3 className="text-sm font-black text-secondary tracking-tight">
+                            <span className="text-primary mr-2 opacity-50">/</span>{cat.name}
                           </h3>
-                          <span className="bg-zinc-50 px-3 py-1 rounded-full text-[8px] font-black text-zinc-400 uppercase tracking-widest">
+                          <span className="bg-zinc-50 px-3 py-1 rounded-full text-[9px] font-black text-zinc-400 uppercase tracking-widest">
                             {categoryProducts.length} itens
                           </span>
                         </div>
 
                         {/* List Area (Scrollable within Slide) */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                           {categoryProducts.map(product => (
                             <button
                               key={product.id}
                               onClick={() => handleOpenCustomization(product)}
-                              className="w-full bg-white p-3 rounded-none shadow-sm border border-transparent flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50 group text-left"
+                              className="w-full bg-white p-4 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-zinc-100/60 flex items-center gap-4 transition-all hover:border-primary/20 active:scale-[0.98] group text-left"
                             >
-                              <div className="size-12 rounded-xl overflow-hidden bg-transparent shrink-0 shadow-inner">
+                              <div className="size-14 rounded-[1rem] overflow-hidden bg-zinc-50 shrink-0">
                                 <img 
                                   src={product.imageUrl || company.logoUrl} 
                                   alt={product.name} 
-                                  className="size-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                                  className="size-full object-cover group-hover:scale-105 transition-transform duration-500" 
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-[12px] font-black text-[#111111] leading-tight mb-0.5 group-hover:text-primary transition-colors">{product.name}</h3>
-                                {product.details && <p className="text-[10px] text-zinc-400 mt-0.5 leading-tight">{product.details}</p>}
-                                <p className="text-primary font-black text-[11px] mt-1">Kz {product.price.toLocaleString()}</p>
+                                <h3 className="text-[13px] font-bold text-[#111111] leading-tight mb-1 group-hover:text-primary transition-colors">{product.name}</h3>
+                                {product.details && <p className="text-[11px] text-zinc-400 mt-0.5 leading-tight line-clamp-1">{product.details}</p>}
+                                <p className="text-primary font-black text-[12px] mt-1.5">Kz {product.price.toLocaleString()}</p>
                               </div>
-                              <div className="size-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/10 flex items-center justify-center group-hover:bg-primary/90 active:scale-95 transition-all">
-                                <span className="material-symbols-outlined text-xl font-black">add</span>
+                              <div className="size-10 rounded-full bg-zinc-50 text-secondary flex items-center justify-center group-hover:bg-primary group-hover:text-white active:scale-90 transition-all">
+                                <span className="material-symbols-outlined text-xl">add</span>
                               </div>
                             </button>
                           ))}
@@ -389,16 +390,16 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                                     }
                                   });
                                 }}
-                                className={`w-full p-5 rounded-2xl border-2 flex items-center justify-between transition-all ${isSelected ? 'border-primary bg-rose-50' : 'border-zinc-50 bg-zinc-50 hover:border-zinc-200'}`}
+                                className={`w-full p-4 rounded-[1.25rem] border flex items-center justify-between transition-all ${isSelected ? 'border-primary/30 bg-primary/5' : 'border-zinc-100 bg-white hover:border-zinc-200'}`}
                               >
                                 <div className="flex items-center gap-4">
-                                  <div className={`size-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-primary bg-primary' : 'border-zinc-300 bg-white'}`}>
+                                  <div className={`size-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-primary bg-primary' : 'border-zinc-300 bg-transparent'}`}>
                                     {isSelected && <span className="material-symbols-outlined text-white text-[12px] font-black">check</span>}
                                   </div>
-                                  <span className={`font-bold text-sm ${isSelected ? 'text-primary' : 'text-zinc-700'}`}>{item.name}</span>
+                                  <span className={`font-bold text-[13px] ${isSelected ? 'text-primary' : 'text-secondary'}`}>{item.name}</span>
                                 </div>
                                 {item.price > 0 && (
-                                  <span className={`text-xs font-black ${isSelected ? 'text-primary' : 'text-zinc-400'}`}>+ {item.price.toLocaleString()} Kz</span>
+                                  <span className={`text-[12px] font-black ${isSelected ? 'text-primary' : 'text-zinc-400'}`}>+ {item.price.toLocaleString()} Kz</span>
                                 )}
                               </button>
                             );
@@ -412,18 +413,18 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
             </div>
 
             {/* Action Bar */}
-            <div className="p-8 sm:p-12 bg-white border-t border-zinc-100 flex flex-col sm:flex-row items-center gap-6">
-              <div className="flex items-center bg-zinc-50 p-2 rounded-2xl gap-4">
+            <div className="p-6 sm:p-8 bg-white border-t border-zinc-100 flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex items-center bg-zinc-50/80 p-1.5 rounded-[1.25rem] gap-2">
                 <button 
                   onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-                  className="size-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-zinc-400 hover:text-primary transition-all active:scale-90"
+                  className="size-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-zinc-400 hover:text-primary transition-all active:scale-95"
                 >
                   <span className="material-symbols-outlined">remove</span>
                 </button>
-                <span className="w-10 text-center font-black text-xl text-secondary">{quantity}</span>
+                <span className="w-12 text-center font-black text-xl text-secondary">{quantity}</span>
                 <button 
                   onClick={() => setQuantity(quantity + 1)}
-                  className="size-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-zinc-400 hover:text-primary transition-all active:scale-90"
+                  className="size-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-zinc-400 hover:text-primary transition-all active:scale-95"
                 >
                   <span className="material-symbols-outlined">add</span>
                 </button>
@@ -454,10 +455,10 @@ const CustomerMenuView: React.FC<CustomerMenuViewProps> = ({ company, onBack, on
                     alert("Erro ao processar pedido. Verifique sua conexão.");
                   }
                 }}
-                className="flex-1 w-full h-16 bg-primary text-white rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] flex items-center justify-between px-8 hover:bg-secondary transition-all shadow-xl shadow-rose-200"
+                className="flex-1 w-full h-14 bg-secondary text-white rounded-[1.25rem] font-bold text-[13px] tracking-wide flex items-center justify-between px-6 hover:bg-black transition-all shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] active:scale-[0.98]"
               >
                 <span>Adicionar ao Pedido</span>
-                <span>{calculateTotal().toLocaleString()} Kz</span>
+                <span className="font-black text-primary bg-white/10 px-3 py-1.5 rounded-lg">{calculateTotal().toLocaleString()} Kz</span>
               </button>
             </div>
           </div>

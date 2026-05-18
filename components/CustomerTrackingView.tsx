@@ -24,6 +24,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
@@ -614,7 +615,7 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                     <button
                       key={cat.id}
                       onClick={() => scrollToCategory(idx)}
-                      className={`px-5 py-2 rounded-xl whitespace-nowrap text-[9px] font-black uppercase tracking-widest transition-all ${activeCategoryIndex === idx ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'bg-transparent border border-zinc-100 text-zinc-400 hover:border-primary/20 hover:text-primary'}`}
+                      className={`px-5 py-2.5 rounded-full whitespace-nowrap text-[10px] font-black uppercase tracking-widest transition-all ${activeCategoryIndex === idx ? 'bg-secondary text-white shadow-md' : 'bg-white border border-zinc-100 text-zinc-400 hover:bg-zinc-50'}`}
                     >
                       {cat.name}
                     </button>
@@ -644,21 +645,21 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                       >
                         <div className="h-full overflow-y-auto p-4 space-y-3 custom-scrollbar">
                           {filteredProducts.map(p => (
-                            <div key={p.id} className="bg-white p-3 rounded-none shadow-sm border border-transparent flex items-center gap-3 transition-all hover:border-primary/20 active:bg-zinc-50">
-                              <div className="size-12 rounded-xl overflow-hidden bg-transparent shrink-0 shadow-inner">
-                                <img src={p.imageUrl || company?.logoUrl} alt={p.name} className="size-full object-cover" />
+                            <div key={p.id} className="bg-white p-4 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-zinc-100/60 flex items-center gap-4 transition-all hover:border-primary/20 active:scale-[0.98]">
+                              <div className="size-14 rounded-[1rem] overflow-hidden bg-zinc-50 shrink-0">
+                                <img src={p.imageUrl || company?.logoUrl} alt={p.name} className="size-full object-cover group-hover:scale-105 transition-transform duration-500" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-[12px] font-black text-[#111111] leading-tight mb-0.5">{p.name}</h3>
-                                {p.details && <p className="text-[10px] text-zinc-400 mt-0.5 leading-tight">{p.details}</p>}
-                                <p className="text-primary font-black text-[11px] mt-1">Kz {p.price.toLocaleString()}</p>
+                                <h3 className="text-[13px] font-bold text-[#111111] leading-tight mb-1">{p.name}</h3>
+                                {p.details && <p className="text-[11px] text-zinc-400 mt-0.5 leading-tight line-clamp-1">{p.details}</p>}
+                                <p className="text-primary font-black text-[12px] mt-1.5">Kz {p.price.toLocaleString()}</p>
                               </div>
                               <button
                                 onClick={() => handleOpenCustomization(p)}
                                 disabled={checkoutStep === 2}
-                                className="size-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/10 flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
+                                className="size-10 rounded-full bg-zinc-50 text-secondary flex items-center justify-center hover:bg-primary hover:text-white active:scale-90 transition-all disabled:opacity-50"
                               >
-                                <span className="material-symbols-outlined text-xl font-black">add</span>
+                                <span className="material-symbols-outlined text-xl">add</span>
                               </button>
                             </div>
                           ))}
@@ -727,16 +728,16 @@ const CustomerTrackingView: React.FC<CustomerTrackingViewProps> = ({ order: init
                 localStorage.removeItem('kwikfood_active_order');
                 onNewOrder();
               }}
-              className="flex items-center justify-center gap-2 text-[#E31B44] bg-red-50 py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all active:scale-95"
+              className="flex items-center justify-center gap-2 text-zinc-500 bg-zinc-100 py-4 rounded-[1.25rem] font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95 hover:bg-zinc-200"
             >
-              <span className="material-symbols-outlined text-lg">logout</span>
+              <span className="material-symbols-outlined text-[16px]">logout</span>
               Sair
             </button>
             {(order.status === OrderStatus.PENDING || order.status === OrderStatus.RECEIVED) && (
               <button
                 onClick={handleCancelOrder}
                 disabled={submittingOrder}
-                className="flex items-center justify-center gap-2 bg-zinc-900 text-white py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all active:scale-95"
+                className="flex items-center justify-center gap-2 bg-secondary text-white py-4 rounded-[1.25rem] font-bold text-[11px] uppercase tracking-widest transition-all active:scale-95 hover:bg-black disabled:opacity-70"
               >
                 CANCELAR
               </button>
