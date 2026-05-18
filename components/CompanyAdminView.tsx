@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Company, Product, ProductStatus, Order, OrderStatus, OrderType, Category, AccompanimentGroup, AccompanimentItem } from '../types';
 import { fetchProducts } from '../constants';
@@ -814,9 +813,9 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
       {/* Premium Sidebar - Collapsible */}
       <aside className={`fixed inset-y-0 left-0 w-72 bg-[#FCFAFA] border-r border-[#E5E7EB] p-6 flex flex-col gap-8 z-[200] transition-all duration-300 ease-in-out overflow-y-auto custom-scrollbar ${showSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} lg:relative lg:translate-x-0`}>
         <div className="flex flex-col items-center text-center gap-4 py-4">
-          <div className="flex items-center justify-center gap-2 mb-4 w-full border-b border-[#E5E7EB] pb-6">
-             <span className="material-symbols-outlined text-primary text-2xl">shield</span>
-             <h1 className="text-xl font-black tracking-tight text-primary uppercase">COMMAND</h1>
+          <div className="flex items-center justify-center gap-3 mb-4 w-full border-b border-[#E5E7EB] pb-6">
+             <Logo variant="icon" size={32} color="primary" />
+             <h1 className="text-xl font-black tracking-tight text-primary uppercase">KWIKFOOD</h1>
           </div>
           {company.logoUrl && (
             <div className="size-20 bg-white rounded-sm border border-[#E5E7EB] p-1 overflow-hidden group/logo">
@@ -908,8 +907,8 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         <header className="mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10 animate-fade-in no-print border-b border-[#E5E7EB] pb-6">
           <div className="flex items-center gap-4 w-full">
             <div className="lg:hidden flex items-center gap-2">
-               <span className="material-symbols-outlined text-primary text-xl">shield</span>
-               <h1 className="text-lg font-black tracking-tight text-primary uppercase">COMMAND</h1>
+               <Logo variant="icon" size={24} color="primary" />
+               <h1 className="text-lg font-black tracking-tight text-primary uppercase">KWIKFOOD</h1>
             </div>
             <div className="flex-1">
               <h2 className="font-black tracking-tight text-secondary text-2xl lg:text-3xl">Olá, {company.ownerName || 'Gestor'}</h2>

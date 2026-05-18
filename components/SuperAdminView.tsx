@@ -412,9 +412,9 @@ const SuperAdminView: React.FC<SuperAdminViewProps> = ({ onBack }) => {
             <span className="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform text-zinc-500">logout</span>
           </button>
           <div className="flex items-center gap-4">
-             <span className="material-symbols-outlined text-primary text-2xl">shield</span>
+             <Logo variant="icon" size={32} color="primary" />
             <div>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-0.5">Central de Comando</p>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-0.5">KWIKFOOD</p>
               <h2 className="text-xl font-black tracking-tight text-primary uppercase leading-none">SUPER ADMIN</h2>
             </div>
           </div>
