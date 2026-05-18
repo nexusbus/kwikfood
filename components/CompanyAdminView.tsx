@@ -974,7 +974,6 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 </div>
               </div>
             )}
-            
             <button
               onClick={() => setIsProfileModalOpen(true)}
               className="hidden lg:flex bg-white size-12 rounded-sm border border-[#E5E7EB] items-center justify-center text-secondary hover:text-primary transition-all ml-auto"
@@ -982,8 +981,6 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             >
               <span className="material-symbols-outlined text-lg">settings</span>
             </button>
-              </div>
-            )}
           </div>
         </header>
 
