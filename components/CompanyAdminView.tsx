@@ -920,11 +920,11 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-center items-center gap-4">
+          <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-auto">
             {activeTab === 'FILA' && (
-              <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-auto">
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full lg:w-auto">
                 {/* Indicadores Lado a Lado - COMMAND Style */}
-                <div className="flex items-center gap-4 w-full">
+                <div className="flex items-center gap-4 w-full lg:w-auto">
                   <div className="bg-white px-5 py-5 rounded-sm border border-[#E5E7EB] flex flex-col items-start w-full lg:min-w-[160px] relative">
                     <span className="material-symbols-outlined absolute top-4 right-4 text-zinc-300 text-lg">inbox</span>
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">
@@ -955,39 +955,40 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   </div>
                 </div>
 
-                {/* Configurações de Perfil */}
-                <button
-                  onClick={() => setIsProfileModalOpen(true)}
-                  className="bg-white size-12 rounded-2xl border border-[#F5F5F5] shadow-sm flex items-center justify-center text-secondary hover:text-primary transition-all active:scale-95"
-                  title="Configurações do Perfil"
-                >
-                  <span className="material-symbols-outlined text-xl">settings</span>
-                </button>
+                <div className="flex flex-col sm:flex-row items-stretch gap-3 w-full lg:w-auto">
+                  {/* Busca Posicionada no Canto Superior Direito */}
+                  <div className="relative flex-1 sm:w-64 lg:w-64">
+                    <input
+                      type="text"
+                      placeholder="BUSCAR REGISTRO..."
+                      value={ticketSearch}
+                      onChange={(e) => setTicketSearch(e.target.value.toUpperCase())}
+                      className="w-full h-12 bg-white border border-[#E5E7EB] rounded-sm px-12 font-bold text-xs text-secondary focus:border-primary transition-all outline-none placeholder:text-zinc-400 uppercase tracking-widest"
+                    />
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">search</span>
+                  </div>
 
-                {/* Busca Posicionada no Canto Superior Direito */}
-                <div className="relative w-full lg:w-auto">
-                  <input
-                    type="text"
-                    placeholder="BUSCAR REGISTRO..."
-                    value={ticketSearch}
-                    onChange={(e) => setTicketSearch(e.target.value.toUpperCase())}
-                    className="w-full lg:w-64 h-12 bg-white border border-[#E5E7EB] rounded-sm px-12 font-bold text-xs text-secondary focus:border-primary transition-all outline-none placeholder:text-zinc-400 uppercase tracking-widest"
-                  />
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">search</span>
+                  <button
+                    onClick={() => setShowManualOrderModal(true)}
+                    className="h-12 px-6 bg-primary text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-[#BE123C] transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
+                  >
+                    <span className="material-symbols-outlined text-lg">add_circle</span>
+                    NOVO PEDIDO
+                  </button>
+
+                  <button
+                    onClick={() => setIsProfileModalOpen(true)}
+                    className="lg:hidden h-12 w-12 bg-white border border-[#E5E7EB] rounded-sm flex items-center justify-center text-secondary hover:text-primary transition-all active:scale-95 shrink-0"
+                    title="Configurações do Perfil"
+                  >
+                    <span className="material-symbols-outlined text-lg">settings</span>
+                  </button>
                 </div>
-
-                <button
-                  onClick={() => setShowManualOrderModal(true)}
-                  className="w-full lg:w-auto h-12 px-6 bg-primary text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-[#BE123C] transition-colors flex items-center justify-center gap-2 shadow-sm"
-                >
-                  <span className="material-symbols-outlined text-lg">add_circle</span>
-                  NOVO PEDIDO
-                </button>
               </div>
             )}
             <button
               onClick={() => setIsProfileModalOpen(true)}
-              className="hidden lg:flex bg-white size-12 rounded-sm border border-[#E5E7EB] items-center justify-center text-secondary hover:text-primary transition-all ml-auto"
+              className="hidden lg:flex bg-white size-12 rounded-sm border border-[#E5E7EB] items-center justify-center text-secondary hover:text-primary transition-all ml-auto shrink-0"
               title="Configurações do Perfil"
             >
               <span className="material-symbols-outlined text-lg">settings</span>

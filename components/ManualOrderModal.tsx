@@ -22,6 +22,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({
   const [orderType, setOrderType] = useState<OrderType>(OrderType.TAKE_AWAY);
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'TPA' | 'TRANSFER'>('CASH');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -121,30 +122,48 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({
 
         <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row">
           {/* Menu Selection */}
-          <div className="flex-1 p-6 border-r border-[#E5E7EB] bg-zinc-50 overflow-y-auto">
-            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Selecione os Produtos</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {products.filter(p => p.status !== 'OUT_OF_STOCK').map(product => (
-                <button
-                  key={product.id}
-                  type="button"
-                  onClick={() => addToCart(product)}
-                  className="bg-white p-3 border border-[#E5E7EB] rounded-sm flex items-center gap-3 hover:border-primary transition-colors text-left active:scale-[0.98]"
-                >
-                  {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="size-12 rounded bg-zinc-100 object-cover" />
-                  ) : (
-                    <div className="size-12 rounded bg-zinc-100 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-zinc-400">fastfood</span>
+          <div className="flex-1 p-6 border-r border-[#E5E7EB] bg-zinc-50 flex flex-col h-full min-h-0 overflow-hidden">
+            <div className="flex justify-between items-center mb-4 shrink-0">
+              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Selecione os Produtos</h4>
+            </div>
+
+            {/* Filtro de Pesquisa */}
+            <div className="relative mb-4 shrink-0">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="BUSCAR PRODUTO..."
+                className="w-full h-10 pl-10 pr-4 bg-white border border-[#E5E7EB] rounded-sm text-xs font-bold focus:border-primary outline-none transition-colors uppercase tracking-widest placeholder:text-zinc-400"
+              />
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-base">search</span>
+            </div>
+
+            <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2 pr-1 custom-scrollbar">
+              {products
+                .filter(p => p.status !== 'OUT_OF_STOCK')
+                .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(product => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => addToCart(product)}
+                    className="bg-white p-3 border border-[#E5E7EB] rounded-sm flex items-center gap-3 hover:border-primary transition-colors text-left active:scale-[0.98] h-20 shrink-0"
+                  >
+                    {product.imageUrl ? (
+                      <img src={product.imageUrl} alt={product.name} className="size-12 rounded bg-zinc-100 object-cover" />
+                    ) : (
+                      <div className="size-12 rounded bg-zinc-100 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-zinc-400">fastfood</span>
+                      </div>
+                    )}
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-xs font-bold text-secondary truncate">{product.name}</p>
+                      <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">{product.price.toLocaleString()} Kz</p>
                     </div>
-                  )}
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-xs font-bold text-secondary truncate">{product.name}</p>
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">{product.price.toLocaleString()} Kz</p>
-                  </div>
-                  <span className="material-symbols-outlined text-zinc-300">add_circle</span>
-                </button>
-              ))}
+                    <span className="material-symbols-outlined text-zinc-300">add_circle</span>
+                  </button>
+                ))}
             </div>
           </div>
 
