@@ -920,7 +920,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-auto">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full lg:w-auto">
             {activeTab === 'FILA' && (
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full lg:w-auto">
                 {/* Indicadores Lado a Lado - COMMAND Style */}
@@ -975,20 +975,14 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                     <span className="material-symbols-outlined text-lg">add_circle</span>
                     NOVO PEDIDO
                   </button>
-
-                  <button
-                    onClick={() => setIsProfileModalOpen(true)}
-                    className="lg:hidden h-12 w-12 bg-white border border-[#E5E7EB] rounded-sm flex items-center justify-center text-secondary hover:text-primary transition-all active:scale-95 shrink-0"
-                    title="Configurações do Perfil"
-                  >
-                    <span className="material-symbols-outlined text-lg">settings</span>
-                  </button>
                 </div>
               </div>
             )}
+            
+            {/* Botão de Configurações do Perfil - Canto Superior Direito Fixo */}
             <button
               onClick={() => setIsProfileModalOpen(true)}
-              className="hidden lg:flex bg-white size-12 rounded-sm border border-[#E5E7EB] items-center justify-center text-secondary hover:text-primary transition-all ml-auto shrink-0"
+              className="bg-white h-12 w-12 rounded-sm border border-[#E5E7EB] flex items-center justify-center text-secondary hover:text-primary transition-all shrink-0 ml-auto lg:ml-0"
               title="Configurações do Perfil"
             >
               <span className="material-symbols-outlined text-lg">settings</span>
