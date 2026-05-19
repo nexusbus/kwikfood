@@ -909,18 +909,28 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
         className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-12 relative custom-scrollbar bg-[#FCFAFA]"
       >
         <header className="mb-6 lg:mb-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10 animate-fade-in no-print border-b border-[#E5E7EB] pb-6">
-          <div className="flex items-center gap-4 w-full">
-            <div className="lg:hidden flex items-center gap-2">
-               <Logo variant="icon" size={24} color="primary" />
-               <h1 className="text-lg font-black tracking-tight text-primary uppercase">KWIKFOOD</h1>
+          <div className="flex items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="lg:hidden flex items-center gap-2">
+                 <Logo variant="icon" size={24} color="primary" />
+                 <h1 className="text-lg font-black tracking-tight text-primary uppercase">KWIKFOOD</h1>
+              </div>
+              <div className="flex-1">
+                <h2 className="font-black tracking-tight text-secondary text-2xl lg:text-3xl">Olá, {company.ownerName || 'Gestor'}</h2>
+                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{new Date().toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              </div>
             </div>
-            <div className="flex-1">
-              <h2 className="font-black tracking-tight text-secondary text-2xl lg:text-3xl">Olá, {company.ownerName || 'Gestor'}</h2>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{new Date().toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
-            </div>
+            
+            <button
+              onClick={() => setIsProfileModalOpen(true)}
+              className="bg-white size-12 rounded-sm border border-[#E5E7EB] flex items-center justify-center text-secondary hover:text-primary transition-all active:scale-95 shrink-0"
+              title="Configurações do Perfil"
+            >
+              <span className="material-symbols-outlined text-lg">settings</span>
+            </button>
           </div>
 
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full lg:w-auto">
+          <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-auto">
             {activeTab === 'FILA' && (
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 w-full lg:w-auto">
                 {/* Indicadores Lado a Lado - COMMAND Style */}
@@ -978,15 +988,6 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                 </div>
               </div>
             )}
-            
-            {/* Botão de Configurações do Perfil - Canto Superior Direito Fixo */}
-            <button
-              onClick={() => setIsProfileModalOpen(true)}
-              className="bg-white h-12 w-12 rounded-sm border border-[#E5E7EB] flex items-center justify-center text-secondary hover:text-primary transition-all shrink-0 ml-auto lg:ml-0"
-              title="Configurações do Perfil"
-            >
-              <span className="material-symbols-outlined text-lg">settings</span>
-            </button>
           </div>
         </header>
 

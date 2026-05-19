@@ -122,13 +122,13 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({
 
         <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row">
           {/* Menu Selection */}
-          <div className="flex-1 p-6 border-r border-[#E5E7EB] bg-zinc-50 flex flex-col h-full min-h-0 overflow-hidden">
-            <div className="flex justify-between items-center mb-4 shrink-0">
+          <div className="flex-1 p-6 border-r border-[#E5E7EB] bg-zinc-50">
+            <div className="flex justify-between items-center mb-4">
               <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Selecione os Produtos</h4>
             </div>
 
             {/* Filtro de Pesquisa */}
-            <div className="relative mb-4 shrink-0">
+            <div className="relative mb-4">
               <input
                 type="text"
                 value={searchQuery}
@@ -139,7 +139,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-base">search</span>
             </div>
 
-            <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2 pr-1 custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2">
               {products
                 .filter(p => p.status !== 'OUT_OF_STOCK')
                 .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -148,7 +148,7 @@ export const ManualOrderModal: React.FC<ManualOrderModalProps> = ({
                     key={product.id}
                     type="button"
                     onClick={() => addToCart(product)}
-                    className="bg-white p-3 border border-[#E5E7EB] rounded-sm flex items-center gap-3 hover:border-primary transition-colors text-left active:scale-[0.98] h-20 shrink-0"
+                    className="bg-white p-3 border border-[#E5E7EB] rounded-sm flex items-center gap-3 hover:border-primary transition-colors text-left active:scale-[0.98] h-20"
                   >
                     {product.imageUrl ? (
                       <img src={product.imageUrl} alt={product.name} className="size-12 rounded bg-zinc-100 object-cover" />
