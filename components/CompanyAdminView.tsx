@@ -4,7 +4,9 @@ import { fetchProducts } from '../constants';
 import { supabase } from '../src/lib/supabase';
 import { sendSMS } from '../src/services/smsService';
 import { sendTelegramMessage, formatOrderNotification } from '../src/services/telegramService';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import Logo from './Logo';
+import { ManualOrderModal } from './ManualOrderModal';
 
 interface CompanyAdminViewProps {
   company: Company;
@@ -50,6 +52,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [showQRModal, setShowQRModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [isKitchenMonitor, setIsKitchenMonitor] = useState(false);
+  const [showManualOrderModal, setShowManualOrderModal] = useState(false);
 
   // Form state
   const [pName, setPName] = useState('');
@@ -972,6 +975,14 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                   />
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">search</span>
                 </div>
+
+                <button
+                  onClick={() => setShowManualOrderModal(true)}
+                  className="w-full lg:w-auto h-12 px-6 bg-primary text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-[#BE123C] transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-lg">add_circle</span>
+                  NOVO PEDIDO
+                </button>
               </div>
             )}
             <button
@@ -2573,6 +2584,16 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           </div>
         </div>
       )}
+
+      <ManualOrderModal
+        isOpen={showManualOrderModal}
+        onClose={() => setShowManualOrderModal(false)}
+        company={company}
+        products={products}
+        onOrderCreated={() => {
+          loadData();
+        }}
+      />
 
     </div>
   );
