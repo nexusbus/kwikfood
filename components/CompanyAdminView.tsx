@@ -91,6 +91,7 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
   const [isMarketingUnlocked, setIsMarketingUnlocked] = useState(false);
   const [marketingAuthError, setMarketingAuthError] = useState(false);
   const [smsCount, setSmsCount] = useState(0);
+  const [selectedProofUrl, setSelectedProofUrl] = useState<string | null>(null);
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
@@ -1020,12 +1021,12 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           {activeTab === 'FILA' ? (
             <div className="space-y-12 animate-fade-in">
               {filteredOrders.length === 0 ? (
-                <div className="bg-white rounded-none p-40 text-center border-2 border-dashed border-border/60 animate-scale-in">
+                <div className="bg-white rounded-none p-10 sm:p-20 lg:p-40 text-center border-2 border-dashed border-border/60 animate-scale-in">
                   <div className="size-32 bg-background rounded-full flex items-center justify-center mx-auto mb-10 text-border">
                     <span className="material-symbols-outlined text-6xl">restaurant</span>
                   </div>
-                  <h3 className="text-3xl font-black text-border uppercase tracking-[0.3em]">Nenhum pedido encontrado</h3>
-                  <p className="text-text-muted mt-4 font-medium text-lg">Tente um termo de pesquisa diferente ou aguarde novos pedidos.</p>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-border uppercase tracking-[0.2em] md:tracking-[0.3em] leading-tight">Nenhum pedido entrado</h3>
+                  <p className="text-text-muted mt-2 sm:mt-4 font-medium text-sm sm:text-base md:text-lg">Tente um termo de pesquisa diferente ou aguarde novos pedidos.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
@@ -1084,15 +1085,27 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
                               </p>
                             )}
                             {order.deliveryCoords && (
-                              <a
-                                href={`https://www.google.com/maps?q=${order.deliveryCoords.lat},${order.deliveryCoords.lng}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-primary rounded-xl text-[10px] font-black uppercase tracking-widest border border-primary/20 hover:bg-primary/5 transition-all shadow-sm"
-                              >
-                                <span className="material-symbols-outlined text-base">map</span>
-                                VER NO MAPA
-                              </a>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <a
+                                  href={`https://www.google.com/maps?q=${order.deliveryCoords.lat},${order.deliveryCoords.lng}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-white text-primary rounded-xl text-[10px] font-black uppercase tracking-widest border border-primary/20 hover:bg-primary/5 transition-all shadow-sm"
+                                >
+                                  <span className="material-symbols-outlined text-base">map</span>
+                                  VER NO MAPA
+                                </a>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(`https://www.google.com/maps?q=${order.deliveryCoords?.lat},${order.deliveryCoords?.lng}`);
+                                    alert('Link de localização copiado com sucesso!');
+                                  }}
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-white text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-200 hover:bg-emerald-50 transition-all shadow-sm"
+                                >
+                                  <span className="material-symbols-outlined text-base">content_copy</span>
+                                  COPIAR LINK
+                                </button>
+                              </div>
                             )}
                           </div>
                         )}
@@ -1100,15 +1113,13 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
 
                       {order.paymentMethod === 'TRANSFER' && order.paymentProofUrl && (
                         <div className="mb-6">
-                          <a
-                            href={order.paymentProofUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full flex items-center justify-center gap-2 h-12 bg-blue-50 text-blue-600 rounded-none font-black text-[10px] uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
+                          <button
+                            onClick={() => setSelectedProofUrl(order.paymentProofUrl || null)}
+                            className="w-full flex items-center justify-center gap-2 h-12 bg-blue-50 text-blue-600 rounded-none font-black text-[10px] uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all active:scale-[0.98]"
                           >
-                            <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
+                            <span className="material-symbols-outlined text-lg">image</span>
                             VER COMPROVATIVO
-                          </a>
+                          </button>
                         </div>
                       )}
 
@@ -2533,7 +2544,37 @@ const CompanyAdminView: React.FC<CompanyAdminViewProps> = ({ company, onLogout }
           </div>
         </div>
       )}
-    </div >
+      {/* Modal de Comprovativo de Pagamento */}
+      {selectedProofUrl && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 sm:p-6 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-sm w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden flex flex-col max-h-[90vh]">
+            <header className="px-6 py-4 border-b border-[#E5E7EB] flex justify-between items-center bg-[#FCFAFA] sticky top-0 z-10">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">receipt_long</span>
+                <h3 className="text-[13px] font-black text-secondary uppercase tracking-[0.2em]">Comprovativo de Transferência</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedProofUrl(null)}
+                className="w-10 h-10 flex items-center justify-center rounded-sm bg-white border border-[#E5E7EB] hover:border-primary hover:text-primary transition-all shadow-sm"
+              >
+                <span className="material-symbols-outlined text-lg text-zinc-500">close</span>
+              </button>
+            </header>
+            <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center bg-zinc-50">
+              <img src={selectedProofUrl} alt="Comprovativo de Pagamento" className="max-w-full max-h-[70vh] object-contain rounded-sm border border-[#E5E7EB] shadow-sm" />
+            </div>
+            <div className="p-4 border-t border-[#E5E7EB] bg-white flex justify-end">
+              <a href={selectedProofUrl} target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-secondary text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                Abrir Imagem Original
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
   );
 };
 
